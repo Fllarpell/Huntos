@@ -85,7 +85,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - uses: sigstore/cosign-installer@v3.7.0
+      - uses: sigstore/cosign-installer@v3.10.1
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.push.outputs.digest != ''
 
       - name: cosign-keyless
