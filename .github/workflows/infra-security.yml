@@ -33,13 +33,13 @@ jobs:
             infra/backup/backup.sh infra/backup/restore-drill.sh
 
       - name: hadolint
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.5.0
         with:
           dockerfile: backend/Dockerfile
           failure-threshold: warning
 
       - name: hadolint-frontend
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.5.0
         with:
           dockerfile: frontend/Dockerfile
           failure-threshold: warning
