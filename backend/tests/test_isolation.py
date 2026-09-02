@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
@@ -18,11 +19,23 @@ def _register(client: TestClient, email: str) -> tuple[dict, dict[str, str]]:
     return resp.json(), _session(resp)
 
 
-def test_users_are_isolated_and_host_can_inspect(client: TestClient) -> None:
+def test_users_are_isolated_and_host_can_inspect(
+    client: TestClient, test_db_path: Path
+) -> None:
     suffix = uuid4().hex[:8]
     host, host_c = _register(client, f"host-{suffix}@hunt.test")
-    guest, guest_c = _register(client, f"guest-{suffix}@hunt.test")
+    if not host["is_host"]:
+        # Earlier tests (cookies) already created the first account.
+        import sqlite3
+
+        con = sqlite3.connect(test_db_path)
+        con.execute("UPDATE users SET is_host = 0")
+        con.execute("UPDATE users SET is_host = 1 WHERE id = ?", (host["id"],))
+        con.commit()
+        con.close()
+        host = client.get("/api/auth/me", cookies=host_c).json()
     assert host["is_host"] is True
+    guest, guest_c = _register(client, f"guest-{suffix}@hunt.test")
     assert guest["is_host"] is False
     assert guest["can_observe"] is False
 

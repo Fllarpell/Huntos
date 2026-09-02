@@ -299,7 +299,7 @@ export function VacancyDrawer({
   const gradeOptions = useMemo(() => {
     const extra = draft?.grade && !LEVELS.some((l) => l.value === draft.grade) ? [{ value: draft.grade, label: draft.grade }] : [];
     return extra.concat([...LEVELS]);
-  }, [draft?.grade]);
+  }, [draft]);
 
   const formatOptions = useMemo(() => {
     const extra =
@@ -307,7 +307,7 @@ export function VacancyDrawer({
         ? [{ value: draft.work_format, label: draft.work_format }]
         : [];
     return extra.concat([...FORMATS]);
-  }, [draft?.work_format]);
+  }, [draft]);
 
   if (!vacancy || !draft) {
     return (
