@@ -1,11 +1,11 @@
-FROM python:3.13-slim-bookworm AS builder
+FROM python:3.14-slim-bookworm AS builder
 
 WORKDIR /build
 RUN adduser --disabled-password --gecos "" --uid 65532 --home /nonexistent --shell /usr/sbin/nologin app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-FROM python:3.13-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 # python:slim still has a package manager; drop it from the runtime? No —
 # distroless cannot run uvicorn with CPython extensions (bcrypt) without a
