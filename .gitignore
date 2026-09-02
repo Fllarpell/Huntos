@@ -13,6 +13,8 @@ backend/data/
 *.db
 *.sqlite
 *.sqlite3
+*.sqlite-shm
+*.sqlite-wal
 uploads/
 
 # Env / secrets
