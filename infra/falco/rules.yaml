@@ -1,0 +1,19 @@
+- rule: Backend spawned a shell
+  desc: FastAPI/worker images have no reason to exec sh/bash. RCE or debug leftover.
+  condition: >
+    spawned_process and
+    (container.name contains "backend" or container.name contains "worker") and
+    proc.name in (bash, sh, ash, dash)
+  output: "shell in app container (container=%container.name user=%user.name cmd=%proc.cmdline)"
+  priority: WARNING
+  tags: [container, mitre_execution]
+
+- rule: Backend unexpected egress binary
+  desc: curl/wget inside the API container is not the scraper (that's httpx). Treat as C2.
+  condition: >
+    spawned_process and
+    container.name contains "backend" and
+    proc.name in (curl, wget, nc, ncat)
+  output: "egress binary in backend (cmd=%proc.cmdline)"
+  priority: WARNING
+  tags: [container, mitre_command_and_control]

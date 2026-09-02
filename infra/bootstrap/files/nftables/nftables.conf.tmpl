@@ -1,0 +1,54 @@
+#!/usr/sbin/nft -f
+# Rendered to /etc/nftables.conf by 05-nftables.sh.
+# Placeholders: __PUBLIC_IFACE__ __WG_IFACE__ __WG_PORT__ __SSH_PORT__ __LOCKDOWN__
+
+flush ruleset
+
+table inet filter {
+  set crowdsec_blocklist {
+    type ipv4_addr
+    flags timeout
+    comment "populated by crowdsec-firewall-bouncer"
+  }
+
+  chain input {
+    type filter hook input priority filter; policy drop;
+
+    iif lo accept
+    ct state established,related accept
+    ct state invalid drop
+
+    ip saddr @crowdsec_blocklist drop
+
+    # ICMP: echo + fragmentation needed only. No timestamp, no mask.
+    ip protocol icmp icmp type { echo-request, destination-unreachable, time-exceeded } accept
+    ip6 nexthdr ipv6-icmp icmpv6 type { echo-request, destination-unreachable, packet-too-big, time-exceeded, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
+
+    # WireGuard on the public NIC only. Handshake packets are unauthenticated
+    # crypto; rate-limit to blunt CPU burn from junk UDP.
+    iifname "__PUBLIC_IFACE__" udp dport __WG_PORT__ limit rate 50/second burst 100 packets accept
+
+    # HTTP(S) on public NIC. Origin is expected behind Cloudflare; nftables
+    # does not try to pin CF IPv4 (list churn). Authenticated Origin Pulls
+    # belong in nginx, not here.
+    iifname "__PUBLIC_IFACE__" tcp dport { 80, 443 } ct state new accept
+
+    # SSH: lockdown=0 -> public SSH_PORT (key-only). lockdown=1 -> WG only.
+    __SSH_RULE__
+
+    # Drop the rest loudly enough for auditd/ulogd later; counters are enough now.
+    counter drop
+  }
+
+  chain forward {
+    type filter hook forward priority filter; policy accept;
+    # Docker-ce programs iptables-nft FORWARD for published ports. policy drop
+    # here blackholes :80/:443 DNAT. East-west isolation is compose
+    # `internal: true` on data/obs, not this hook.
+    ct state invalid drop
+  }
+
+  chain output {
+    type filter hook output priority filter; policy accept;
+  }
+}

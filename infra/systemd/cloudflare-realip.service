@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh Cloudflare IP prefixes for nginx real_ip
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/work_finding/infra/edge/nginx
+ExecStart=/opt/work_finding/infra/edge/nginx/fetch-cloudflare-ips.sh
+ExecStartPost=-/usr/bin/docker compose -f /opt/work_finding/infra/compose/compose.yaml --profile edge kill -s HUP nginx

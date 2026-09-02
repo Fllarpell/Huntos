@@ -1,0 +1,63 @@
+name: infra-security
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - "backend/Dockerfile"
+      - "frontend/Dockerfile"
+      - ".github/workflows/infra-security.yml"
+      - ".sops.yaml"
+  push:
+    paths:
+      - "infra/**"
+      - "backend/Dockerfile"
+      - "frontend/Dockerfile"
+      - ".github/workflows/infra-security.yml"
+
+jobs:
+  scanners:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends shellcheck
+          shellcheck -x infra/bootstrap/*.sh infra/bootstrap/lib/common.sh \
+            infra/compose/gen-secrets.sh infra/edge/nginx/fetch-cloudflare-ips.sh \
+            infra/cloud-init/render.sh infra/secrets/init-age.sh \
+            infra/backup/backup.sh infra/backup/restore-drill.sh
+
+      - name: hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: backend/Dockerfile
+          failure-threshold: warning
+
+      - name: hadolint-frontend
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: frontend/Dockerfile
+          failure-threshold: warning
+
+      - name: checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra
+          framework: dockerfile,github_actions,yaml
+          soft_fail: true
+          quiet: true
+
+      - name: trivy-fs
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+          skip-dirs: backend/.venv,frontend/node_modules,frontend/.next

@@ -1,0 +1,134 @@
+groups:
+  - name: golden.signals
+    rules:
+      - alert: InstanceDown
+        expr: up{job=~"node|postgres|cadvisor|redis"} == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "scrape target {{ $labels.job }} down"
+
+      - alert: BackendDown
+        expr: up{job="backend"} == 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: "API process is not being scraped"
+
+      - alert: WorkerDown
+        expr: up{job="worker"} == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "worker metrics endpoint down — scheduler/Telethon likely dead"
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: "postgres_exporter cannot reach postgres"
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: "redis_exporter cannot reach redis — jobstore is gone"
+
+      - alert: HostDiskFilling
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes) < 0.15
+        for: 15m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "{{ $labels.mountpoint }} has <15% free"
+
+      - alert: HostDiskCritical
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes) < 0.08
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "{{ $labels.mountpoint }} has <8% free — log/WAL death spiral"
+
+      - alert: ContainerOOM
+        expr: increase(container_oom_events_total[15m]) > 0
+        labels:
+          severity: page
+        annotations:
+          summary: "cgroup OOM on {{ $labels.name }}"
+
+  - name: slo.http
+    rules:
+      # 99.5% availability. Fast burn: 14.4x budget (~2% of 30d budget in 1h).
+      # status is grouped 2xx/4xx/5xx by the instrumentator.
+      - alert: ErrorBudgetBurnFast
+        expr: |
+          (
+            (sum(rate(http_requests_total{job="backend",status="5xx"}[5m])) or vector(0))
+            / clamp_min(sum(rate(http_requests_total{job="backend"}[5m])), 1e-6)
+          ) > (14.4 * 0.005)
+          and sum(rate(http_requests_total{job="backend"}[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "HTTP 5xx burn {{ $value | humanizePercentage }} (SLO 99.5%)"
+
+      - alert: ErrorBudgetBurnSlow
+        expr: |
+          (
+            (sum(rate(http_requests_total{job="backend",status="5xx"}[1h])) or vector(0))
+            / clamp_min(sum(rate(http_requests_total{job="backend"}[1h])), 1e-6)
+          ) > (6 * 0.005)
+          and sum(rate(http_requests_total{job="backend"}[1h])) > 0.01
+        for: 15m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "HTTP 5xx slow burn {{ $value | humanizePercentage }}"
+
+      - alert: ApiLatencyP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_highr_seconds_bucket{job="backend"}[5m])) by (le)
+          ) > 2
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "API p95 latency {{ $value }}s"
+
+  - name: app.jobs
+    rules:
+      - alert: ScraperFailing
+        expr: |
+          increase(wf_scraper_runs_total{status="error"}[30m]) > 3
+        for: 5m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "scraper errors in the last 30m"
+
+      - alert: TelegramParseFailing
+        expr: increase(wf_telegram_parse_total{status="error"}[1h]) > 2
+        for: 10m
+        labels:
+          severity: ticket
+        annotations:
+          summary: "telegram parse errors"
+
+      - alert: SchedulerSilent
+        expr: wf_scheduler_running{job="worker"} == 0
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "APScheduler is not marked running on the worker"

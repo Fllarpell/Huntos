@@ -1,0 +1,17 @@
+[Unit]
+Description=workfinding compose stack
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target wg-quick@wg0.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/work_finding/infra/compose
+Environment=GRAFANA_BIND=10.7.0.1
+ExecStart=/usr/bin/docker compose --profile data --profile app --profile edge --profile obs up -d
+ExecStop=/usr/bin/docker compose --profile data --profile app --profile edge --profile obs down --remove-orphans
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target

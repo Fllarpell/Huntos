@@ -1,0 +1,5 @@
+*.key
+*.crt
+*.pem
+!cloudflare-origin-pull-ca.pem
+!.gitkeep

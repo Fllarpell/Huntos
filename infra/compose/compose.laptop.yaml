@@ -1,0 +1,59 @@
+# Laptop overlay. Does not publish 0.0.0.0 and does not require wg0.
+#
+#   cd infra/compose
+#   ./gen-secrets.sh
+#   docker compose -f compose.yaml -f compose.laptop.yaml \
+#     --profile data --profile app --profile edge --profile obs up -d --build
+#
+# Origin self-signed: curl -k https://127.0.0.1:8443/
+# HTTP:        http://127.0.0.1:18080/  (8080 is often taken by other stacks)
+# Grafana:     http://127.0.0.1:3001/
+# Prometheus:  http://127.0.0.1:9090/
+# Jaeger:      http://127.0.0.1:16686/
+# Alertmanager:http://127.0.0.1:9093/
+# ntfy:        http://127.0.0.1:2586/workfinding-alerts
+# k6: BASE_URL=https://127.0.0.1:8443 k6 run --insecure-skip-tls-verify ../../k6/smoke.js
+
+services:
+  nginx:
+    ports: !override
+      - "127.0.0.1:18080:8080"
+      - "127.0.0.1:8443:8443"
+
+  grafana:
+    environment:
+      GF_SECURITY_COOKIE_SECURE: "false"
+    ports: !override
+      - "127.0.0.1:3001:3000"
+
+  prometheus:
+    ports: !override
+      - "127.0.0.1:9090:9090"
+
+  jaeger:
+    ports: !override
+      - "127.0.0.1:16686:16686"
+
+  alertmanager:
+    ports: !override
+      - "127.0.0.1:9093:9093"
+
+  ntfy:
+    environment:
+      NTFY_BASE_URL: http://127.0.0.1:2586
+    ports: !override
+      - "127.0.0.1:2586:80"
+
+  backend:
+    environment:
+      ALLOW_ORIGINS: "http://127.0.0.1:8080,http://localhost:8080,http://127.0.0.1:3000,http://localhost:3000"
+
+  node-exporter:
+    # Docker Desktop cannot bind / with rslave (Linux shared-subtree).
+    volumes: !override
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --web.listen-address=:9100

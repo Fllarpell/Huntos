@@ -1,0 +1,40 @@
+# Identity + time + network config. Not execve-of-everything (that is Falco).
+# Loaded via /etc/audit/rules.d/99-workfinding.rules
+
+-D
+-b 8192
+-f 1
+
+# Immutable after load would require reboot to add rules — skip -e 2 until
+# the rule set is proven. Uncomment after week-1 review:
+# -e 2
+
+-w /etc/passwd -p wa -k identity
+-w /etc/group -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+-w /etc/sudoers -p wa -k identity
+-w /etc/sudoers.d -p wa -k identity
+
+-w /etc/ssh/sshd_config -p wa -k sshd
+-w /etc/ssh/sshd_config.d -p wa -k sshd
+-w /etc/ssh/authorized_keys -p wa -k sshd
+
+-w /etc/nftables.conf -p wa -k netcfg
+-w /etc/wireguard -p wa -k netcfg
+-w /etc/sysctl.d -p wa -k sysctl
+-w /etc/sysctl.conf -p wa -k sysctl
+
+-w /etc/docker/daemon.json -p wa -k docker
+-w /usr/bin/docker -p x -k docker-bin
+-w /usr/bin/dockerd -p x -k docker-bin
+-w /usr/bin/containerd -p x -k docker-bin
+
+-w /var/run/utmp -p wa -k session
+-w /var/log/lastlog -p wa -k session
+-w /var/log/wtmp -p wa -k session
+-w /var/log/btmp -p wa -k session
+
+-a always,exit -F arch=b64 -S adjtimex,settimeofday,clock_settime -k time-change
+-a always,exit -F arch=b32 -S adjtimex,settimeofday,stime,clock_settime -k time-change
+-w /etc/chrony/chrony.conf -p wa -k time-change

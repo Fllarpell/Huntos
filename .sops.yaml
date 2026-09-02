@@ -1,0 +1,5 @@
+creation_rules:
+  - path_regex: infra/secrets/.*\.(yaml|yml|env)$
+    encrypted_regex: ".+"
+    # Replace with `age-keygen -y` of the operator key. Do not put the private key in git.
+    age: age150z285wjxrxznfsvsv8fg66dz349na0xlzjuns3gny7nwtr6fpqqjxm93y

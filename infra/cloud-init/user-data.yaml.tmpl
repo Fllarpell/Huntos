@@ -1,0 +1,50 @@
+#cloud-config
+# Rendered by infra/cloud-init/render.sh from bootstrap.env + this template.
+# Do not paste secrets into git. First boot runs as root; lockdown is NOT here
+# (needs a live WireGuard handshake).
+
+hostname: workfinding
+manage_etc_hosts: true
+package_update: true
+package_upgrade: true
+packages:
+  - git
+  - jq
+  - curl
+  - ca-certificates
+
+users:
+  - name: ${ADMIN_USER}
+    groups: [sudo]
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${ADMIN_SSH_PUBKEY}
+
+write_files:
+  - path: /root/bootstrap.env
+    permissions: "0600"
+    owner: root:root
+    content: |
+      ADMIN_USER=${ADMIN_USER}
+      ADMIN_SSH_PUBKEY="${ADMIN_SSH_PUBKEY}"
+      WG_CLIENT_PUBKEY=${WG_CLIENT_PUBKEY}
+      WG_CLIENT_ADDRESS=${WG_CLIENT_ADDRESS}
+      WG_ADDRESS=${WG_ADDRESS}
+      WG_PORT=${WG_PORT}
+      SSH_PORT=${SSH_PORT}
+      SSH_LOCKDOWN_PORT=${SSH_LOCKDOWN_PORT}
+      LOCKDOWN=0
+      ENABLE_CROWDSEC=${ENABLE_CROWDSEC}
+      ENABLE_DOCKER=${ENABLE_DOCKER}
+
+runcmd:
+  - |
+    set -euo pipefail
+    install -d -m 0755 /opt
+    if [[ ! -d /opt/work_finding/.git ]]; then
+      git clone --depth 1 --branch "${REPO_REF}" "${REPO_URL}" /opt/work_finding
+    fi
+    cp /root/bootstrap.env /opt/work_finding/infra/bootstrap/bootstrap.env
+    chmod 600 /opt/work_finding/infra/bootstrap/bootstrap.env
+    /opt/work_finding/infra/bootstrap/bootstrap.sh

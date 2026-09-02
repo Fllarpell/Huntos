@@ -1,0 +1,17 @@
+[Unit]
+Description=Falco with work_finding extra rules
+Documentation=file:///opt/workfinding/infra/falco/rules.yaml
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/falco --pidfile=/run/falco.pid \
+  -r /etc/falco/falco_rules.yaml \
+  -r /opt/workfinding/infra/falco/rules.yaml
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=1024
+
+[Install]
+WantedBy=multi-user.target

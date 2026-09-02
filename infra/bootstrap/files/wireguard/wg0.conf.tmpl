@@ -1,0 +1,12 @@
+[Interface]
+Address = __WG_ADDRESS__
+ListenPort = __WG_PORT__
+PrivateKey = __WG_PRIVATE_KEY__
+# 1420: IPv4 + UDP + WG overhead on a typical 1500 MTU VPS NIC. Avoids
+# Telethon/https fragmentation that looks like random TLS timeouts.
+MTU = 1420
+
+[Peer]
+PublicKey = __WG_CLIENT_PUBKEY__
+AllowedIPs = __WG_CLIENT_ADDRESS__
+# PersistentKeepalive is on the *client*. Server does not need it.

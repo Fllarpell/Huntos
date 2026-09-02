@@ -1,0 +1,31 @@
+{
+  "uid": "wf-logs",
+  "title": "work_finding logs",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "utc",
+  "refresh": "30s",
+  "tags": ["workfinding", "logs"],
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "logs",
+      "title": "Compose container logs",
+      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 0 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "enableLogDetails": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "range",
+          "expr": "{compose_project=\"workfinding\"}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+# userlist.txt is generated at deploy from SOPS. This file is a shape sample.
+# Format: "username" "scram-secret or md5-or-plaintext"
+# PgBouncer 1.21+ prefers SCRAM verifier, not plaintext.
+"jobcrm" "md5replace_at_deploy"
+"pgbouncer" "md5replace_at_deploy"

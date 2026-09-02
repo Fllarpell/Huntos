@@ -1,0 +1,641 @@
+# Compose v2. Compose is the orchestrator until replica count or multi-host
+# actually exists. Swarm/k8s would add a control plane SPOF we cannot staff.
+#
+#   ./gen-secrets.sh
+#   docker compose --profile data --profile app --profile edge --profile obs up -d --build
+#
+# Profiles:
+#   data  postgres + pgbouncer + redis + exporters
+#   app   backend (Postgres via pgbouncer) + worker + frontend
+#   edge  nginx 80/443
+#   obs   prometheus/loki/grafana/jaeger/alertmanager/ntfy on WG/loopback only
+name: workfinding
+
+x-harden: &harden
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  restart: unless-stopped
+  init: true
+
+networks:
+  edge:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.200.20.0/24
+  app:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.200.30.0/24
+  data:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.200.10.0/24
+  obs:
+    driver: bridge
+    # Must not be internal: Grafana/Prometheus/Jaeger/ntfy publish host ports
+    # (WG 10.7.0.1 or laptop 127.0.0.1). Internal blocks those bindings.
+    ipam:
+      config:
+        - subnet: 10.200.40.0/24
+
+volumes:
+  pgdata:
+  pgarchive:
+  backend_data:
+  redisdata:
+  prometheus_data:
+  loki_data:
+  grafana_data:
+  alertmanager_data:
+  ntfy_cache:
+
+secrets:
+  postgres_password:
+    file: ./generated/postgres_password
+  grafana_admin_password:
+    file: ./generated/grafana_admin_password
+
+services:
+  postgres:
+    <<: *harden
+    profiles: [data]
+    image: postgres:16.6-bookworm
+    user: postgres
+    environment:
+      POSTGRES_DB: jobcrm
+      POSTGRES_USER: jobcrm
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    secrets:
+      - postgres_password
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - hba_file=/etc/postgresql/pg_hba.conf
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - pgarchive:/var/lib/postgresql/archive
+      - ../postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ../postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /var/run/postgresql:uid=999,gid=999,mode=0755
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobcrm -d jobcrm"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      data:
+        ipv4_address: 10.200.10.10
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  pgbouncer:
+    <<: *harden
+    profiles: [data]
+    image: edoburu/pgbouncer:v1.23.1-p1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./generated/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+      - /var/log/pgbouncer:size=16m
+      - /var/run/pgbouncer:size=8m
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.25
+    pids_limit: 64
+    networks:
+      data:
+        ipv4_address: 10.200.10.20
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  postgres-exporter:
+    <<: *harden
+    profiles: [data]
+    image: prometheuscommunity/postgres-exporter:v0.16.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_URI: postgres:5432/jobcrm?sslmode=disable
+      DATA_SOURCE_USER: jobcrm
+      DATA_SOURCE_PASS_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.20
+    pids_limit: 32
+    networks:
+      - data
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  backend:
+    <<: *harden
+    profiles: [app]
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      APP_ENV: prod
+      APP_HOST: 0.0.0.0
+      APP_PORT: "8000"
+      APP_ROLE: api
+      ALLOW_ORIGINS: "${ALLOW_ORIGINS:-http://127.0.0.1:3000}"
+      REDIS_URL: redis://redis:6379/0
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_SERVICE_NAME: workfinding-api
+    env_file:
+      - path: ./generated/app.env
+        required: true
+    volumes:
+      - backend_data:/data
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/ready', timeout=2)",
+        ]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 40s
+    networks:
+      - app
+      - data
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  worker:
+    <<: *harden
+    profiles: [app]
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "app.worker"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      APP_ENV: prod
+      APP_ROLE: worker
+      REDIS_URL: redis://redis:6379/0
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_SERVICE_NAME: workfinding-worker
+      WF_METRICS_PORT: "9101"
+    env_file:
+      - path: ./generated/app.env
+        required: true
+    volumes:
+      - backend_data:/data
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    healthcheck:
+      disable: true
+    networks:
+      - app
+      - data
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    <<: *harden
+    profiles: [data]
+    image: redis:7.4.2-alpine
+    # Official entrypoint su-execs to redis; no-new-privileges + cap_drop ALL blocks it.
+    security_opt:
+      - no-new-privileges:false
+    cap_add:
+      - SETUID
+      - SETGID
+      - CHOWN
+    command:
+      - redis-server
+      - --save
+      - "60"
+      - "1"
+      - --maxmemory
+      - 64mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --protected-mode
+      - "no"
+      - --bind
+      - "0.0.0.0"
+    volumes:
+      - redisdata:/data
+    tmpfs:
+      - /tmp:size=8m
+    mem_limit: 96m
+    memswap_limit: 96m
+    cpus: 0.25
+    pids_limit: 64
+    networks:
+      data:
+        ipv4_address: 10.200.10.30
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  redis-exporter:
+    <<: *harden
+    profiles: [data]
+    image: oliver006/redis_exporter:v1.67.0
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    mem_limit: 32m
+    memswap_limit: 32m
+    cpus: 0.10
+    pids_limit: 32
+    networks:
+      - data
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  frontend:
+    <<: *harden
+    profiles: [app]
+    build:
+      context: ../..
+      dockerfile: frontend/Dockerfile
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.50
+    pids_limit: 128
+    networks:
+      - app
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nginx:
+    <<: *harden
+    profiles: [edge]
+    image: nginx:1.27.3-alpine
+    user: "0:0"
+    security_opt:
+      - no-new-privileges:false
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - FOWNER
+      - DAC_OVERRIDE
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    ports:
+      - "80:8080"
+      - "443:8443"
+    volumes:
+      - ../edge/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../edge/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../edge/nginx/snippets:/etc/nginx/snippets:ro
+      - ../edge/tls:/etc/nginx/tls:ro
+    tmpfs:
+      # Docker Desktop ignores uid= on tmpfs; 1777 works on Mac and Linux.
+      - /var/cache/nginx:mode=1777
+      - /var/run:mode=1777
+      - /tmp:mode=1777
+      - /var/log/nginx:mode=1777
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.50
+    pids_limit: 64
+    networks:
+      - edge
+      - app
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  node-exporter:
+    <<: *harden
+    profiles: [obs]
+    image: prom/node-exporter:v1.8.2
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host
+      - --web.listen-address=:9100
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro,rslave
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.20
+    pids_limit: 32
+    networks:
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  cadvisor:
+    <<: *harden
+    profiles: [obs]
+    image: gcr.io/cadvisor/cadvisor:v0.49.2
+    command:
+      - --listen_ip=0.0.0.0
+      - --port=8080
+      - --docker_only=true
+      - --housekeeping_interval=15s
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.30
+    pids_limit: 64
+    networks:
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  prometheus:
+    <<: *harden
+    profiles: [obs]
+    image: prom/prometheus:v3.1.0
+    user: nobody
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=2GB
+      - --web.listen-address=0.0.0.0:9090
+      - --web.enable-lifecycle
+    volumes:
+      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    tmpfs:
+      - /tmp:size=32m
+    ports:
+      - "${PROM_BIND:-10.7.0.1}:9090:9090"
+    mem_limit: 384m
+    memswap_limit: 384m
+    cpus: 0.50
+    pids_limit: 64
+    networks:
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  loki:
+    <<: *harden
+    profiles: [obs]
+    image: grafana/loki:3.3.2
+    user: "10001:10001"
+    command: ["-config.file=/etc/loki/loki.yml"]
+    volumes:
+      - ../monitoring/loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki_data:/loki
+    tmpfs:
+      - /tmp:size=32m
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.40
+    pids_limit: 64
+    networks:
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  promtail:
+    profiles: [obs]
+    image: grafana/promtail:3.3.2
+    user: root
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_READ_SEARCH
+    security_opt:
+      - no-new-privileges:true
+    command: ["-config.file=/etc/promtail/promtail.yml"]
+    volumes:
+      - ../monitoring/loki/promtail.yml:/etc/promtail/promtail.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.20
+    pids_limit: 64
+    networks:
+      - obs
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  grafana:
+    <<: *harden
+    profiles: [obs]
+    image: grafana/grafana:11.4.0
+    user: "472:472"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_HTTP_ADDR: 0.0.0.0
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_SECURITY_COOKIE_SECURE: "true"
+      GF_SECURITY_COOKIE_SAMESITE: strict
+      GF_INSTALL_PLUGINS: ""
+    secrets:
+      - grafana_admin_password
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    tmpfs:
+      - /tmp:size=32m
+    ports:
+      - "${GRAFANA_BIND:-10.7.0.1}:3001:3000"
+    mem_limit: 192m
+    memswap_limit: 192m
+    cpus: 0.40
+    pids_limit: 64
+    networks:
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  jaeger:
+    <<: *harden
+    profiles: [obs]
+    image: jaegertracing/all-in-one:1.70.0
+    # all-in-one writes pid/tmp outside /tmp and dies under a fully read-only root.
+    init: false
+    read_only: false
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      SPAN_STORAGE_TYPE: memory
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    ports:
+      - "${JAEGER_BIND:-10.7.0.1}:16686:16686"
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.40
+    pids_limit: 64
+    networks:
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  alertmanager:
+    <<: *harden
+    profiles: [obs]
+    image: prom/alertmanager:v0.27.0
+    user: nobody
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --web.listen-address=0.0.0.0:9093
+      - --cluster.listen-address=
+    volumes:
+      - ../monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    tmpfs:
+      - /tmp:size=16m
+    ports:
+      - "${AM_BIND:-10.7.0.1}:9093:9093"
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.20
+    pids_limit: 32
+    networks:
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  ntfy:
+    <<: *harden
+    profiles: [obs]
+    image: binwiederhier/ntfy:v2.11.0
+    command: ["serve"]
+    environment:
+      NTFY_BASE_URL: http://127.0.0.1:2586
+      NTFY_CACHE_FILE: /var/cache/ntfy/cache.db
+      NTFY_ATTACHMENT_CACHE_DIR: /var/cache/ntfy/attachments
+      NTFY_ENABLE_LOGIN: "false"
+      NTFY_BEHIND_PROXY: "false"
+    volumes:
+      - ntfy_cache:/var/cache/ntfy
+    tmpfs:
+      - /tmp:size=16m
+    ports:
+      - "${NTFY_BIND:-10.7.0.1}:2586:80"
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.15
+    pids_limit: 32
+    networks:
+      - obs
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"

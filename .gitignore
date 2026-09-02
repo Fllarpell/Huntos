@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# SQLite & uploads
+backend/data/
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/dist/
+
+infra/bootstrap/generated/
+infra/compose/generated/
+infra/edge/tls/*.key
+infra/edge/tls/*.crt
+infra/edge/tls/*.pem
+!infra/edge/tls/cloudflare-origin-pull-ca.pem
+infra/secrets/age.key
+infra/secrets/secrets.yaml
+infra/backup/restic.env
+infra/cloud-init/generated/
+*.agekey
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.log

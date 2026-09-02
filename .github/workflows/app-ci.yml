@@ -1,0 +1,52 @@
+name: app-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: deps
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: ruff
+        run: ruff check tests app/config.py app/main.py app/services/auth.py app/api/google.py
+      - name: pytest
+        run: pytest -q
+
+  frontend:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+
+  semgrep:
+    runs-on: ubuntu-24.04
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - name: semgrep
+        run: |
+          semgrep scan --error --metrics=off \
+            --config p/python --config p/owasp-top-ten \
+            --exclude backend/.venv --exclude frontend/node_modules \
+            backend/app

@@ -1,0 +1,264 @@
+{
+  "uid": "wf-golden",
+  "title": "work_finding golden signals",
+  "schemaVersion": 39,
+  "version": 3,
+  "timezone": "browser",
+  "refresh": "15s",
+  "tags": ["workfinding", "slo"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "HTTP request rate",
+      "description": "Health/ready/metrics are excluded. Idle API has no series until the first real request.",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "interval": "15s",
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "sum(rate(http_requests_total{job=\"backend\"}[5m]))",
+          "legendFormat": "rps"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "HTTP status class",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "interval": "15s",
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "sum by (status) (rate(http_requests_total{job=\"backend\"}[5m]))",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "API p95 latency",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "interval": "15s",
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_highr_seconds_bucket{job=\"backend\"}[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Availability (non-5xx)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "interval": "15s",
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0.95, "max": 1 }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "1 - ((sum(rate(http_requests_total{job=\"backend\",status=\"5xx\"}[5m])) or vector(0)) / clamp_min(sum(rate(http_requests_total{job=\"backend\"}[5m])), 1e-9))",
+          "legendFormat": "availability"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Scraper / telegram / scoring",
+      "description": "Labeled counters appear after the first worker run. Histogram count and scored stay at 0 until then.",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "interval": "15s",
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "sum by (status) (rate(wf_scraper_runs_total[15m]))",
+          "legendFormat": "scraper {{status}}"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "sum by (status) (rate(wf_telegram_parse_total[15m]))",
+          "legendFormat": "tg {{status}}"
+        },
+        {
+          "refId": "C",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "rate(wf_vacancies_scored_total[15m]) or vector(0)",
+          "legendFormat": "scored"
+        },
+        {
+          "refId": "D",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "wf_scheduler_jobs{job=\"worker\"}",
+          "legendFormat": "scheduled jobs"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Process / container memory",
+      "description": "cAdvisor on Docker Desktop only sees the LinuxKit VM (id=/), not compose names. RSS from exporters always works; container series appear on a real Linux host.",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "interval": "15s",
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "process_resident_memory_bytes{job=~\"backend|worker\"}",
+          "legendFormat": "{{job}} rss"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "container_memory_working_set_bytes{name=~\"workfinding-.*\"}",
+          "legendFormat": "{{name}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Postgres up / connections",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "interval": "15s",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "pg_up",
+          "legendFormat": "pg_up"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "pg_stat_database_numbackends{datname=\"jobcrm\"}",
+          "legendFormat": "backends"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Redis memory / clients",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "interval": "15s",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "redis_memory_used_bytes",
+          "legendFormat": "used"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "range": true,
+          "expr": "redis_connected_clients",
+          "legendFormat": "clients"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Scrape health",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "instant": true,
+          "expr": "up{job=\"backend\"}",
+          "legendFormat": "api"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "instant": true,
+          "expr": "up{job=\"worker\"}",
+          "legendFormat": "worker"
+        },
+        {
+          "refId": "C",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "instant": true,
+          "expr": "up{job=\"postgres\"}",
+          "legendFormat": "postgres"
+        },
+        {
+          "refId": "D",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "instant": true,
+          "expr": "up{job=\"redis\"}",
+          "legendFormat": "redis"
+        },
+        {
+          "refId": "E",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "instant": true,
+          "expr": "wf_scheduler_running{job=\"worker\"}",
+          "legendFormat": "scheduler"
+        }
+      ]
+    }
+  ]
+}

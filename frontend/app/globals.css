@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0b0c0e;
+  --bg-soft: #12141a;
+  --card: #16181f;
+  --card-hover: #1c1f28;
+  --line: #2a2d36;
+  --text: #eceef2;
+  --muted: #8b909d;
+  --accent: #7dd3c7;
+  --accent-dim: rgba(125, 211, 199, 0.12);
+  --danger: #f0a0a8;
+  --high: #5ee0a8;
+  --mid: #e7c36a;
+  --low: #f09aa4;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--bg-soft);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-inter);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100%;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2e313b transparent;
+}
+
+::selection {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+button,
+a,
+[role="button"] {
+  cursor: pointer;
+}
+
+input:not([type="checkbox"]):not([type="file"]),
+textarea,
+select {
+  background: #0e1015;
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  outline: none;
+  width: 100%;
+}
+
+input:not([type="checkbox"]):not([type="file"]):focus,
+textarea:focus,
+select:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b909d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+select option {
+  background: var(--bg-soft);
+  color: var(--text);
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.kbd {
+  font-size: 11px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 1px 6px;
+  color: var(--muted);
+  background: #101218;
+}
+
+input.password-mask {
+  -webkit-text-security: disc;
+}
+
+.field-line {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 10px 0;
+}
+
+.field-line:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: none;
+}
+
+.field-area {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.field-area:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}

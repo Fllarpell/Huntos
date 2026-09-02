@@ -1,0 +1,23 @@
+{
+  "icc": false,
+  "iptables": true,
+  "ip6tables": true,
+  "userland-proxy": false,
+  "live-restore": true,
+  "no-new-privileges": true,
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "default-ulimits": {
+    "nofile": {
+      "Name": "nofile",
+      "Hard": 65536,
+      "Soft": 65536
+    }
+  },
+  "features": {
+    "containerd-snapshotter": true
+  }
+}
