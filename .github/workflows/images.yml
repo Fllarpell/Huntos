@@ -26,10 +26,10 @@ jobs:
         include:
           - name: backend
             file: backend/Dockerfile
-            image: ghcr.io/${{ github.repository }}/backend
+            image: ghcr.io/fllarpell/huntos/backend
           - name: frontend
             file: frontend/Dockerfile
-            image: ghcr.io/${{ github.repository }}/frontend
+            image: ghcr.io/fllarpell/huntos/frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -53,7 +53,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: trivy-image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ matrix.image }}:ci
           severity: HIGH,CRITICAL
