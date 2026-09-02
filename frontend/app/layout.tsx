@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -14,7 +15,11 @@ export const metadata: Metadata = {
   description: "Smart job-hunting CRM",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: ReactNode;
+}>) {
   return (
     <html lang="ru" className={`${inter.variable} h-full dark`} suppressHydrationWarning>
       <body className="min-h-full bg-bg text-ink antialiased" suppressHydrationWarning>

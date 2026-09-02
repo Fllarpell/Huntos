@@ -97,9 +97,9 @@ def detect_source(url: str | None) -> tuple[str, str]:
     if hirehi:
         return "hirehi", hirehi.group(1)
     if text:
-        digest = hashlib.sha1(text.encode()).hexdigest()[:16]
+        digest = hashlib.sha256(text.encode()).hexdigest()[:16]
         return "clip", digest
-    return "clip", hashlib.sha1(b"empty").hexdigest()[:16]
+    return "clip", hashlib.sha256(b"empty").hexdigest()[:16]
 
 
 def _first_job_posting(node: object) -> dict | None:
