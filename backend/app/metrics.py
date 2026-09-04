@@ -31,6 +31,10 @@ scheduler_jobs = Gauge(
     "wf_scheduler_jobs",
     "Scheduled job count in this process",
 )
+scrape_queue_depth = Gauge(
+    "wf_scrape_queue_depth",
+    "Pending + running host crawl jobs",
+)
 
 # Labelled counters are omitted from /metrics until the first .inc().
 # Pre-create the statuses we emit so Grafana rate() is a zero line, not No data.

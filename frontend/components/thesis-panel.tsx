@@ -6,10 +6,13 @@ import { api } from "@/lib/api";
 import { useHunt } from "@/components/hunt-context";
 import type { NudgeOut, Thesis } from "@/lib/types";
 import { FilterChips, ToggleChip } from "@/components/filter-chips";
+import { GuideHint, GuideLabel, GuideSpot } from "@/components/guide";
+import { CompanyExcludeInput } from "@/components/company-exclude-input";
 import { FORMATS, LEVELS } from "@/lib/hirehi-filters";
 import { WaveDesk } from "@/components/wave-desk";
 import { NudgeQueue } from "@/components/nudge-queue";
 import { VacancyDrawer } from "@/components/vacancy-drawer";
+import { SalaryCorridorBlock } from "@/components/salary-corridor";
 import { relativeTime } from "@/lib/format";
 
 const EMPTY: Omit<Thesis, "id" | "last_verdict" | "last_reason" | "last_evaluated_at" | "stats" | "enabled"> = {
@@ -19,6 +22,7 @@ const EMPTY: Omit<Thesis, "id" | "last_verdict" | "last_reason" | "last_evaluate
   formats: [],
   salary_min: null,
   no_nda: false,
+  exclude_companies: [],
   days: 14,
   min_sample: 8,
   min_median_match: 55,
@@ -98,6 +102,7 @@ export function ThesisPanel() {
       formats: thesis.formats || [],
       salary_min: thesis.salary_min,
       no_nda: thesis.no_nda,
+      exclude_companies: thesis.exclude_companies || [],
       days: thesis.days,
       min_sample: thesis.min_sample,
       min_median_match: thesis.min_median_match,
@@ -131,12 +136,15 @@ export function ThesisPanel() {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <header className="flex shrink-0 items-center gap-6 px-7 pt-6 pb-4">
-        <div className="min-w-0">
-          <h1 className="text-[22px] font-semibold tracking-tight">Тезис</h1>
+        <GuideSpot id="thesis.header" className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-[22px] font-semibold tracking-tight">Тезис</h1>
+            <GuideHint id="thesis.header" />
+          </div>
           <p className="mt-0.5 text-[12px] text-muted">
             {items.length ? `${items.length} · гипотеза про сегмент` : "гипотеза: этот сегмент ещё жив"}
           </p>
-        </div>
+        </GuideSpot>
         <button
           type="button"
           onClick={() => {
@@ -173,7 +181,10 @@ export function ThesisPanel() {
       )}
 
       <div className="flex min-h-0 flex-1 border-t border-line">
-        <aside className="w-[280px] shrink-0 overflow-y-auto border-r border-line py-2">
+        <GuideSpot id="thesis.list" className="w-[280px] shrink-0 overflow-y-auto border-r border-line py-2">
+          <div className="flex justify-end px-3 pb-1">
+            <GuideHint id="thesis.list" />
+          </div>
           {items.length === 0 ? (
             <p className="px-5 py-6 text-[13px] text-muted">Пока нет тезиса</p>
           ) : (
@@ -205,7 +216,7 @@ export function ThesisPanel() {
               );
             })
           )}
-        </aside>
+        </GuideSpot>
 
         <section className="min-w-0 flex-1 overflow-y-auto px-10 py-6">
           {composer ? (
@@ -220,11 +231,13 @@ export function ThesisPanel() {
                 {editingId ? "Изменить тезис" : "Новый тезис"}
               </h2>
               <p className="mt-2 text-[13px] leading-5 text-muted">
-                Опиши сегмент, который проверяешь. Через пару недель Hunt скажет, есть ли там живые ответы. Волна — пачка вакансий из Inbox, которым пишешь разом.
+                Опиши сегмент, который проверяешь. Через пару недель HuntOS скажет, есть ли там живые ответы. Волна — пачка вакансий из Inbox, которым пишешь разом.
               </p>
               <div className="mt-8 space-y-6">
                 <label className="block">
-                  <span className="mb-2 block text-[11px] tracking-[0.16em] text-muted uppercase">Название</span>
+                  <GuideLabel id="thesis.name" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                    Название
+                  </GuideLabel>
                   <input
                     className="field-line"
                     value={form.name}
@@ -234,25 +247,33 @@ export function ThesisPanel() {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-[11px] tracking-[0.16em] text-muted uppercase">Запрос</span>
+                  <GuideLabel id="thesis.query" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                    Запрос
+                  </GuideLabel>
                   <input
                     className="field-line"
                     value={form.role_query}
                     onChange={(e) => patch("role_query", e.target.value)}
-                    placeholder="слова из роли, компании или описания"
+                    placeholder="go, frontend или слова из роли, компании, описания"
                   />
                 </label>
                 <fieldset>
-                  <legend className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">Грейд</legend>
+                  <GuideLabel id="thesis.grades" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                    Грейд
+                  </GuideLabel>
                   <FilterChips options={LEVELS} value={form.grades} onChange={(grades) => patch("grades", grades)} />
                 </fieldset>
                 <fieldset>
-                  <legend className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">Формат</legend>
+                  <GuideLabel id="thesis.formats" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                    Формат
+                  </GuideLabel>
                   <FilterChips options={FORMATS} value={form.formats} onChange={(formats) => patch("formats", formats)} />
                 </fieldset>
                 <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                   <label>
-                    <span className="mb-2 block text-[11px] tracking-[0.16em] text-muted uppercase">Мин. зп</span>
+                    <GuideLabel id="thesis.salary" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                      Мин. зп
+                    </GuideLabel>
                     <input
                       className="field-line"
                       type="number"
@@ -262,7 +283,9 @@ export function ThesisPanel() {
                     />
                   </label>
                   <label>
-                    <span className="mb-2 block text-[11px] tracking-[0.16em] text-muted uppercase">Ждать, дни</span>
+                    <GuideLabel id="thesis.days" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                      Ждать, дни
+                    </GuideLabel>
                     <input
                       className="field-line"
                       type="number"
@@ -271,7 +294,9 @@ export function ThesisPanel() {
                     />
                   </label>
                   <label>
-                    <span className="mb-2 block text-[11px] tracking-[0.16em] text-muted uppercase">Мин. вакансий</span>
+                    <GuideLabel id="thesis.min_sample" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                      Мин. вакансий
+                    </GuideLabel>
                     <input
                       className="field-line"
                       type="number"
@@ -280,7 +305,9 @@ export function ThesisPanel() {
                     />
                   </label>
                   <label>
-                    <span className="mb-2 block text-[11px] tracking-[0.16em] text-muted uppercase">Мин. совпадение</span>
+                    <GuideLabel id="thesis.match" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                      Мин. совпадение
+                    </GuideLabel>
                     <input
                       className="field-line"
                       type="number"
@@ -290,6 +317,20 @@ export function ThesisPanel() {
                   </label>
                 </div>
                 <ToggleChip label="без NDA" on={form.no_nda} onChange={(no_nda) => patch("no_nda", no_nda)} />
+                <label className="block">
+                  <GuideLabel id="thesis.exclude" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                    Кроме компаний
+                  </GuideLabel>
+                  <div className="field-line">
+                    <CompanyExcludeInput
+                      value={form.exclude_companies}
+                      onChange={(exclude_companies) => patch("exclude_companies", exclude_companies)}
+                    />
+                  </div>
+                  <span className="mt-2 block text-[12px] leading-5 text-muted">
+                    Яндекс, Yandex и «Яндекс.Такси» — одно имя. Enter или запятая.
+                  </span>
+                </label>
               </div>
               <div className="mt-8 flex items-center gap-5">
                 <button type="submit" className="text-[14px] text-accent">
@@ -316,8 +357,10 @@ export function ThesisPanel() {
             </div>
           ) : selected ? (
             <div className="mx-auto w-full max-w-[440px] pt-6">
+              <GuideSpot id="thesis.verdict">
               <p className={`text-[13px] ${verdictTone(selected.stats?.verdict ?? selected.last_verdict)}`}>
                 {verdictLabel(selected.stats?.verdict ?? selected.last_verdict)}
+                <GuideHint id="thesis.verdict" className="ml-1 inline-flex align-middle" />
               </p>
               <h2 className="mt-2 text-[26px] font-semibold tracking-tight">{selected.name}</h2>
               <p className="mt-3 text-[14px] leading-6 text-muted">
@@ -330,6 +373,11 @@ export function ThesisPanel() {
                 </p>
               )}
               {pingCount > 0 && <p className="mt-2 text-[13px] text-amber-200">пингануть: {pingCount}</p>}
+              {!!selected.exclude_companies?.length && (
+                <p className="mt-2 text-[13px] text-muted">
+                  кроме: {selected.exclude_companies.join(", ")}
+                </p>
+              )}
 
               {selected.stats && (
                 <>
@@ -352,6 +400,7 @@ export function ThesisPanel() {
                   <dl className="mt-6 divide-y divide-white/[0.06] border-y border-white/[0.06]">
                     {[
                       ["вакансий", String(selected.stats.sample)],
+                      ["в inbox", String(selected.stats.inbox ?? 0)],
                       ["типичное совпадение", selected.stats.median_match != null ? String(selected.stats.median_match) : "—"],
                       ["новых за сутки", String(selected.stats.fresh_24h)],
                       ["написал / ответили", `${selected.stats.outreach} / ${selected.stats.replies}`],
@@ -362,13 +411,20 @@ export function ThesisPanel() {
                       </div>
                     ))}
                   </dl>
+                    <GuideSpot id="thesis.corridor">
+                    <SalaryCorridorBlock huntId={selected.id} threshold={selected.salary_min} />
+                  </GuideSpot>
                 </>
               )}
+              </GuideSpot>
 
               <div className="mt-8 flex flex-wrap gap-5 text-[14px]">
+                <GuideSpot id="thesis.wave" className="inline-flex items-center gap-1">
                 <button type="button" className="text-accent" onClick={() => setWaveId(selected.id)}>
                   Волна
                 </button>
+                <GuideHint id="thesis.wave" />
+                </GuideSpot>
                 <button type="button" className="text-muted hover:text-white" onClick={() => startEdit(selected)}>
                   Изменить
                 </button>

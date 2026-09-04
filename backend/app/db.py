@@ -48,6 +48,11 @@ if settings.is_sqlite():
         cursor.execute("PRAGMA busy_timeout=60000")
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
+        dbapi_connection.create_function(
+            "unicode_lower",
+            1,
+            lambda value: "" if value is None else str(value).casefold(),
+        )
 
 
 SessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -107,6 +112,7 @@ def migrate_schema(sync_conn) -> None:  # noqa: ANN001
                 """
             )
         )
+        _add_column(sync_conn, "vacancies", "stack_ids JSON")
         sync_conn.execute(text("CREATE INDEX IF NOT EXISTS ix_vacancies_fingerprint ON vacancies (user_id, fingerprint)"))
         sync_conn.execute(text("CREATE INDEX IF NOT EXISTS ix_vacancies_duplicate_of_id ON vacancies (duplicate_of_id)"))
         inspector = inspect(sync_conn)
@@ -135,7 +141,9 @@ def migrate_schema(sync_conn) -> None:  # noqa: ANN001
 
     if "scraper_configs" in tables:
         _add_column(sync_conn, "scraper_configs", "user_id INTEGER")
+        _add_column(sync_conn, "scraper_configs", "query_key VARCHAR(64)")
         sync_conn.execute(text("CREATE INDEX IF NOT EXISTS ix_scraper_configs_user_id ON scraper_configs (user_id)"))
+        sync_conn.execute(text("CREATE INDEX IF NOT EXISTS ix_scraper_configs_query_key ON scraper_configs (query_key)"))
 
     if "scraper_runs" in tables:
         _add_column(sync_conn, "scraper_runs", "user_id INTEGER")
@@ -163,6 +171,7 @@ def migrate_schema(sync_conn) -> None:  # noqa: ANN001
     tables = set(inspector.get_table_names())
     if "hunt_theses" in tables:
         _add_column(sync_conn, "hunt_theses", "custom_fields JSON")
+        _add_column(sync_conn, "hunt_theses", "exclude_companies JSON")
         sync_conn.execute(
             text(
                 """
@@ -173,8 +182,13 @@ def migrate_schema(sync_conn) -> None:  # noqa: ANN001
                       AND user_profiles.custom_fields IS NOT NULL
                       AND user_profiles.custom_fields NOT IN ('[]', 'null', '')
                 )
-                WHERE custom_fields IS NULL
-                   OR custom_fields IN ('[]', 'null', '')
+                WHERE (custom_fields IS NULL OR custom_fields IN ('[]', 'null', ''))
+                  AND EXISTS (
+                    SELECT 1 FROM user_profiles
+                    WHERE user_profiles.user_id = hunt_theses.user_id
+                      AND user_profiles.custom_fields IS NOT NULL
+                      AND user_profiles.custom_fields NOT IN ('[]', 'null', '')
+                  )
                 """
             )
         )
@@ -204,14 +218,14 @@ def migrate_schema(sync_conn) -> None:  # noqa: ANN001
                     user_id,
                     id,
                     CASE
-                        WHEN next_step_kind IN ('screening', 'interview', 'offer_deadline')
+                        WHEN next_step_kind IN ('screening', 'interview', 'offer_deadline', 'assignment')
                         THEN next_step_kind
                         ELSE 'interview'
                     END,
                     next_step_at,
                     datetime(
                         next_step_at,
-                        CASE WHEN next_step_kind = 'offer_deadline' THEN '+30 minutes' ELSE '+60 minutes' END
+                        CASE WHEN next_step_kind IN ('offer_deadline', 'assignment') THEN '+30 minutes' ELSE '+60 minutes' END
                     ),
                     NULL,
                     google_event_id,
@@ -233,7 +247,7 @@ def migrate_schema(sync_conn) -> None:  # noqa: ANN001
                 UPDATE vacancy_events
                 SET ends_at = datetime(
                     starts_at,
-                    CASE WHEN kind = 'offer_deadline' THEN '+30 minutes' ELSE '+60 minutes' END
+                    CASE WHEN kind IN ('offer_deadline', 'assignment') THEN '+30 minutes' ELSE '+60 minutes' END
                 )
                 WHERE ends_at IS NULL AND starts_at IS NOT NULL
                 """
@@ -243,8 +257,42 @@ def migrate_schema(sync_conn) -> None:  # noqa: ANN001
     if "users" in tables:
         _add_column(sync_conn, "users", "is_host BOOLEAN DEFAULT 0 NOT NULL")
         _add_column(sync_conn, "users", "can_observe BOOLEAN DEFAULT 0 NOT NULL")
+        _add_column(sync_conn, "users", "google_sub VARCHAR(64)")
+        _add_column(sync_conn, "users", "last_seen_at DATETIME")
+        sync_conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_google_sub ON users (google_sub)"))
         has_host = sync_conn.execute(text("SELECT 1 FROM users WHERE is_host = 1 LIMIT 1")).fetchone()
         if has_host is None:
             first = sync_conn.execute(text("SELECT MIN(id) FROM users")).fetchone()
             if first and first[0] is not None:
                 sync_conn.execute(text("UPDATE users SET is_host = 1 WHERE id = :id"), {"id": first[0]})
+
+    inspector = inspect(sync_conn)
+    tables = set(inspector.get_table_names())
+    if "vacancies" in tables and "scraper_configs" in tables:
+        sync_conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS vacancy_searches (
+                    vacancy_id INTEGER NOT NULL,
+                    scraper_config_id INTEGER NOT NULL,
+                    PRIMARY KEY (vacancy_id, scraper_config_id)
+                )
+                """
+            )
+        )
+        sync_conn.execute(text("CREATE INDEX IF NOT EXISTS ix_vacancy_searches_config ON vacancy_searches (scraper_config_id)"))
+        sync_conn.execute(
+            text(
+                """
+                INSERT OR IGNORE INTO vacancy_searches (vacancy_id, scraper_config_id)
+                SELECT id, scraper_config_id FROM vacancies
+                WHERE scraper_config_id IS NOT NULL
+                """
+            )
+        )
+
+    inspector = inspect(sync_conn)
+    tables = set(inspector.get_table_names())
+    if "feedback_notes" in tables:
+        _add_column(sync_conn, "feedback_notes", "contact_name VARCHAR(128)")
+        _add_column(sync_conn, "feedback_notes", "reply_to VARCHAR(256)")

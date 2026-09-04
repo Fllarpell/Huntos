@@ -35,6 +35,33 @@ def _ident(name: str) -> str:
     return name
 
 
+def _reset_sequences(dst: Engine) -> None:
+    with dst.begin() as dconn:
+        rows = dconn.execute(
+            text(
+                """
+                SELECT c.table_name, pg_get_serial_sequence(
+                    format('%I.%I', c.table_schema, c.table_name), 'id'
+                ) AS seq
+                FROM information_schema.columns c
+                WHERE c.table_schema = 'public'
+                  AND c.column_name = 'id'
+                  AND c.table_name <> 'alembic_version'
+                """
+            )
+        )
+        for table_name, seq in rows:
+            if not seq:
+                continue
+            quoted = _ident(table_name)
+            dconn.execute(
+                text(
+                    f"SELECT setval(CAST(:seq AS regclass), COALESCE((SELECT MAX(id) FROM {quoted}), 1))"
+                ),
+                {"seq": seq},
+            )
+
+
 def copy_all(src: Engine, dst: Engine) -> dict[str, tuple[int, int]]:
     src_meta = MetaData()
     src_meta.reflect(bind=src)
@@ -46,8 +73,9 @@ def copy_all(src: Engine, dst: Engine) -> dict[str, tuple[int, int]]:
         with src.connect() as sconn:
             for table in src_meta.sorted_tables:
                 name = table.name
-                if name not in dst_meta.tables:
-                    print(f"skip {name} (not in dest)")
+                if name not in dst_meta.tables or name == "alembic_version":
+                    if name not in dst_meta.tables:
+                        print(f"skip {name} (not in dest)")
                     continue
                 rows = [dict(row._mapping) for row in sconn.execute(table.select())]
                 if rows:
@@ -58,30 +86,7 @@ def copy_all(src: Engine, dst: Engine) -> dict[str, tuple[int, int]]:
                 counts[name] = (int(n_src), int(n_dst))
                 print(f"{name}: src={n_src} dst={n_dst}")
         dconn.execute(text("SET session_replication_role = DEFAULT"))
-        seq_rows = dconn.execute(
-            text(
-                """
-                SELECT c.relname AS table_name
-                FROM pg_class c
-                JOIN pg_namespace n ON n.oid = c.relnamespace
-                WHERE n.nspname = 'public' AND c.relkind = 'r'
-                """
-            )
-        )
-        for (table_name,) in seq_rows:
-            quoted = _ident(table_name)
-            seq = dconn.execute(
-                text("SELECT pg_get_serial_sequence(:tbl, 'id')"),
-                {"tbl": quoted},
-            ).scalar_one_or_none()
-            if not seq:
-                continue
-            dconn.execute(
-                text(
-                    f"SELECT setval(CAST(:seq AS regclass), COALESCE((SELECT MAX(id) FROM {quoted}), 1))"
-                ),
-                {"seq": seq},
-            )
+    _reset_sequences(dst)
     return counts
 
 

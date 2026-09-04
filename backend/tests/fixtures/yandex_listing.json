@@ -1,0 +1,18 @@
+{
+  "count": 1,
+  "next": "http://femida.yandex-team.ru/_api/jobs/publications/?cursor=abc&page_size=20",
+  "results": [
+    {
+      "id": 15322,
+      "title": "Backend-разработчик",
+      "publication_slug_url": "backend-python-moscow",
+      "short_summary": "Пишем на Python и Go",
+      "public_service": {"name": "Яндекс"},
+      "vacancy": {
+        "cities": [{"id": 1, "name": "Москва"}],
+        "skills": [{"id": 34, "name": "Python"}],
+        "work_modes": [{"id": 3, "name": "Гибридный", "slug": "mixed"}]
+      }
+    }
+  ]
+}

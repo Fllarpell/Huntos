@@ -33,10 +33,8 @@ async def get_scope_user(
     x_hunt_as: str | None = Header(default=None, alias=AS_USER_HEADER),
 ) -> User:
     raw = (x_hunt_as or request.query_params.get("as_user") or "").strip()
-    if not raw:
+    if not raw or not can_view_others(actor):
         return actor
-    if not can_view_others(actor):
-        raise HTTPException(403, "Чужие данные недоступны")
     try:
         uid = int(raw)
     except ValueError as exc:
@@ -73,7 +71,7 @@ async def config_for_user(session: AsyncSession, user: User, config_id: int) -> 
 
 async def require_host(user: User = Depends(get_current_user)) -> User:
     if not user.is_host:
-        raise HTTPException(403, "Это может только хост")
+        raise HTTPException(404, "Не найдено")
     return user
 
 

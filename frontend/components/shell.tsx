@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Inbox, Kanban, Settings, Target, Users } from "lucide-react";
+import { CalendarDays, GraduationCap, Inbox, Kanban, Settings, Target, Trophy, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { GuideSpot, useGuide } from "@/components/guide";
+import { pageTourTitle } from "@/lib/guide";
 import { HuntSwitcher } from "@/components/hunt-switcher";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
+import { FeedbackButtons } from "@/components/feedback";
+import { ChatEntry } from "@/components/chat-panel";
 import { useHunt } from "@/components/hunt-context";
 import { useWorkspace } from "@/components/workspace-context";
 
@@ -15,6 +19,8 @@ const NAV = [
   { href: "/pipeline", label: "Воронка", icon: Kanban },
   { href: "/time", label: "Время", icon: CalendarDays },
   { href: "/contacts", label: "Контакты", icon: Users },
+  { href: "/internships", label: "Стажировки", icon: GraduationCap },
+  { href: "/hackathons", label: "Хакатоны", icon: Trophy },
   { href: "/thesis", label: "Тезис", icon: Target },
   { href: "/settings", label: "Настройки", icon: Settings },
 ];
@@ -23,6 +29,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { activeHuntId } = useHunt();
   const { me } = useWorkspace();
+  const guide = useGuide();
   const [inboxCount, setInboxCount] = useState<number | null>(null);
   const [nudgeCount, setNudgeCount] = useState<number | null>(null);
 
@@ -43,10 +50,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <aside className="sticky top-0 flex h-screen w-[220px] shrink-0 flex-col border-r border-line bg-bg-soft px-4 py-6">
         <div className="mb-10 px-2">
           <div className="text-[13px] tracking-[0.18em] text-muted uppercase">Job CRM</div>
-          <div className="mt-1 text-xl font-semibold tracking-tight">Hunt</div>
-          <HuntSwitcher />
+          <div className="mt-1 text-xl font-semibold tracking-tight">HuntOS</div>
+          <GuideSpot id="shell.hunt">
+            <HuntSwitcher />
+          </GuideSpot>
           <WorkspaceSwitcher />
         </div>
+        <GuideSpot id="shell.nav" className="flex min-h-0 flex-1 flex-col">
         <nav className="flex flex-1 flex-col gap-1">
           {NAV.map((item) => {
             const active = pathname === item.href;
@@ -75,17 +85,32 @@ export function Shell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="space-y-3 px-2">
+        </GuideSpot>
+        <div className="mt-4 border-t border-line px-2 pt-4">
+          <div className="space-y-2">
+            <ChatEntry />
+            <FeedbackButtons />
+            <GuideSpot id="shell.guide">
+              <button
+                type="button"
+                onClick={() => guide.startPage()}
+                className="block w-full text-left text-[13px] leading-5 text-muted hover:text-white"
+              >
+                Обучение
+                <span className="mt-0.5 block text-[12px] text-accent/80">{pageTourTitle(pathname)}</span>
+              </button>
+            </GuideSpot>
+          </div>
           {me && (
-            <div>
-              <p className="truncate text-[12px] text-muted">{me.email}</p>
+            <div className="mt-4 border-t border-white/[0.06] pt-4">
+              <p className="truncate text-[12px] leading-5 text-muted">{me.email}</p>
               <button
                 type="button"
                 onClick={async () => {
                   await api.logout();
                   window.location.href = "/login";
                 }}
-                className="mt-1 text-[13px] text-muted hover:text-white"
+                className="mt-2 text-[13px] text-muted hover:text-white"
               >
                 Выйти
               </button>

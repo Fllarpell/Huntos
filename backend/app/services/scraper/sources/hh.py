@@ -9,6 +9,7 @@ from app.services.company_icon import normalize_company_icon
 from app.services.scraper.salary import parse_salary
 from app.services.scraper.sources.hh_filters import HH_ORIGIN, listing_url_from_params, normalize_hh_params
 from app.services.scraper.sources.hirehi import strip_html
+from app.services.scraper.sources.it_job_gate import listing_is_it_job
 
 log = logging.getLogger(__name__)
 
@@ -16,6 +17,8 @@ STEALTH_ARGS = [
     "--disable-blink-features=AutomationControlled",
     "--disable-notifications",
     "--disable-dev-shm-usage",
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
 ]
 
 _SPLIT_REQUIRE = re.compile(r"требован", re.I)
@@ -273,6 +276,21 @@ class HhSource:
         self._playwright = None
         self._page = None
 
+    async def _scroll_listing(self) -> None:
+        """HH lazy-loads serp cards; without a scroll we only see the first viewport."""
+        assert self._page is not None
+        last = 0
+        for _ in range(16):
+            count = await self._page.evaluate(
+                """() => document.querySelectorAll('[data-qa="vacancy-serp__vacancy"], [data-qa="serp-item"]').length"""
+            )
+            if isinstance(count, int) and count > 0 and count <= last:
+                break
+            last = int(count or 0)
+            await self._page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
+            await asyncio.sleep(0.4)
+        await self._page.evaluate("() => window.scrollTo(0, 0)")
+
     def normalize(self, detail: dict, listing_item: dict | None = None) -> dict:
         return normalize_hh_job(detail, listing_item)
 
@@ -295,8 +313,13 @@ class HhSource:
             self._raise_if_blocked()
             raise RuntimeError("hh.ru не отдал выдачу. Включи «показать Chrome» в поиске или пройди капчу.") from exc
         await asyncio.sleep(0.8)
-        jobs = await self._page.evaluate(LISTING_JS)
-        has_next = bool(await self._page.query_selector('[data-qa="pager-next"]'))
+        await self._scroll_listing()
+        raw = await self._page.evaluate(LISTING_JS)
+        jobs = [job for job in raw if listing_is_it_job(job)]
+        pager = await self._page.query_selector(
+            '[data-qa="pager-next"], [data-qa="pager-page-next"], a[data-qa="pager-next"]'
+        )
+        has_next = bool(pager) or len(raw) >= limit
         return {"jobs": jobs[:limit], "has_more": has_next, "total_count": len(jobs)}
 
     async def detail(self, job_id: str | int, query_params: dict | None = None) -> dict:

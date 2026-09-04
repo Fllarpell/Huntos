@@ -24,8 +24,7 @@ def test_users_are_isolated_and_host_can_inspect(
 ) -> None:
     suffix = uuid4().hex[:8]
     host, host_c = _register(client, f"host-{suffix}@hunt.test")
-    if not host["is_host"]:
-        # Earlier tests (cookies) already created the first account.
+    if not host.get("is_host"):
         import sqlite3
 
         con = sqlite3.connect(test_db_path)
@@ -34,10 +33,13 @@ def test_users_are_isolated_and_host_can_inspect(
         con.commit()
         con.close()
         host = client.get("/api/auth/me", cookies=host_c).json()
-    assert host["is_host"] is True
+    assert host.get("is_host") is True
     guest, guest_c = _register(client, f"guest-{suffix}@hunt.test")
-    assert guest["is_host"] is False
-    assert guest["can_observe"] is False
+    assert "is_host" not in guest
+    assert "can_observe" not in guest
+    guest_me = client.get("/api/auth/me", cookies=guest_c).json()
+    assert "is_host" not in guest_me
+    assert "can_observe" not in guest_me
 
     created = client.post(
         "/api/vacancies",
@@ -63,12 +65,16 @@ def test_users_are_isolated_and_host_can_inspect(
     assert as_guest.status_code == 200
     assert guest_vacancy_id in {row["id"] for row in as_guest.json()["items"]}
 
-    forbidden_as = client.get(
+    ignored_as = client.get(
         "/api/vacancies",
         cookies=guest_c,
         headers={"X-Hunt-As": str(host["id"])},
     )
-    assert forbidden_as.status_code == 403
+    assert ignored_as.status_code == 200
+    assert guest_vacancy_id in {row["id"] for row in ignored_as.json()["items"]}
+    assert ignored_as.json()["items"][0]["id"] == guest_vacancy_id or guest_vacancy_id in {
+        row["id"] for row in ignored_as.json()["items"]
+    }
 
     guest_contacts = client.get("/api/contacts", cookies=guest_c)
     assert guest_contacts.status_code == 200
@@ -80,17 +86,24 @@ def test_users_are_isolated_and_host_can_inspect(
 
     all_pool = client.get("/api/contacts", params={"pool": "all"}, cookies=host_c)
     assert all_pool.status_code == 200
-    match = next(row for row in all_pool.json() if row["telegram_alias"] == "hracme")
-    assert match["owner_id"] == guest["id"]
-    assert match["owner_email"] == guest["email"]
+    assert any(row["telegram_alias"] == "hracme" for row in all_pool.json())
+    as_guest_contacts = client.get(
+        "/api/contacts",
+        cookies=host_c,
+        headers={"X-Hunt-As": str(guest["id"])},
+    )
+    assert as_guest_contacts.status_code == 200
+    assert any(row["telegram_alias"] == "hracme" for row in as_guest_contacts.json())
 
     assert client.get("/api/contacts", params={"pool": "all"}, cookies=guest_c).status_code == 403
-    assert client.get("/api/telegram/pool", cookies=guest_c).status_code == 403
+    assert client.get("/api/telegram/pool", cookies=guest_c).status_code == 404
     joined = client.post("/api/telegram/join", cookies=guest_c)
     assert joined.status_code == 200, joined.text
     assert joined.json()["ok"] is True
-    assert client.get("/api/google/status", cookies=guest_c).status_code == 403
-    assert client.get("/api/auth/users", cookies=guest_c).status_code == 403
+    guest_google = client.get("/api/google/status", cookies=guest_c)
+    assert guest_google.status_code == 200, guest_google.text
+    assert guest_google.json()["connected"] is False
+    assert client.get("/api/auth/users", cookies=guest_c).status_code == 404
 
     granted = client.patch(
         f"/api/auth/users/{guest['id']}",
@@ -98,23 +111,25 @@ def test_users_are_isolated_and_host_can_inspect(
         cookies=host_c,
     )
     assert granted.status_code == 200, granted.text
-    assert granted.json()["can_observe"] is True
+    assert granted.json().get("can_observe") is True
+    observer = client.get("/api/auth/me", cookies=guest_c).json()
+    assert observer.get("can_observe") is True
+    assert "is_host" not in observer
+    listed = client.get("/api/auth/users", cookies=guest_c)
+    assert listed.status_code == 200
+    assert {row["id"] for row in listed.json()} >= {host["id"], guest["id"]}
 
-    users = client.get("/api/auth/users", cookies=guest_c)
-    assert users.status_code == 200
-    assert {row["email"] for row in users.json()} >= {host["email"], guest["email"]}
-
-    observer_as_host = client.get(
+    as_host = client.get(
         "/api/vacancies",
         cookies=guest_c,
         headers={"X-Hunt-As": str(host["id"])},
     )
-    assert observer_as_host.status_code == 200
-    assert guest_vacancy_id not in {row["id"] for row in observer_as_host.json()["items"]}
+    assert as_host.status_code == 200
+    assert guest_vacancy_id not in {row["id"] for row in as_host.json()["items"]}
 
     assert client.get("/api/contacts", params={"pool": "all"}, cookies=guest_c).status_code == 403
     assert client.patch(
         f"/api/auth/users/{host['id']}",
         json={"can_observe": True},
         cookies=guest_c,
-    ).status_code == 403
+    ).status_code == 404

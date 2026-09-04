@@ -18,9 +18,10 @@ import {
   hhVacancyUrl,
 } from "@/lib/format";
 import { MatchBadge } from "./match-badge";
+import { GuideHint, GuideSpot } from "./guide";
 import { TelegramChatLink, ExternalTextLink } from "./telegram-chat-link";
 import { ContactBits } from "./contact-bits";
-import { SourceBadge } from "./source-badge";
+import { SourceBadge, sourceLabel, uniqueExtraSources } from "./source-badge";
 import { VacancySteps } from "./vacancy-steps";
 import { CustomFieldInputs } from "./custom-field-inputs";
 import { HhPulseMark } from "./hh-pulse-mark";
@@ -319,6 +320,7 @@ export function VacancyDrawer({
 
   const chatUrl = vacancyTelegramUrl({ telegram_alias: draft.telegram_alias, telegram_url: vacancy.telegram_url });
   const pageUrl = normalizeHttpUrl(draft.source_url);
+  const extras = uniqueExtraSources(vacancy.extra_sources, vacancy);
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-black/40" onClick={onClose}>
@@ -330,7 +332,13 @@ export function VacancyDrawer({
           <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <MatchBadge score={vacancy.match_score} status={vacancy.scoring_status} />
-              <SourceBadge source={vacancy.source} />
+              <SourceBadge
+                source={vacancy.source}
+                label={vacancy.source === "career" && vacancy.company ? vacancy.company : undefined}
+              />
+              {(vacancy.searches || []).map((item) => (
+                <SourceBadge key={`search-${item.id}`} source={item.source} label={item.name} />
+              ))}
             </div>
             <div className="flex gap-2">
               <input
@@ -397,11 +405,20 @@ export function VacancyDrawer({
               className="text-[13px]"
             />
             {pageUrl && <ExternalTextLink href={pageUrl} className="block text-[13px]" />}
-            {!!vacancy.extra_sources?.length && (
+            {extras.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {vacancy.extra_sources.map((src) => (
-                  <SourceBadge key={`${src.source}-${src.source_id}`} source={src.source} />
-                ))}
+                {extras.map((src) => {
+                  const text = src.label || sourceLabel(src.source) || src.source;
+                  const href = src.source_url;
+                  const badge = <SourceBadge key={`${src.source}-${src.source_id}`} source={src.source} label={`повтор · ${text}`} />;
+                  return href ? (
+                    <a key={`${src.source}-${src.source_id}`} href={href} target="_blank" rel="noreferrer">
+                      {badge}
+                    </a>
+                  ) : (
+                    badge
+                  );
+                })}
               </div>
             )}
           </div>
@@ -438,7 +455,12 @@ export function VacancyDrawer({
 
           <section>
             <div className="mb-2 flex items-center justify-between gap-3">
-              <h3 className="text-[12px] text-muted">вакансия</h3>
+              <GuideSpot id="card.vacancy">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[12px] text-muted">вакансия</h3>
+                  <GuideHint id="card.vacancy" />
+                </div>
+              </GuideSpot>
               {draft.description.trim() ? (
                 <button
                   type="button"
@@ -478,7 +500,9 @@ export function VacancyDrawer({
 
           {pane === "deal" && (
             <>
+          <GuideSpot id="card.stage">
           <section className="flex flex-wrap items-center gap-2">
+            <GuideHint id="card.stage" />
             {(() => {
               const left = adjacentStage(vacancy.pipeline_stage, -1);
               const right = adjacentStage(vacancy.pipeline_stage, 1);
@@ -536,6 +560,7 @@ export function VacancyDrawer({
               );
             })()}
           </section>
+          </GuideSpot>
 
           <VacancySteps
             vacancy={vacancy}
@@ -553,7 +578,12 @@ export function VacancyDrawer({
           {pane === "hr" && (
           <section>
             <div className="mb-3 flex items-center justify-between gap-3">
-              <h3 className="text-[12px] text-muted">контакт</h3>
+              <GuideSpot id="card.contact">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[12px] text-muted">контакт</h3>
+                  <GuideHint id="card.contact" />
+                </div>
+              </GuideSpot>
               <Link href="/contacts" className="text-[12px] text-accent hover:underline">
                 Весь пул
               </Link>
@@ -630,6 +660,7 @@ export function VacancyDrawer({
           )}
 
           {pane === "deal" && vacancy.pipeline_stage === "waiting" && (
+            <GuideSpot id="card.ping">
             <section
               className={
                 vacancy.ping_due
@@ -638,18 +669,19 @@ export function VacancyDrawer({
               }
             >
               <h3
-                className={`mb-3 text-[12px] ${
+                className={`mb-3 flex items-center gap-1.5 text-[12px] ${
                   vacancy.ping_due ? "text-amber-200/80" : "text-muted"
                 }`}
               >
                 Пинг
+                <GuideHint id="card.ping" />
               </h3>
               <p
                 className={`text-[13px] leading-5 ${vacancy.ping_due ? "text-amber-50" : "text-muted"}`}
               >
                 {vacancy.ping_due
-                  ? `Эйчар молчит ${vacancy.silence_days ?? 5} дн. Напиши ещё раз — карточка останется в «жду ответа».`
-                  : "Если эйчар не ответит 5 дней, карточка появится в очереди «пингануть». Стадия не сменится."}
+                  ? `Тишина ${vacancy.silence_days ?? 5} дн. Напиши ещё раз.`
+                  : "Через 5 дней без ответа карточка появится в очереди «пингануть»."}
               </p>
               <button
                 type="button"
@@ -672,6 +704,7 @@ export function VacancyDrawer({
                 {busy === "ping" ? "Отмечаю…" : "Пинганул"}
               </button>
             </section>
+            </GuideSpot>
           )}
 
           {pane === "deal" && (hasHh(vacancy) || vacancy.hh_pulse) && (
@@ -706,7 +739,7 @@ export function VacancyDrawer({
               >
                 {vacancy.hh_pulse
                   ? "Колонку на воронке это не двигает. Сдвинь сам, если это уже скрин, собес или отказ."
-                  : "Отметь приглашение или отказ с hh. Hunt сам в твой аккаунт не заходит."}
+                  : "Отметь приглашение или отказ с hh."}
               </p>
               {vacancy.hh_pulse && (
                 <p className="mt-2">
@@ -804,11 +837,25 @@ export function VacancyDrawer({
                 className="mt-2 flex w-full items-center rounded-[10px] border border-line bg-[#0e1015] px-3 py-2.5 text-[14px]"
               />
             )}
-            {!!vacancy.extra_sources?.length && (
-              <div className="mt-4 flex flex-wrap gap-1">
-                {vacancy.extra_sources.map((src) => (
-                  <SourceBadge key={`${src.source}-${src.source_id}`} source={src.source} />
-                ))}
+            {extras.length > 0 && (
+              <div className="mt-4 flex flex-col gap-2">
+                {extras.map((src) => {
+                  const text = src.label || sourceLabel(src.source) || src.source;
+                  if (src.source_url) {
+                    return (
+                      <a
+                        key={`${src.source}-${src.source_id}`}
+                        href={src.source_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="truncate rounded-[10px] border border-line bg-[#0e1015] px-3 py-2.5 text-[14px] text-accent hover:underline"
+                      >
+                        повтор · {text}
+                      </a>
+                    );
+                  }
+                  return <SourceBadge key={`${src.source}-${src.source_id}`} source={src.source} label={`повтор · ${text}`} />;
+                })}
               </div>
             )}
             <p className="mt-6 text-[13px] text-muted">
@@ -826,7 +873,12 @@ export function VacancyDrawer({
           <>
           {hunts.length > 0 && (
             <section className="space-y-2">
-              <h3 className="text-[12px] text-muted">охоты</h3>
+              <GuideSpot id="card.hunts">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[12px] text-muted">охоты</h3>
+                  <GuideHint id="card.hunts" />
+                </div>
+              </GuideSpot>
               <div className="flex flex-wrap gap-x-4 gap-y-1.5">
                 {hunts.map((hunt) => {
                   const ref = (vacancy.hunts || []).find((item) => item.id === hunt.id);
@@ -858,7 +910,12 @@ export function VacancyDrawer({
             onRemoveCard={removeCardField}
           />
           <section>
-            <h3 className="mb-3 text-[12px] text-muted">заметки</h3>
+            <GuideSpot id="card.notes">
+              <div className="mb-3 flex items-center gap-1.5">
+                <h3 className="text-[12px] text-muted">заметки</h3>
+                <GuideHint id="card.notes" />
+              </div>
+            </GuideSpot>
             <textarea
               rows={5}
               value={draft.notes}

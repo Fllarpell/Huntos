@@ -1,0 +1,22 @@
+[
+  {
+    "id": "51946",
+    "url": "/vacancies/40b2f0c964fdeeedb63cdfae64470738/",
+    "name": "Старший Java разработчик",
+    "number": "VR-72050",
+    "position": "Senior",
+    "city": "Remote work",
+    "preview": "Рабочее место кредитного инспектора. Java, Spring, Kafka.",
+    "specialization": "Java"
+  },
+  {
+    "id": "51292",
+    "url": "/vacancies/feb84de063edf51cfae9450d4c2be1c5/",
+    "name": "Старший .Net разработчик",
+    "number": "VR-71992",
+    "position": "Senior",
+    "city": "Москва",
+    "preview": "C# сервисы.",
+    "specialization": "C#/VB.NET"
+  }
+]

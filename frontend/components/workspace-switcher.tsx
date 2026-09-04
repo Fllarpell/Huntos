@@ -1,60 +1,61 @@
 "use client";
 
 import { useState } from "react";
+import { api } from "@/lib/api";
 import { useWorkspace } from "@/components/workspace-context";
 
 export function WorkspaceSwitcher() {
-  const { me, users, asUserId, canViewOthers, setAsUserId } = useWorkspace();
+  const { me, users, asUserId, canViewOthers, setAsUserId, refreshUsers } = useWorkspace();
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState<number | null>(null);
 
   if (!canViewOthers || !me || users.length < 2) return null;
 
   const current = users.find((row) => row.id === (asUserId ?? me.id)) ?? me;
-  const watching = asUserId != null && asUserId !== me.id;
 
   return (
     <div className="relative mt-3">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full truncate text-left text-[13px]"
+        className="w-full truncate text-left text-[13px] text-muted hover:text-white"
       >
-        <span className={watching ? "text-amber-100" : "text-muted hover:text-white"}>
-          {watching ? `смотришь ${current.email}` : "свой аккаунт"}
-        </span>
+        {current.email}
       </button>
       {open && (
         <div className="absolute left-0 right-0 z-20 mt-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-line bg-bg-soft p-2">
-          <button
-            type="button"
-            onClick={() => {
-              setAsUserId(null);
-              setOpen(false);
-            }}
-            className={`block w-full truncate rounded-lg px-2 py-1.5 text-left text-[13px] ${
-              asUserId == null ? "text-white" : "text-muted hover:text-white"
-            }`}
-          >
-            я · {me.email}
-          </button>
-          {users
-            .filter((row) => row.id !== me.id)
-            .map((row) => (
+          {users.map((row) => (
+            <div key={row.id} className="flex items-center gap-2">
               <button
-                key={row.id}
                 type="button"
                 onClick={() => {
-                  setAsUserId(row.id);
+                  setAsUserId(row.id === me.id ? null : row.id);
                   setOpen(false);
                 }}
-                className={`block w-full truncate rounded-lg px-2 py-1.5 text-left text-[13px] ${
-                  asUserId === row.id ? "text-white" : "text-muted hover:text-white"
+                className={`min-w-0 flex-1 truncate rounded-lg px-2 py-1.5 text-left text-[13px] ${
+                  (asUserId ?? me.id) === row.id ? "text-white" : "text-muted hover:text-white"
                 }`}
               >
                 {row.email}
-                {row.is_host ? " · хост" : row.can_observe ? " · смотрит всех" : ""}
               </button>
-            ))}
+              {me.is_host && !row.is_host ? (
+                <input
+                  type="checkbox"
+                  checked={Boolean(row.can_observe)}
+                  disabled={busy === row.id}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    const next = e.target.checked;
+                    setBusy(row.id);
+                    void api
+                      .patchUser(row.id, next)
+                      .then(() => refreshUsers())
+                      .finally(() => setBusy(null));
+                  }}
+                />
+              ) : null}
+            </div>
+          ))}
         </div>
       )}
     </div>

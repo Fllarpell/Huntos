@@ -198,11 +198,12 @@ export function hhPulseLabel(pulse: string | null | undefined): string {
 
 const WEEKDAYS = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
 
-export type NextStepKind = "screening" | "interview" | "offer_deadline";
+export type NextStepKind = "screening" | "interview" | "assignment" | "offer_deadline";
 
 export const NEXT_STEP_KINDS: { value: NextStepKind; label: string }[] = [
-  { value: "screening", label: "скрин" },
+  { value: "screening", label: "скрининг" },
   { value: "interview", label: "собес" },
+  { value: "assignment", label: "тех задание" },
   { value: "offer_deadline", label: "оффер до" },
 ];
 
@@ -273,5 +274,5 @@ export function formatNextStepBadge(at: string | null | undefined, kind?: string
   const date = parseWallClock(at);
   if (!date) return null;
   const time = `${WEEKDAYS[date.getDay()]} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-  return kind === "offer_deadline" ? `до ${time}` : time;
+  return kind === "offer_deadline" || kind === "assignment" ? `до ${time}` : time;
 }

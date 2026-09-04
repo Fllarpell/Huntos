@@ -5,6 +5,7 @@ from sqlalchemy import Select, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.sql import ColumnElement
+from sqlalchemy import String, cast
 
 from app.models.hunt_pin import HuntPin
 from app.models.hunt_thesis import HuntThesis
@@ -12,6 +13,10 @@ from app.models.user import User
 from app.models.user_profile import UserProfile
 from app.models.vacancy import PipelineStage, Vacancy
 from app.services.custom_fields import concat_defs, normalize_defs
+from app.services.company_exclude import company_not_excluded_clause, vacancy_row_is_excluded
+from app.services.scraper.sources.stack_lexicon import parse_inbox_query
+from app.services.search_text import fold_expr
+from app.services.vacancy_query import stack_ids_clause, topic_match_clause, vacancy_matches_query
 
 
 def match_filters(thesis: HuntThesis, *, window: bool = False) -> list[ColumnElement]:
@@ -29,12 +34,22 @@ def match_filters(thesis: HuntThesis, *, window: bool = False) -> list[ColumnEle
         )
     q = (thesis.role_query or "").strip()
     if q:
-        like = f"%{q.lower()}%"
-        filters.append(
-            func.lower(Vacancy.title).like(like)
-            | func.lower(func.coalesce(Vacancy.company, "")).like(like)
-            | func.lower(func.coalesce(Vacancy.description, "")).like(like)
-        )
+        stacks, leftover, topics = parse_inbox_query(q)
+        stack_filter = stack_ids_clause(stacks)
+        if stack_filter is not None:
+            filters.append(stack_filter)
+        if topics:
+            topic_filter = topic_match_clause([item for group in topics for item in group])
+            if topic_filter is not None:
+                filters.append(topic_filter)
+        if leftover:
+            like = f"%{leftover}%"
+            filters.append(
+                fold_expr(Vacancy.title).like(like)
+                | fold_expr(Vacancy.company).like(like)
+                | fold_expr(Vacancy.description).like(like)
+                | cast(Vacancy.skills, String).like(like)
+            )
     if thesis.grades:
         filters.append(Vacancy.grade.in_(list(thesis.grades)))
     if thesis.formats:
@@ -43,12 +58,19 @@ def match_filters(thesis: HuntThesis, *, window: bool = False) -> list[ColumnEle
         filters.append(func.coalesce(Vacancy.salary_min, Vacancy.salary_max) >= thesis.salary_min)
     if thesis.no_nda:
         filters.append(func.lower(func.trim(func.coalesce(Vacancy.company, ""))) != "nda")
+    not_excluded = company_not_excluded_clause(thesis.exclude_companies)
+    if not_excluded is not None:
+        filters.append(not_excluded)
     return filters
 
 
 def membership_clause(thesis: HuntThesis) -> ColumnElement:
     pinned = Vacancy.id.in_(select(HuntPin.vacancy_id).where(HuntPin.hunt_id == thesis.id))
-    return or_(and_(*match_filters(thesis, window=False)), pinned)
+    body = or_(and_(*match_filters(thesis, window=False)), pinned)
+    extra = company_not_excluded_clause(thesis.exclude_companies)
+    if extra is not None:
+        return and_(body, extra)
+    return body
 
 
 def apply_hunt(stmt: Select, thesis: HuntThesis | None) -> Select:
@@ -69,11 +91,9 @@ def vacancy_matches(thesis: HuntThesis, vacancy: Vacancy, *, window: bool = Fals
         published = vacancy.published_at or vacancy.created_at
         if published is None or published < since:
             return False
-    q = (thesis.role_query or "").strip().lower()
-    if q:
-        hay = f"{vacancy.title} {vacancy.company or ''} {vacancy.description or ''}".lower()
-        if q not in hay:
-            return False
+    q = (thesis.role_query or "").strip()
+    if q and not vacancy_matches_query(vacancy, q):
+        return False
     if thesis.grades and vacancy.grade not in thesis.grades:
         return False
     if thesis.formats and vacancy.work_format not in thesis.formats:
@@ -83,6 +103,8 @@ def vacancy_matches(thesis: HuntThesis, vacancy: Vacancy, *, window: bool = Fals
         if pay is None or pay < thesis.salary_min:
             return False
     if thesis.no_nda and (vacancy.company or "").strip().lower() == "nda":
+        return False
+    if vacancy_row_is_excluded(vacancy, thesis.exclude_companies):
         return False
     return True
 

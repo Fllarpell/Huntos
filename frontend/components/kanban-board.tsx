@@ -13,6 +13,7 @@ import {
   type PipelineStage,
   type Vacancy,
 } from "@/lib/types";
+import { GuideHint, GuideSpot } from "./guide";
 import { MatchBadge } from "./match-badge";
 import { VacancyDrawer } from "./vacancy-drawer";
 import { CompanyMark } from "./company-mark";
@@ -41,6 +42,9 @@ function matchesQuery(v: Vacancy, q: string): boolean {
     vacancyTelegramUrl(v),
     v.source_url,
     ...(v.skills || []),
+    ...(v.stack_ids || []),
+    ...(v.searches || []).map((item) => item.name),
+    ...(v.extra_sources || []).flatMap((item) => [item.label, item.source, item.source_url]),
   ]
     .filter(Boolean)
     .join(" ")
@@ -73,6 +77,7 @@ function HuntMass({ columns }: { columns: Record<PipelineStage, Vacancy[]> }) {
           />
         </div>
       ))}
+      <GuideHint id="pipeline.mass" className="mb-0.5" />
     </div>
   );
 }
@@ -375,22 +380,27 @@ export function KanbanBoard() {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <header className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-3 px-7 pt-6 pb-3">
-        <div className="min-w-0">
-          <h1 className="text-[22px] font-semibold tracking-tight">Воронка</h1>
+        <GuideSpot id="pipeline.header" className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-[22px] font-semibold tracking-tight">Воронка</h1>
+            <GuideHint id="pipeline.header" />
+          </div>
           <p className="mt-0.5 text-[12px] text-muted">
             {live} в охоте
             <span className="text-white/20"> · </span>
             <span className="kbd">/</span> поиск
           </p>
-        </div>
-        <div className="ml-auto min-w-[200px] max-w-xs flex-1">
+        </GuideSpot>
+        <GuideSpot id="pipeline.search" className="ml-auto flex min-w-[200px] max-w-xs flex-1 items-center gap-1">
           <SearchField
+            className="min-w-0 flex-1"
             inputRef={searchRef}
             value={q}
             onChange={setQ}
             placeholder="компания, роль, @hr"
           />
-        </div>
+          <GuideHint id="pipeline.search" />
+        </GuideSpot>
         <button
           type="button"
           onClick={() => void addManual()}
@@ -401,11 +411,16 @@ export function KanbanBoard() {
         </button>
       </header>
 
-      {!searching && <HuntMass columns={columns} />}
+      {!searching && (
+        <GuideSpot id="pipeline.mass">
+          <HuntMass columns={columns} />
+        </GuideSpot>
+      )}
 
       {error && <p className="px-7 pb-2 text-sm text-rose-200">{error}</p>}
       <CollisionBanner items={upcoming} onOpen={setOpenId} />
       {nudge && nudge.total > 0 && (
+        <GuideSpot id="pipeline.nudge">
         <NudgeQueue
           afterDays={nudge.after_days}
           groups={nudge.groups}
@@ -413,6 +428,7 @@ export function KanbanBoard() {
           onOpen={setOpenId}
           onChanged={() => void load()}
         />
+        </GuideSpot>
       )}
 
       {searching ? (
@@ -436,6 +452,7 @@ export function KanbanBoard() {
           )}
         </div>
       ) : (
+        <GuideSpot id="pipeline.board" className="flex min-h-0 flex-1">
         <div
           ref={boardRef}
           className="flex min-h-0 flex-1 overflow-x-auto border-t border-line"
@@ -499,6 +516,7 @@ export function KanbanBoard() {
             );
           })}
         </div>
+        </GuideSpot>
       )}
 
       {openId != null && (

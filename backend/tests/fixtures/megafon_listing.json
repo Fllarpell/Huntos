@@ -1,0 +1,89 @@
+{
+  "page": 1,
+  "pages": 4,
+  "total": 31,
+  "vacancies": [
+    {
+      "id": 4748,
+      "title": "Архитектор LLM",
+      "slug": "arhitektor-llm-4748",
+      "tag": {
+        "title": "Удаленка",
+        "code": "remote"
+      },
+      "city": {
+        "id": 1,
+        "title": "Москва",
+        "slug": "moskva"
+      },
+      "sector": {
+        "id": 3,
+        "title": "ИТ-решения",
+        "slug": "it-reshenia"
+      },
+      "specialties": [
+        "Архитектура"
+      ],
+      "publishedAt": 1787648001,
+      "organisation": {
+        "id": 6,
+        "title": "МегаТех"
+      }
+    },
+    {
+      "id": 4740,
+      "title": "NET/C# разработчик по системам документооборота",
+      "slug": "net-c-razrabotchik-po-sistemam-dokumentooborota-4740",
+      "tag": {
+        "title": "Гибридный график",
+        "code": "hybrid_shift"
+      },
+      "city": {
+        "id": 1,
+        "title": "Москва",
+        "slug": "moskva"
+      },
+      "sector": {
+        "id": 3,
+        "title": "ИТ-решения",
+        "slug": "it-reshenia"
+      },
+      "specialties": [
+        "Backend"
+      ],
+      "publishedAt": 1787142729,
+      "organisation": {
+        "id": 6,
+        "title": "МегаТех"
+      }
+    },
+    {
+      "id": 4727,
+      "title": "Scala-разработчик",
+      "slug": "scala-razrabotchik-4727",
+      "tag": {
+        "title": "Удаленка",
+        "code": "remote"
+      },
+      "city": {
+        "id": 1,
+        "title": "Москва",
+        "slug": "moskva"
+      },
+      "sector": {
+        "id": 3,
+        "title": "ИТ-решения",
+        "slug": "it-reshenia"
+      },
+      "specialties": [
+        "Backend",
+        "BigData"
+      ],
+      "publishedAt": 1786112964,
+      "organisation": {
+        "id": 3,
+        "title": "ЕдиныйФактор"
+      }
+    }
+  ]
+}

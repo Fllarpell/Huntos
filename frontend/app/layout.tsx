@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Hunt — Job CRM",
+  title: "HuntOS — Job CRM",
   description: "Smart job-hunting CRM",
 };
 

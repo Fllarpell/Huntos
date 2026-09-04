@@ -27,9 +27,13 @@ TOKEN_URL = "https://oauth2.googleapis.com/token"
 CALENDARS_URL = "https://www.googleapis.com/calendar/v3/calendars"
 CALENDAR_LIST_URL = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
-SCOPE = "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email"
+SCOPE = "openid email profile https://www.googleapis.com/auth/calendar"
 OAUTH_COOKIE = "hunt_google_oauth"
-HUNT_CALENDAR_SUMMARY = "Hunt"
+OAUTH_CALLBACK_COOKIE = "hunt_google_callback"
+LOGIN_STATE = "login"
+CALLBACK_PATH = "/api/google/callback"
+HUNT_CALENDAR_SUMMARY = "HuntOS"
+HUNT_CALENDAR_ALIASES = frozenset({"HuntOS", "Hunt"})
 HUNT_CALENDAR_MARKER = "[hunt-crm]"
 MEETING = re.compile(
     r"https?://[^\s<>'\"]+(?:meet\.google\.com|zoom\.us|teams\.microsoft\.com|telemost\.yandex|whereby\.com)",
@@ -37,8 +41,9 @@ MEETING = re.compile(
 )
 
 KIND_LABEL = {
-    "screening": "скрин",
+    "screening": "скрининг",
     "interview": "собес",
+    "assignment": "тех задание",
     "offer_deadline": "оффер до",
 }
 
@@ -48,13 +53,77 @@ def _now() -> datetime:
 
 
 def redirect_uri() -> str:
-    return (settings.google_redirect_uri or "http://localhost:3000/api/google/callback").rstrip("/")
+    return (settings.google_redirect_uri or f"http://localhost:3000{CALLBACK_PATH}").rstrip("/")
 
 
-def settings_redirect(google: str) -> str:
+def public_origin() -> str:
     parsed = urlparse(redirect_uri())
-    origin = f"{parsed.scheme}://{parsed.netloc}"
-    return f"{origin}/settings?google={quote(google)}"
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def origin_of(callback: str) -> str:
+    parsed = urlparse(callback)
+    if parsed.scheme and parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}"
+    return public_origin()
+
+
+def allowed_oauth_origins() -> set[str]:
+    found = {item.rstrip("/") for item in settings.cors_origin_list()}
+    parsed = urlparse(redirect_uri())
+    if parsed.scheme and parsed.netloc:
+        found.add(f"{parsed.scheme}://{parsed.netloc}")
+    return found
+
+
+def origin_from_headers(headers: object) -> str | None:
+    get = headers.get if hasattr(headers, "get") else lambda _key, _default=None: None
+    allowed = allowed_oauth_origins()
+    origin = str(get("origin") or "").rstrip("/")
+    if origin in allowed:
+        return origin
+    referer = str(get("referer") or get("referrer") or "")
+    if referer:
+        parsed = urlparse(referer)
+        candidate = f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+        if candidate in allowed:
+            return candidate
+    proto = str(get("x-forwarded-proto") or "").split(",")[0].strip()
+    host = str(get("x-forwarded-host") or get("host") or "").split(",")[0].strip()
+    if proto and host:
+        candidate = f"{proto}://{host}".rstrip("/")
+        if candidate in allowed:
+            return candidate
+    return None
+
+
+def callback_uri_from_headers(headers: object) -> str:
+    origin = origin_from_headers(headers)
+    if origin:
+        return f"{origin}{CALLBACK_PATH}"
+    return redirect_uri()
+
+
+def resolved_callback(callback: str | None) -> str:
+    value = (callback or "").strip().strip('"')
+    if value and origin_of(value) in allowed_oauth_origins():
+        return value.rstrip("/")
+    return redirect_uri()
+
+
+def settings_redirect(google: str, origin: str | None = None) -> str:
+    base = (origin or public_origin()).rstrip("/")
+    return f"{base}/settings?google={quote(google)}"
+
+
+def login_redirect(google: str, origin: str | None = None) -> str:
+    base = (origin or public_origin()).rstrip("/")
+    return f"{base}/login?google={quote(google)}"
+
+
+def home_redirect(*, fresh: bool = False, origin: str | None = None) -> str:
+    base = (origin or public_origin()).rstrip("/")
+    return f"{base}/{'?new=1' if fresh else ''}"
 
 
 def client_credentials(profile: UserProfile) -> tuple[str, str]:
@@ -68,17 +137,45 @@ def client_configured(profile: UserProfile) -> bool:
     return bool(client_id and client_secret)
 
 
+async def resolved_client_credentials(
+    session: AsyncSession, profile: UserProfile | None = None
+) -> tuple[str, str]:
+    if profile is not None:
+        client_id, client_secret = client_credentials(profile)
+        if client_id and client_secret:
+            return client_id, client_secret
+    client_id = (settings.google_client_id or "").strip()
+    client_secret = (settings.google_client_secret or "").strip()
+    if client_id and client_secret:
+        return client_id, client_secret
+    host = (
+        await session.execute(select(User).where(User.is_host.is_(True)).order_by(User.id).limit(1))
+    ).scalar_one_or_none()
+    if host is None or (profile is not None and profile.user_id == host.id):
+        return "", ""
+    host_profile = await ensure_profile(session, host)
+    return client_credentials(host_profile)
+
+
+def stamp_app_client(profile: UserProfile, client_id: str, client_secret: str) -> None:
+    if client_id and not (profile.google_client_id or "").strip():
+        profile.google_client_id = client_id
+    if client_secret and not unseal(profile.google_client_secret):
+        profile.google_client_secret = seal(client_secret)
+
+
 def google_connected(profile: UserProfile) -> bool:
     return bool(profile.google_refresh_token)
 
 
-def google_status(profile: UserProfile) -> dict:
+def google_status(profile: UserProfile, *, app_configured: bool | None = None) -> dict:
     connected = google_connected(profile)
     ready = bool(profile.google_calendar_id)
+    configured = client_configured(profile) or bool(app_configured)
     return {
         "connected": connected,
         "email": profile.google_email,
-        "client_configured": client_configured(profile),
+        "client_configured": configured,
         "redirect_uri": redirect_uri(),
         "timezone": settings.google_calendar_timezone,
         "calendar_id": profile.google_calendar_id,
@@ -89,11 +186,10 @@ def google_status(profile: UserProfile) -> dict:
     }
 
 
-def auth_url(profile: UserProfile, state: str) -> str:
-    client_id, _secret = client_credentials(profile)
+def auth_url(client_id: str, state: str, callback: str | None = None) -> str:
     params = {
         "client_id": client_id,
-        "redirect_uri": redirect_uri(),
+        "redirect_uri": resolved_callback(callback),
         "response_type": "code",
         "scope": SCOPE,
         "access_type": "offline",
@@ -108,12 +204,21 @@ def new_oauth_state(user_id: int) -> str:
     return f"{user_id}:{secrets.token_urlsafe(24)}"
 
 
-def parse_oauth_state(state: str) -> int | None:
+def new_login_state() -> str:
+    return f"{LOGIN_STATE}:{secrets.token_urlsafe(24)}"
+
+
+def parse_oauth_intent(state: str) -> tuple[str, int | None]:
     try:
-        user_id, _nonce = state.split(":", 1)
-        return int(user_id)
+        kind, _nonce = state.split(":", 1)
     except (ValueError, AttributeError):
-        return None
+        return "", None
+    if kind == LOGIN_STATE:
+        return "login", None
+    try:
+        return "calendar", int(kind)
+    except ValueError:
+        return "", None
 
 
 def kind_label(kind: object) -> str:
@@ -136,7 +241,7 @@ def event_location(vacancy: Vacancy) -> str | None:
 
 
 def event_description(vacancy: Vacancy) -> str:
-    lines = ["Hunt — следующий шаг"]
+    lines = ["HuntOS — следующий шаг"]
     if vacancy.source_url:
         lines.append(vacancy.source_url)
     chat = telegram_chat_url(vacancy.telegram_alias)
@@ -170,8 +275,7 @@ def _event_body(vacancy: Vacancy, event: VacancyEvent, label: str | None = None)
     return body
 
 
-async def exchange_code(profile: UserProfile, code: str) -> dict:
-    client_id, client_secret = client_credentials(profile)
+async def exchange_code(code: str, client_id: str, client_secret: str, callback: str | None = None) -> dict:
     async with httpx.AsyncClient(timeout=20) as client:
         response = await client.post(
             TOKEN_URL,
@@ -179,7 +283,7 @@ async def exchange_code(profile: UserProfile, code: str) -> dict:
                 "code": code,
                 "client_id": client_id,
                 "client_secret": client_secret,
-                "redirect_uri": redirect_uri(),
+                "redirect_uri": resolved_callback(callback),
                 "grant_type": "authorization_code",
             },
         )
@@ -223,12 +327,19 @@ async def _access_token(profile: UserProfile) -> str:
     return token
 
 
-async def fetch_email(access_token: str) -> str | None:
+async def fetch_userinfo(access_token: str) -> dict:
     async with httpx.AsyncClient(timeout=15) as client:
         response = await client.get(USERINFO_URL, headers={"Authorization": f"Bearer {access_token}"})
     if response.status_code >= 400:
-        return None
-    return response.json().get("email")
+        return {}
+    data = response.json()
+    return data if isinstance(data, dict) else {}
+
+
+async def fetch_email(access_token: str) -> str | None:
+    info = await fetch_userinfo(access_token)
+    email = info.get("email")
+    return str(email) if email else None
 
 
 def apply_tokens(profile: UserProfile, payload: dict) -> None:
@@ -353,12 +464,12 @@ def _denied_calendar(response: httpx.Response) -> str | None:
     ):
         return (
             "Включи Google Calendar API в том же проекте Cloud: APIs and services → Library → "
-            "Google Calendar API → Enable. Потом нажми «Создать календарь Hunt»."
+            "Google Calendar API → Enable. Потом нажми «Создать календарь HuntOS»."
         )
     if response.status_code == 403 and ("insufficient" in text or "insufficientpermissions" in text):
-        return "Токену не хватает права создать календарь Hunt. Нажми «Подключить ещё раз» — отключать не нужно."
+        return "Токену не хватает права создать календарь HuntOS. Нажми «Подключить ещё раз» — отключать не нужно."
     if response.status_code >= 400:
-        return _google_error(response, "Google не дал доступ к календарю Hunt")
+        return _google_error(response, "Google не дал доступ к календарю HuntOS")
     return None
 
 
@@ -375,7 +486,7 @@ async def _find_hunt_calendar(profile: UserProfile) -> str | None:
         profile.google_calendar_error = None
         data = response.json()
         for item in data.get("items") or []:
-            if (item.get("summary") or "").strip() != HUNT_CALENDAR_SUMMARY:
+            if (item.get("summary") or "").strip() not in HUNT_CALENDAR_ALIASES:
                 continue
             description = item.get("description") or ""
             if HUNT_CALENDAR_MARKER in description:
@@ -417,7 +528,7 @@ async def ensure_hunt_calendar(profile: UserProfile) -> str | None:
             return None
         calendar_id = (response.json() or {}).get("id")
         if not calendar_id:
-            profile.google_calendar_error = "Google не вернул id календаря Hunt"
+            profile.google_calendar_error = "Google не вернул id календаря HuntOS"
             return None
         profile.google_calendar_id = calendar_id
         profile.google_calendar_error = None
@@ -600,7 +711,7 @@ async def pull_hunt_events(session: AsyncSession, user: User, profile: UserProfi
         response = await _request(profile, "GET", _events_url(calendar_id), params=params)
         if response.status_code == 410:
             if retried:
-                profile.google_calendar_error = "Синк календаря Hunt сброшен — открой воронку ещё раз"
+                profile.google_calendar_error = "Синк календаря HuntOS сброшен — открой воронку ещё раз"
                 return
             retried = True
             profile.google_sync_token = None
@@ -610,7 +721,7 @@ async def pull_hunt_events(session: AsyncSession, user: User, profile: UserProfi
             fresh = True
             continue
         if response.status_code >= 400:
-            profile.google_calendar_error = _google_error(response, "Не удалось прочитать календарь Hunt")
+            profile.google_calendar_error = _google_error(response, "Не удалось прочитать календарь HuntOS")
             return
         data = response.json()
         items.extend(data.get("items") or [])
@@ -698,7 +809,7 @@ async def sync_one_vacancy_event(
     try:
         calendar_id = await ensure_hunt_calendar(profile)
         if not calendar_id:
-            event.google_sync_error = profile.google_calendar_error or "Нет календаря Hunt"
+            event.google_sync_error = profile.google_calendar_error or "Нет календаря HuntOS"
             refresh_next_step(vacancy, events)
             await session.flush()
             return
@@ -721,7 +832,7 @@ async def sync_vacancy_event(session: AsyncSession, profile: UserProfile, vacanc
     try:
         calendar_id = await ensure_hunt_calendar(profile)
         if not calendar_id:
-            err = profile.google_calendar_error or "Нет календаря Hunt"
+            err = profile.google_calendar_error or "Нет календаря HuntOS"
             for row in events:
                 row.google_sync_error = err
             vacancy.google_sync_error = err
@@ -791,7 +902,7 @@ def _ping_event_body(slot) -> dict:
     tz = settings.google_calendar_timezone
     ids = slot.vacancy_ids or []
     lines = [
-        "Hunt — один слот пинга на пачку, не встреча на каждую карточку.",
+        "HuntOS — один слот пинга на пачку, не встреча на каждую карточку.",
         f"Карточек: {slot.card_count}",
     ]
     if ids:
@@ -812,7 +923,7 @@ async def sync_ping_slot(session: AsyncSession, profile: UserProfile, slot) -> N
     try:
         calendar_id = await ensure_hunt_calendar(profile)
         if not calendar_id:
-            slot.google_sync_error = profile.google_calendar_error or "Нет календаря Hunt"
+            slot.google_sync_error = profile.google_calendar_error or "Нет календаря HuntOS"
             await session.flush()
             return
         if slot.ping_at is None or slot.card_count <= 0:

@@ -170,6 +170,11 @@ async def fanout_post(session: AsyncSession, post: TelegramPost, user_ids: list[
             new_count += 1
         else:
             updated += 1
+    if new_count or updated:
+        from app.services.thesis import refresh_user_theses
+
+        for uid in ids:
+            await refresh_user_theses(session, uid, commit=False)
     return new_count, updated
 
 

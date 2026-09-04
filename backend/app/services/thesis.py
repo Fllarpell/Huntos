@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.hunt_thesis import HuntThesis
 from app.models.vacancy import PipelineStage, Vacancy
-from app.services.hunts import match_filters
+from app.services.hunts import membership_clause
+from app.services.salary_stats import corridor_from_vacancies, median as _median
 
 REPLY_STAGES = (PipelineStage.SCREENING, PipelineStage.INTERVIEW, PipelineStage.OFFER)
 OUTREACH_STAGES = (
@@ -17,21 +18,29 @@ OUTREACH_STAGES = (
     PipelineStage.OFFER,
 )
 
+PACK_DEFAULT = 20
+PACK_MAX = 50
+PACK_LIST = 80
+
 
 def _now() -> datetime:
     return datetime.now(UTC).replace(tzinfo=None)
 
 
-def _median(values: list[int]) -> int | None:
-    if not values:
-        return None
-    ordered = sorted(values)
-    return ordered[len(ordered) // 2]
+def _arrived_at(row: Vacancy) -> datetime | None:
+    return row.created_at or row.published_at
+
+
+def _window_since(thesis: HuntThesis) -> datetime:
+    return _now() - timedelta(days=max(3, thesis.days or 14))
 
 
 async def matching_vacancies(session: AsyncSession, thesis: HuntThesis) -> list[Vacancy]:
+    """Hunt membership in the thesis window: inbox and funnel, not only published_at."""
+    since = _window_since(thesis)
+    in_window = or_(Vacancy.created_at >= since, Vacancy.published_at >= since)
     rows = (
-        await session.execute(select(Vacancy).where(*match_filters(thesis, window=True)).limit(400))
+        await session.execute(select(Vacancy).where(membership_clause(thesis), in_window).limit(400))
     ).scalars().all()
     return list(rows)
 
@@ -42,10 +51,11 @@ def evaluate(thesis: HuntThesis, rows: list[Vacancy]) -> dict:
     scores = [v.match_score for v in rows if v.match_score is not None]
     median = _median(scores)
     nda = sum(1 for v in rows if (v.company or "").strip().lower() == "nda")
+    inbox_n = sum(1 for v in rows if v.pipeline_stage == PipelineStage.INBOX)
     fresh = sum(
         1
         for v in rows
-        if v.published_at and (now - v.published_at) <= timedelta(hours=24)
+        if (stamp := _arrived_at(v)) is not None and (now - stamp) <= timedelta(hours=24)
     )
     outreach = sum(
         1
@@ -57,32 +67,42 @@ def evaluate(thesis: HuntThesis, rows: list[Vacancy]) -> dict:
     window = thesis.days or 14
     min_sample = thesis.min_sample or 8
     bar = thesis.min_median_match or 55
+    inbox_alive = inbox_n >= max(3, min_sample // 2) or (inbox_n > 0 and fresh > 0)
 
     if sample == 0:
         verdict, reason = (
-            ("dead", "Выборка пустая — такого сегмента сейчас нет")
+            ("dead", "Выборка пустая — в inbox и воронке нет вакансий сегмента")
             if age_days >= min(window, 5)
-            else ("weak", "Пока нет вакансий в выборке, рано хоронить тезис")
+            else ("weak", "Пока нет вакансий в inbox, рано хоронить тезис")
         )
     elif sample < min_sample:
         verdict, reason = (
-            ("dead", f"Мало вакансий: {sample} из {min_sample} за {window} дн.")
+            ("dead", f"Мало вакансий: {sample} из {min_sample} за {window} дн. (inbox {inbox_n})")
             if age_days >= window
-            else ("weak", f"Пока {sample} вакансий из {min_sample}. Окно ещё идёт.")
+            else ("weak", f"Пока {sample} вакансий из {min_sample}, в inbox {inbox_n}. Окно ещё идёт.")
         )
     elif median is not None and median < bar:
         verdict, reason = "dead", f"Медианный match {median} ниже порога {bar} — сегмент не твой"
+    elif outreach >= 5 and replies == 0 and inbox_alive:
+        verdict, reason = (
+            "weak",
+            f"{outreach} касаний без ответа, но в inbox ещё {inbox_n} — рынок живой, молчит канал",
+        )
     elif outreach >= 5 and replies == 0:
-        verdict, reason = "dead", f"{outreach} касаний без ответа. Канал или тезис не работают"
+        verdict, reason = "dead", f"{outreach} касаний без ответа, inbox пуст. Канал или тезис не работают"
     elif outreach >= 2 and replies == 0:
-        verdict, reason = "weak", f"{outreach} касаний, ответов нет. Ещё рано, но сигнал плохой"
+        extra = f", в inbox {inbox_n}" if inbox_n else ""
+        verdict, reason = "weak", f"{outreach} касаний, ответов нет{extra}. Ещё рано, но сигнал плохой"
+    elif inbox_n and outreach == 0:
+        verdict, reason = "alive", f"Сегмент живой: в inbox {inbox_n} вакансий, match не просел"
     else:
-        verdict, reason = "alive", "Сегмент живой: хватает выборки и match не просел"
+        verdict, reason = "alive", f"Сегмент живой: inbox {inbox_n}, воронка {outreach}, match не просел"
 
     return {
         "verdict": verdict,
         "reason": reason,
         "sample": sample,
+        "inbox": inbox_n,
         "median_match": median,
         "nda_share": round(nda / sample, 2) if sample else 0,
         "fresh_24h": fresh,
@@ -90,12 +110,8 @@ def evaluate(thesis: HuntThesis, rows: list[Vacancy]) -> dict:
         "replies": replies,
         "age_days": age_days,
         "window_days": window,
+        "salary_corridor": corridor_from_vacancies(rows),
     }
-
-
-PACK_DEFAULT = 20
-PACK_MAX = 50
-PACK_LIST = 80
 
 
 def rank_inbox_pack(rows: list[Vacancy]) -> list[Vacancy]:
@@ -104,17 +120,32 @@ def rank_inbox_pack(rows: list[Vacancy]) -> list[Vacancy]:
         key=lambda row: (
             0 if row.telegram_alias or row.contact_email or row.contact_phone else 1,
             -(row.match_score if row.match_score is not None else -1),
-            -(row.published_at.timestamp() if row.published_at else 0),
+            -((row.created_at or row.published_at).timestamp() if (row.created_at or row.published_at) else 0),
         )
     )
     return inbox
 
 
-async def refresh_thesis(session: AsyncSession, thesis: HuntThesis) -> dict:
+async def refresh_thesis(session: AsyncSession, thesis: HuntThesis, *, commit: bool = True) -> dict:
     rows = await matching_vacancies(session, thesis)
     stats = evaluate(thesis, rows)
     thesis.last_verdict = stats["verdict"]
     thesis.last_reason = stats["reason"][:512]
     thesis.last_evaluated_at = _now()
-    await session.commit()
+    if commit:
+        await session.commit()
     return stats
+
+
+async def refresh_user_theses(session: AsyncSession, user_id: int | None, *, commit: bool = True) -> None:
+    if not user_id:
+        return
+    rows = (
+        await session.execute(
+            select(HuntThesis).where(HuntThesis.user_id == user_id, HuntThesis.enabled.is_(True)).order_by(HuntThesis.id)
+        )
+    ).scalars().all()
+    for thesis in rows:
+        await refresh_thesis(session, thesis, commit=False)
+    if commit and rows:
+        await session.commit()

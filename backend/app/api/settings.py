@@ -1,6 +1,6 @@
 from io import BytesIO
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from sqlalchemy.orm.attributes import flag_modified
@@ -12,22 +12,33 @@ from app.schemas.dto import ProfileOut, ProfileUpdate
 from app.services.crypto import seal
 from app.services.auth import ensure_profile
 from app.services.custom_fields import normalize_defs
-from app.services.deps import get_scope_user
-from app.services.google_calendar import google_status, ensure_hunt_calendar
+from app.services.deps import get_current_user, get_scope_user
+from app.services.google_calendar import (
+    callback_uri_from_headers,
+    google_status,
+    ensure_hunt_calendar,
+    resolved_client_credentials,
+)
 from app.services.hunts import hunt_field_defs, list_hunts, maybe_hunt, save_hunt_fields
 from app.services.scheduler import sync_jobs
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
 
-def _to_out(profile: UserProfile, hunt_fields: list | None = None) -> ProfileOut:
+async def _to_out(
+    session: AsyncSession,
+    profile: UserProfile,
+    hunt_fields: list | None = None,
+    headers: object | None = None,
+) -> ProfileOut:
     data = ProfileOut.model_validate(profile)
     data.openai_api_key_set = bool(profile.openai_api_key)
-    status = google_status(profile)
+    client_id, client_secret = await resolved_client_credentials(session, profile)
+    status = google_status(profile, app_configured=bool(client_id and client_secret))
     data.google_connected = status["connected"]
     data.google_email = status["email"]
     data.google_client_id_set = status["client_configured"]
-    data.google_redirect_uri = status["redirect_uri"]
+    data.google_redirect_uri = callback_uri_from_headers(headers) if headers is not None else status["redirect_uri"]
     data.google_calendar_ready = bool(status.get("calendar_ready"))
     data.google_needs_reconnect = bool(status.get("needs_reconnect"))
     data.google_calendar_error = status.get("calendar_error")
@@ -47,6 +58,7 @@ async def _profile_fields(session: AsyncSession, user: User, profile: UserProfil
 
 @router.get("/profile", response_model=ProfileOut)
 async def read_profile(
+    request: Request,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_scope_user),
 ) -> ProfileOut:
@@ -55,14 +67,16 @@ async def read_profile(
         await ensure_hunt_calendar(profile)
         await session.commit()
         await session.refresh(profile)
-    return _to_out(profile, await _profile_fields(session, user, profile))
+    return await _to_out(session, profile, await _profile_fields(session, user, profile), request.headers)
 
 
 @router.put("/profile", response_model=ProfileOut)
 async def update_profile(
+    request: Request,
     payload: ProfileUpdate,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_scope_user),
+    actor: User = Depends(get_current_user),
 ) -> ProfileOut:
     profile = await ensure_profile(session, user)
     data = payload.model_dump(exclude_unset=True)
@@ -80,6 +94,9 @@ async def update_profile(
                 flag_modified(profile, "custom_fields")
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
+    if not actor.is_host:
+        data.pop("google_client_id", None)
+        data.pop("google_client_secret", None)
     for key, value in data.items():
         if key in {"openai_api_key", "google_client_id", "google_client_secret"} and value == "":
             continue
@@ -89,11 +106,12 @@ async def update_profile(
     await session.commit()
     await session.refresh(profile)
     await sync_jobs()
-    return _to_out(profile, await _profile_fields(session, user, profile))
+    return await _to_out(session, profile, await _profile_fields(session, user, profile), request.headers)
 
 
 @router.post("/profile/resume", response_model=ProfileOut)
 async def upload_resume(
+    request: Request,
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_session),
     user: User = Depends(get_scope_user),
@@ -117,4 +135,4 @@ async def upload_resume(
     profile.resume_filename = name
     await session.commit()
     await session.refresh(profile)
-    return _to_out(profile, await _profile_fields(session, user, profile))
+    return await _to_out(session, profile, await _profile_fields(session, user, profile), request.headers)

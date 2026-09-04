@@ -1,0 +1,49 @@
+{
+  "resultCode": "OK",
+  "payload": {
+    "nextPagination": {
+      "it": {"offset": 50, "isFinished": false, "totalCount": 2}
+    },
+    "vacancies": [
+      {
+        "title": "ML-тимлид в AI-центр — Кредитные продукты",
+        "category": "tcareer_it",
+        "regionId": null,
+        "shortDescription": "Руководите командой и внедряйте ML-модели в кредитные продукты",
+        "salary": null,
+        "cities": [""],
+        "tags": ["Гибрид", "Senior", "Lead"],
+        "urlSlug": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "seoSlug": "ml-timlid-v-ai-centr-kreditnye-produkty",
+        "subtitle": "Казань",
+        "source": "publisher"
+      },
+      {
+        "title": "ML-инженер (NLP, Авто.ру)",
+        "category": "tcareer_it",
+        "regionId": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+        "shortDescription": "Ищем ML-инженеров с опытом в NLP",
+        "salary": null,
+        "cities": [""],
+        "tags": ["Гибрид", "Middle", "Senior"],
+        "urlSlug": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "seoSlug": "ml-inzhener-nlp-avto-ru",
+        "subtitle": "Москва",
+        "source": "publisher"
+      },
+      {
+        "title": "Оператор раннего взыскания",
+        "category": "tcareer_work_with_clients",
+        "regionId": "83009239-25cb-4561-af8e-7ee111b1cb73",
+        "shortDescription": "Общайтесь с должниками",
+        "salary": "От 42 000 ₽",
+        "cities": [""],
+        "tags": ["Из дома"],
+        "urlSlug": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+        "seoSlug": "operator-rannego-vzyskaniya",
+        "subtitle": "Астрахань",
+        "source": "publisher"
+      }
+    ]
+  }
+}

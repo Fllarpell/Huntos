@@ -110,12 +110,16 @@ export function autoName(filters: HireHiFilters): string {
   const parts: string[] = [];
   const search = filters.search.trim();
   if (search) parts.push(search);
-  for (const slug of filters.subcategory) {
-    const label = subLabels[slug] ?? slug;
-    if (label.toLowerCase() !== search.toLowerCase()) parts.push(label);
+  if (!filters.subcategory.length || filters.subcategory.length >= 8) parts.push("весь IT");
+  else {
+    for (const slug of filters.subcategory) {
+      const label = subLabels[slug] ?? slug;
+      if (label.toLowerCase() !== search.toLowerCase()) parts.push(label);
+    }
   }
-  parts.push(...filters.format);
-  if (filters.level.length) parts.push(filters.level.join(", "));
+  if (filters.format.length && filters.format.length < 3) parts.push(...filters.format);
+  else if (filters.format.length >= 3) parts.push("все форматы");
+  if (filters.level.length && filters.level.length <= 2) parts.push(filters.level.join(", "));
   if (filters.english.includes("english")) parts.push("EN");
   if (filters.english.includes("no_english")) parts.push("без EN");
   return [...new Set(parts)].slice(0, 5).join(" · ") || "HireHi поиск";

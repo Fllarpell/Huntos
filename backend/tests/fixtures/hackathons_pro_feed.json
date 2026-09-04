@@ -1,0 +1,148 @@
+{
+  "feeduid": "131632209651",
+  "feedtitle": "Хакатоны",
+  "feeddescr": "",
+  "feedtz": "Europe/Moscow",
+  "feedlang": "",
+  "feedtype": 0,
+  "code": "",
+  "header": "",
+  "footer": "",
+  "poststemplatepageid": 0,
+  "disablepopup": false,
+  "posts": [
+    {
+      "uid": "8sk0eiahi1",
+      "mark": "",
+      "parts": "Активные",
+      "authorname": "",
+      "authorurl": "",
+      "authorimg": "",
+      "directlink": "",
+      "directtarget": "",
+      "disablecomments": 0,
+      "date": "2026-09-03 11:19",
+      "published": "2026-09-03 11:19:59",
+      "liststyle": "",
+      "url": "https://hackathons.pro/tpost/8sk0eiahi1-seriya-kosmohakatonov-dlya-studentov-mol",
+      "postparts": [
+        {
+          "partuid": "986950497851",
+          "parttitle": "Активные",
+          "parturl": "https://hackathons.pro#!/tfeeds/131632209651/c/Активные"
+        }
+      ],
+      "title": "Серия КосмоХакатонов для студентов, молодых ученых и специалистов",
+      "descr": "04 - 27 сентября 2026. Формат: гибридный. Призовой фонд: 7.200.000 ₽",
+      "text": "",
+      "mediatype": "image",
+      "mediadata": "https://static.tildacdn.com/tild3531-3365-4637-a162-623166353338/2026-09-03_084114.jpg",
+      "image": "https://static.tildacdn.com/tild3531-3365-4637-a162-623166353338/2026-09-03_084114.jpg",
+      "imagealt": "",
+      "preview-media": {
+        "type": "image",
+        "source": {
+          "url": "https://static.tildacdn.com/tild3531-3365-4637-a162-623166353338/2026-09-03_084114.jpg",
+          "alt": ""
+        }
+      },
+      "thumb": "",
+      "thumbalt": "",
+      "needGetPost": true,
+      "stats": {
+        "views": 11,
+        "likes": 0
+      }
+    },
+    {
+      "uid": "tkkge5mz31",
+      "mark": "",
+      "parts": "Активные",
+      "authorname": "",
+      "authorurl": "",
+      "authorimg": "",
+      "directlink": "",
+      "directtarget": "",
+      "disablecomments": 0,
+      "date": "2026-09-02 13:18",
+      "published": "2026-09-02 13:19:22",
+      "liststyle": "",
+      "url": "https://hackathons.pro/tpost/tkkge5mz31-hakaton-rlthack-v-sankt-peterburge",
+      "postparts": [
+        {
+          "partuid": "986950497851",
+          "parttitle": "Активные",
+          "parturl": "https://hackathons.pro#!/tfeeds/131632209651/c/Активные"
+        }
+      ],
+      "title": "Хакатон RLT.Hack в Санкт-Петербурге",
+      "descr": "01 - 02 октября 2026. Формат: очный. Призовой фонд: 525.000 ₽",
+      "text": "",
+      "mediatype": "image",
+      "mediadata": "https://static.tildacdn.com/tild3733-3966-4364-a535-623761623335/_.png",
+      "image": "https://static.tildacdn.com/tild3733-3966-4364-a535-623761623335/_.png",
+      "imagealt": "",
+      "preview-media": {
+        "type": "image",
+        "source": {
+          "url": "https://static.tildacdn.com/tild3733-3966-4364-a535-623761623335/_.png",
+          "alt": ""
+        }
+      },
+      "thumb": "",
+      "thumbalt": "",
+      "needGetPost": true,
+      "stats": {
+        "views": 16,
+        "likes": 0
+      }
+    },
+    {
+      "uid": "lo2b2fois1",
+      "mark": "",
+      "parts": "Активные",
+      "authorname": "",
+      "authorurl": "",
+      "authorimg": "",
+      "directlink": "",
+      "directtarget": "",
+      "disablecomments": 0,
+      "date": "2026-08-25 13:37",
+      "published": "2026-08-25 13:37:51",
+      "liststyle": "",
+      "url": "https://hackathons.pro/tpost/lo2b2fois1-it-sorevnovanie-ot-inter-rao-pri-podderz",
+      "postparts": [
+        {
+          "partuid": "986950497851",
+          "parttitle": "Активные",
+          "parturl": "https://hackathons.pro#!/tfeeds/131632209651/c/Активные"
+        }
+      ],
+      "title": "ИТ-соревнование от «Интер РАО» при поддержке «Яндекса»",
+      "descr": "28 сентября - 03 ноября 2026. Формат: гибридный. Призовой фонд: 750.000 ₽",
+      "text": "",
+      "mediatype": "image",
+      "mediadata": "https://static.tildacdn.com/tild3361-3864-4234-b733-363033353932/KV___2026_1x1.jpg",
+      "image": "https://static.tildacdn.com/tild3361-3864-4234-b733-363033353932/KV___2026_1x1.jpg",
+      "imagealt": "",
+      "preview-media": {
+        "type": "image",
+        "source": {
+          "url": "https://static.tildacdn.com/tild3361-3864-4234-b733-363033353932/KV___2026_1x1.jpg",
+          "alt": ""
+        }
+      },
+      "thumb": "",
+      "thumbalt": "",
+      "needGetPost": true,
+      "stats": {
+        "views": 92,
+        "likes": 0
+      }
+    }
+  ],
+  "slice": 1,
+  "size": 3,
+  "total": 15,
+  "nextslice": 2
+}

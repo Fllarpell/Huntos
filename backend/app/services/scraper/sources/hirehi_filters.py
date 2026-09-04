@@ -118,13 +118,23 @@ def auto_name(params: dict) -> str:
     search = (params.get("search") or "").strip()
     if search:
         parts.append(search)
-    for slug in params.get("subcategory") or []:
-        label = labels.get(slug, slug)
-        if label.lower() != search.lower():
-            parts.append(label)
-    parts.extend(params.get("format") or [])
+    subs = list(params.get("subcategory") or [])
+    if not subs:
+        parts.append("весь IT")
+    elif len(subs) >= 8:
+        parts.append("весь IT")
+    else:
+        for slug in subs:
+            label = labels.get(slug, slug)
+            if label.lower() != search.lower():
+                parts.append(label)
+    formats = list(params.get("format") or [])
+    if formats and len(formats) < 3:
+        parts.extend(formats)
+    elif len(formats) >= 3:
+        parts.append("все форматы")
     levels = params.get("level") or []
-    if levels:
+    if levels and len(levels) <= 2:
         parts.append(", ".join(levels))
     english = params.get("english") or []
     if "english" in english:

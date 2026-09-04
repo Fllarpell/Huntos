@@ -104,7 +104,7 @@ export function WaveDesk({
           <p className="text-[12px] tracking-[0.14em] text-accent uppercase">Волна</p>
           <h2 className="mt-1 text-[18px] font-medium">{thesis.name}</h2>
           <p className="mt-1 text-sm leading-5 text-muted">
-            Пачка из Inbox. Скопируй черновик и напиши в Telegram сам — Hunt письмо не отправит. «Написал» сдвинет карточки в «жду ответа». В одной волне до {packMax}.
+            Пачка из Inbox. Скопируй черновик и напиши сам. «Написал» сдвинет карточки в «жду ответа». В одной волне до {packMax}.
           </p>
         </div>
         <button type="button" className="text-sm text-muted hover:text-white" onClick={onClose}>

@@ -9,8 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.models.ping_slot import PingSlot
+from app.services.company_exclude import company_not_excluded_clause
+from app.services.search_text import fold_expr
+from app.models.scraper_config import ScraperConfig
 from app.models.user import User
 from app.models.vacancy import PipelineStage, ScoringStatus, Vacancy
+from app.models.vacancy_search import VacancySearch
 from app.schemas.dto import (
     BulkStageUpdate,
     CollisionOut,
@@ -27,6 +31,7 @@ from app.schemas.dto import (
     VacancyEventWrite,
     VacancyListOut,
     VacancyOut,
+    VacancySearchRef,
     VacancyWrite,
 )
 from app.services.auth import ensure_profile
@@ -66,6 +71,7 @@ from app.services.vacancy_write import apply_hh_pulse, apply_pinged, apply_vacan
 from app.services.clipper import clip_vacancy
 from app.services.scoring.llm import LLMError
 from app.services.scoring.scorer import adapt_resume, generate_cover_letter, generate_telegram_draft, score_vacancy
+from app.services.vacancy_query import apply_vacancy_query
 from app.services.wip import annotate_dwell, enter_stage, touch
 
 router = APIRouter(prefix="/api", tags=["vacancies"])
@@ -79,6 +85,7 @@ def _vacancy_out(
     company_contacts: list | None = None,
     custom_fields: list | None = None,
     hunts: list | None = None,
+    searches: list | None = None,
     *,
     slim: bool = False,
 ) -> VacancyOut:
@@ -87,6 +94,7 @@ def _vacancy_out(
     data.events = events or []
     data.company_contacts = company_contacts or []
     data.hunts = hunts or []
+    data.searches = [VacancySearchRef.model_validate(item) for item in (searches or [])]
     hunt = list(custom_fields or [])
     card = normalize_defs(getattr(vacancy, "card_fields", None), strict=False)
     merged = merge_defs(hunt, card)
@@ -159,12 +167,18 @@ async def _pack(session: AsyncSession, user: User, vacancy: Vacancy) -> VacancyO
     profile = await ensure_profile(session, user)
     fields = await fields_for_vacancy(session, user, vacancy, hunt=None, profile=profile)
     refs = await hunts_for_vacancy(session, user, vacancy)
-    return _vacancy_out(vacancy, connected, collisions, packed, hints, fields or hunt_fields, hunts=refs)
+    found = await searches_for_vacancies(session, [vacancy])
+    return _vacancy_out(
+        vacancy, connected, collisions, packed, hints, fields or hunt_fields, hunts=refs, searches=found.get(vacancy.id)
+    )
 
 
 async def _finish(session: AsyncSession, user: User, vacancy: Vacancy, *, sync: bool = False) -> VacancyOut:
     if sync:
         await _sync_calendar(session, user, vacancy)
+    from app.services.thesis import refresh_user_theses
+
+    await refresh_user_theses(session, user.id, commit=False)
     await session.commit()
     await session.refresh(vacancy)
     return await _pack(session, user, vacancy)
@@ -192,6 +206,42 @@ GRADE_RANK = {
 
 def _grade_order() -> ColumnElement:
     return case(GRADE_RANK, value=Vacancy.grade, else_=0)
+
+
+async def searches_for_vacancies(session: AsyncSession, vacancies: list[Vacancy]) -> dict[int, list[dict]]:
+    ids = [row.id for row in vacancies if row.id]
+    out: dict[int, list[dict]] = {row.id: [] for row in vacancies if row.id}
+    seen: dict[int, set[int]] = {row.id: set() for row in vacancies if row.id}
+    if ids:
+        pairs = (
+            await session.execute(
+                select(VacancySearch, ScraperConfig)
+                .join(ScraperConfig, ScraperConfig.id == VacancySearch.scraper_config_id)
+                .where(VacancySearch.vacancy_id.in_(ids))
+            )
+        ).all()
+        for link, config in pairs:
+            if config.id in seen[link.vacancy_id]:
+                continue
+            seen[link.vacancy_id].add(config.id)
+            out[link.vacancy_id].append({"id": config.id, "name": config.name, "source": config.source})
+    leftover = [
+        row.scraper_config_id
+        for row in vacancies
+        if row.scraper_config_id and row.id and row.scraper_config_id not in seen.get(row.id, set())
+    ]
+    if leftover:
+        configs = (
+            await session.execute(select(ScraperConfig).where(ScraperConfig.id.in_(leftover)))
+        ).scalars()
+        by_id = {item.id: item for item in configs}
+        for row in vacancies:
+            config = by_id.get(row.scraper_config_id or 0)
+            if not config or not row.id or config.id in seen.get(row.id, set()):
+                continue
+            seen[row.id].add(config.id)
+            out[row.id].append({"id": config.id, "name": config.name, "source": config.source})
+    return out
 
 
 def _best_order():
@@ -238,6 +288,9 @@ async def list_vacancies(
     nda: str = "any",
     salary: str = "any",
     source: list[str] = Query(default=[]),
+    exclude_company: list[str] = Query(default=[]),
+    stack: list[str] = Query(default=[]),
+    search_id: list[int] = Query(default=[]),
     hunt_id: int | None = None,
     limit: int = Query(100, le=300),
     offset: int = 0,
@@ -250,20 +303,6 @@ async def list_vacancies(
     filters = [Vacancy.user_id == user.id, Vacancy.duplicate_of_id.is_(None)]
     if stage:
         filters.append(Vacancy.pipeline_stage == stage)
-    if q:
-        raw = q.strip().lower()
-        like = f"%{raw}%"
-        alias_like = f"%{raw.lstrip('@')}%"
-        filters.append(
-            func.lower(Vacancy.title).like(like)
-            | func.lower(func.coalesce(Vacancy.company, "")).like(like)
-            | func.coalesce(Vacancy.company_inn, "").like(alias_like)
-            | func.lower(func.coalesce(Vacancy.telegram_alias, "")).like(alias_like)
-            | func.lower(func.coalesce(Vacancy.contact_email, "")).like(like)
-            | func.coalesce(Vacancy.contact_phone, "").like(like)
-            | func.lower(func.coalesce(Vacancy.source_url, "")).like(like)
-            | Vacancy.source_id.like(alias_like)
-        )
     if grade:
         filters.append(Vacancy.grade.in_(grade))
     if format:
@@ -279,16 +318,25 @@ async def list_vacancies(
         filters.append(Vacancy.salary_min.is_(None) & Vacancy.salary_max.is_(None))
     if source:
         filters.append(Vacancy.source.in_(source))
+    not_excluded = company_not_excluded_clause(exclude_company)
+    if not_excluded is not None:
+        filters.append(not_excluded)
     stmt = stmt.where(*filters)
     count_stmt = count_stmt.where(*filters)
+    stmt = apply_vacancy_query(stmt, user_id=user.id, q=q, stack=stack, search_id=search_id)
+    count_stmt = apply_vacancy_query(count_stmt, user_id=user.id, q=q, stack=stack, search_id=search_id)
     if hunt is not None:
         stmt = apply_hunt(stmt, hunt)
         count_stmt = apply_hunt(count_stmt, hunt)
     total = (await session.execute(count_stmt)).scalar_one()
-    rows = (await session.execute(_apply_sort(stmt, sort).offset(offset).limit(limit))).scalars().all()
+    rows = list((await session.execute(_apply_sort(stmt, sort).offset(offset).limit(limit))).scalars().all())
     connected, collisions, hunt_fields, _hunt = await _board_context(session, user, hunt_id)
+    found = await searches_for_vacancies(session, rows)
     return VacancyListOut(
-        items=[_vacancy_out(row, connected, collisions, slim=True, custom_fields=hunt_fields) for row in rows],
+        items=[
+            _vacancy_out(row, connected, collisions, slim=True, custom_fields=hunt_fields, searches=found.get(row.id))
+            for row in rows
+        ],
         total=total,
     )
 
@@ -320,6 +368,9 @@ async def create_vacancy(
     from app.services.fingerprint import vacancy_fingerprint
 
     vacancy.fingerprint = vacancy_fingerprint(vacancy.title, vacancy.company)
+    from app.services.scraper.sources.stack_lexicon import matching_stack_ids
+
+    vacancy.stack_ids = matching_stack_ids(vacancy.title, vacancy.skills, vacancy.tags)
     session.add(vacancy)
     await session.flush()
     if payload.hunt_id is not None:
@@ -365,6 +416,12 @@ async def update_vacancy(
     vacancy = await vacancy_for_user(session, user, vacancy_id)
     changed = payload.model_dump(exclude_unset=True)
     apply_vacancy_write(vacancy, payload)
+    if "title" in changed or "company" in changed or "skills" in changed:
+        from app.services.fingerprint import vacancy_fingerprint
+        from app.services.scraper.sources.stack_lexicon import matching_stack_ids
+
+        vacancy.fingerprint = vacancy_fingerprint(vacancy.title, vacancy.company)
+        vacancy.stack_ids = matching_stack_ids(vacancy.title, vacancy.skills, vacancy.tags)
     if "next_step_at" in changed or "next_step_kind" in changed:
         await mirror_next_step(session, vacancy)
         return await _finish(session, user, vacancy, sync=True)
@@ -603,6 +660,9 @@ async def bulk_stage(
         if payload.hunt_id is not None:
             await pin_vacancy(session, payload.hunt_id, vacancy.id)
         moved += 1
+    from app.services.thesis import refresh_user_theses
+
+    await refresh_user_theses(session, user.id, commit=False)
     await session.commit()
     return {"ok": True, "moved": moved}
 
@@ -676,8 +736,18 @@ async def pipeline(
     for row in result.scalars():
         grouped[row.pipeline_stage].append(row)
     connected, collisions, hunt_fields, _hunt = await _board_context(session, user, hunt_id)
+    all_items = [item for items in grouped.values() for item in items]
+    found = await searches_for_vacancies(session, all_items)
     return [
-        PipelineColumn(stage=stage, items=[_vacancy_out(v, connected, collisions, slim=True, custom_fields=hunt_fields) for v in items])
+        PipelineColumn(
+            stage=stage,
+            items=[
+                _vacancy_out(
+                    v, connected, collisions, slim=True, custom_fields=hunt_fields, searches=found.get(v.id)
+                )
+                for v in items
+            ],
+        )
         for stage, items in grouped.items()
     ]
 
@@ -694,5 +764,8 @@ async def reorder(
             continue
         enter_stage(vacancy, item.stage)
         vacancy.pipeline_position = item.position
+    from app.services.thesis import refresh_user_theses
+
+    await refresh_user_theses(session, user.id, commit=False)
     await session.commit()
     return {"ok": True}

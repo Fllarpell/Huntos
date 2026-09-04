@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Вакансии — Хабр Карьера</title>
+    <item>
+      <title>Требуется «ML Разработчик» (Новосибирск)</title>
+      <description>Компания «True Engineering» ищет хорошего специалиста на вакансию «ML Разработчик». Новосибирск (Россия). Можно удалённо. Требуемые навыки: #senior, #Python, #PyTorch.</description>
+      <author>True Engineering</author>
+      <pubDate>Tue, 01 Sep 2026 11:47:22 +0300</pubDate>
+      <link>https://career.habr.com/vacancies/1000168375</link>
+      <guid>1000168375</guid>
+      <image>https://habrastorage.org/getpro/moikrug/uploads/company/logo.jpg</image>
+    </item>
+  </channel>
+</rss>

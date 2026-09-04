@@ -4,7 +4,7 @@ export const DURATIONS = [30, 45, 60, 90, 120];
 
 export function defaultMinutes(kind: string | null | undefined, ping = false): number {
   if (ping) return PING_MINUTES;
-  return kind === "offer_deadline" ? 30 : 60;
+  return kind === "offer_deadline" || kind === "assignment" ? 30 : 60;
 }
 
 export function clockMinutes(iso: string | null | undefined): number | null {

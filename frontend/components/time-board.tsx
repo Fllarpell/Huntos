@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { GuideHint, GuideSpot } from "./guide";
 import { addDaysYmd, NEXT_STEP_KINDS, todayYmd, wallDate } from "@/lib/format";
 import type { CalendarBoard } from "@/lib/types";
 import { VacancyDrawer } from "./vacancy-drawer";
@@ -86,7 +86,7 @@ function chipClass(chip: Chip) {
   if (chip.kind === "ping" || chip.collision) {
     return "border-amber-400/25 bg-amber-400/12 text-amber-50";
   }
-  if (chip.kind === "offer_deadline") {
+  if (chip.kind === "offer_deadline" || chip.kind === "assignment") {
     return "border-accent/25 bg-accent/12 text-accent";
   }
   return "border-line bg-white/6 text-ink hover:bg-white/8";
@@ -203,31 +203,38 @@ export function TimeBoard() {
   return (
     <div className="flex h-screen min-h-0 flex-col overflow-hidden">
       <header className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-3 px-7 pt-6 pb-3">
-        <div className="min-w-0">
-          <h1 className="text-[22px] font-semibold tracking-tight">Время</h1>
+        <GuideSpot id="time.header" className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-[22px] font-semibold tracking-tight">Время</h1>
+            <GuideHint id="time.header" />
+          </div>
           <p className="mt-0.5 text-[12px] capitalize text-muted">{heading}</p>
-        </div>
-        <div className="flex items-center gap-5 text-[13px]">
-          {(
-            [
-              ["day", "день"],
-              ["week", "неделя"],
-              ["month", "месяц"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={`border-b pb-0.5 ${
-                range === id ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-              }`}
-              onClick={() => setRange(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        </GuideSpot>
+        <GuideSpot id="time.range">
+          <div className="flex items-center gap-5 text-[13px]">
+            {(
+              [
+                ["day", "день"],
+                ["week", "неделя"],
+                ["month", "месяц"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                className={`border-b pb-0.5 ${
+                  range === id ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
+                }`}
+                onClick={() => setRange(id)}
+              >
+                {label}
+              </button>
+            ))}
+            <GuideHint id="time.range" />
+          </div>
+        </GuideSpot>
         <div className="ml-auto flex items-center gap-1">
+          <GuideHint id="time.grid" />
           <button type="button" className="rounded-full p-1.5 text-muted hover:bg-white/6 hover:text-white" onClick={() => shift(-1)}>
             <ChevronLeft size={16} />
           </button>
@@ -246,25 +253,10 @@ export function TimeBoard() {
 
       {error && <p className="px-7 pb-3 text-sm text-rose-200">{error}</p>}
 
-      <div className="flex min-h-0 flex-1 flex-col px-7 pb-6">
-          {board && !board.calendar_connected && (
-            <p className="mb-3 text-[13px] text-muted">
-              Чтобы собесы появлялись в Google —{" "}
-              <Link href="/settings" className="text-accent hover:underline">
-                подключи календарь Hunt
-              </Link>
-              .
-            </p>
-          )}
-          {board?.calendar_connected && !board.calendar_ready && (
-            <p className="mb-3 text-[13px] text-amber-100">
-              Google подключён, календарь Hunt ещё не создан. Включи Calendar API в настройках — сетка уже показывает время из карточек.
-            </p>
-          )}
-
+      <GuideSpot id="time.grid" className="flex min-h-0 flex-1 flex-col px-7 pb-6">
           {!chips.length && (
             <p className="mb-3 text-[13px] text-muted">
-              Пока нет скринов и собесов. Открой карточку и добавь шаг — появится здесь.
+              Пока нет скринингов, собесов и дедлайнов. Открой карточку и добавь шаг — появится здесь.
             </p>
           )}
 
@@ -341,7 +333,7 @@ export function TimeBoard() {
               }}
             />
           )}
-      </div>
+      </GuideSpot>
 
       {openId != null && (
         <VacancyDrawer

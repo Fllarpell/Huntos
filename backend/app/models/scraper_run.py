@@ -17,7 +17,7 @@ class ScraperRun(Base):
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     scraper_config_id: Mapped[int | None] = mapped_column(
         Integer,
-        ForeignKey("scraper_configs.id"),
+        ForeignKey("scraper_configs.id", ondelete="SET NULL"),
     )
     started_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime())

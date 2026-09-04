@@ -1,0 +1,122 @@
+{
+  "status": 200,
+  "data": {
+    "items": [
+      {
+        "id": 38619,
+        "name": "Руководитель направления инженерного сопровождения SOC",
+        "direction_title": "Информационная безопасность",
+        "direction_role_title": "",
+        "experience_type_title": "От 5 лет",
+        "city_title": "Москва",
+        "employment_types": [
+          {
+            "id": 1,
+            "vacancy_id": 38619,
+            "title": "Гибрид",
+            "description": ""
+          },
+          {
+            "id": 2,
+            "vacancy_id": 38619,
+            "title": "Удаленно",
+            "description": ""
+          },
+          {
+            "id": 3,
+            "vacancy_id": 38619,
+            "title": "Офис",
+            "description": ""
+          }
+        ]
+      },
+      {
+        "id": 38432,
+        "name": "Fullstack QA в команду Инфраструктуры",
+        "direction_title": "Тестирование",
+        "direction_role_title": "",
+        "experience_type_title": "От 5 лет",
+        "city_title": "",
+        "employment_types": [
+          {
+            "id": 2,
+            "vacancy_id": 38432,
+            "title": "Удаленно",
+            "description": ""
+          }
+        ]
+      },
+      {
+        "id": 32813,
+        "name": "Специалист по методологии и соответствию в области ИБ",
+        "direction_title": "Информационная безопасность",
+        "direction_role_title": "",
+        "experience_type_title": "От 3 лет",
+        "city_title": "Москва",
+        "employment_types": [
+          {
+            "id": 1,
+            "vacancy_id": 32813,
+            "title": "Гибрид",
+            "description": ""
+          },
+          {
+            "id": 3,
+            "vacancy_id": 32813,
+            "title": "Офис",
+            "description": ""
+          }
+        ]
+      },
+      {
+        "id": 31543,
+        "name": "Golang разработчик в направление Финансового Департамента",
+        "direction_title": "Разработка",
+        "direction_role_title": "Golang Developer",
+        "experience_type_title": "От 5 лет",
+        "city_title": "",
+        "employment_types": [
+          {
+            "id": 2,
+            "vacancy_id": 31543,
+            "title": "Удаленно",
+            "description": ""
+          }
+        ]
+      },
+      {
+        "id": 34294,
+        "name": "Инженер по инфраструктурной безопасности (R&D)",
+        "direction_title": "Информационная безопасность",
+        "direction_role_title": "Information Security Engineer",
+        "experience_type_title": "От 3 лет",
+        "city_title": "Москва",
+        "employment_types": [
+          {
+            "id": 1,
+            "vacancy_id": 34294,
+            "title": "Гибрид",
+            "description": ""
+          },
+          {
+            "id": 2,
+            "vacancy_id": 34294,
+            "title": "Удаленно",
+            "description": ""
+          },
+          {
+            "id": 3,
+            "vacancy_id": 34294,
+            "title": "Офис",
+            "description": ""
+          }
+        ]
+      }
+    ],
+    "range": {
+      "count": 33,
+      "limit": 5,
+      "offset": 0
+    }
+  }
+}

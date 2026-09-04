@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +16,7 @@ from app.services.auth import ensure_profile
 from app.services.custom_fields import normalize_defs
 from app.services.google_calendar import google_connected, pull_for_user, sync_ping_slot
 from app.services.hunts import inbox_count, list_hunts, pin_many, save_hunt_fields, seed_fields_on_create
+from app.services.company_exclude import normalize_exclude_companies
 from app.services.nudge import annotate_ping, nudge_queue
 from app.services.wip import annotate_dwell
 from app.services.ping_slot import ensure_ping_slots, ping_scope, slot_out
@@ -40,11 +41,17 @@ class ThesisIn(BaseModel):
     formats: list[str] = Field(default_factory=list)
     salary_min: int | None = None
     no_nda: bool = False
+    exclude_companies: list[str] = Field(default_factory=list)
     days: int = 14
     min_sample: int = 8
     min_median_match: int = 55
     enabled: bool = True
     custom_fields: list | None = None
+
+    @field_validator("exclude_companies", mode="before")
+    @classmethod
+    def _exclude_companies(cls, value: object) -> list[str]:
+        return normalize_exclude_companies(value)
 
 
 class ThesisOut(ThesisIn):
@@ -66,6 +73,7 @@ def _fields(payload: ThesisIn) -> dict:
         "formats": payload.formats or [],
         "salary_min": payload.salary_min,
         "no_nda": payload.no_nda,
+        "exclude_companies": normalize_exclude_companies(payload.exclude_companies),
         "days": max(3, min(60, payload.days or 14)),
         "min_sample": max(3, min(40, payload.min_sample or 8)),
         "min_median_match": max(20, min(90, payload.min_median_match or 55)),
@@ -343,6 +351,7 @@ async def wave_wrote(
     )
     session.add(wave)
     await pin_many(session, thesis.id, [row.id for row in moved])
+    await refresh_thesis(session, thesis, commit=False)
     await session.commit()
     await session.refresh(wave)
     return {

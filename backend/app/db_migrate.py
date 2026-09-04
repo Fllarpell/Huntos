@@ -20,6 +20,12 @@ def _alembic_upgrade() -> None:
 
 async def apply_schema() -> None:
     from app.db import Base, engine, migrate_schema
+    from app.models.hackathon_event import HackathonEvent  # noqa: F401
+    from app.models.hackathon_track import HackathonTrack  # noqa: F401
+    from app.models.internship_monitor import InternshipMonitor  # noqa: F401
+    from app.models.feedback import FeedbackNote  # noqa: F401
+    from app.models.chat import ChatMessage, Conversation, ConversationMember  # noqa: F401
+    from app.models.telegram_bot import TelegramBotBind  # noqa: F401
 
     if settings.is_sqlite():
         async with engine.begin() as conn:

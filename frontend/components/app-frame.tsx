@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { GuideProvider } from "@/components/guide";
 import { HuntProvider } from "@/components/hunt-context";
 import { Shell } from "@/components/shell";
 import { WorkspaceProvider, useWorkspace } from "@/components/workspace-context";
@@ -24,7 +25,9 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   }
   return (
     <WorkspaceProvider>
-      <WorkspaceApp>{children}</WorkspaceApp>
+      <GuideProvider>
+        <WorkspaceApp>{children}</WorkspaceApp>
+      </GuideProvider>
     </WorkspaceProvider>
   );
 }

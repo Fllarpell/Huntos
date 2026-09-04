@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, setAsUser, type AuthUser } from "@/lib/api";
+import { setPendingFirstTour } from "@/lib/guide";
 
 const STORAGE = "hunt-as-user";
 
@@ -25,8 +26,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const refreshUsers = useCallback(async () => {
     const user = await api.me();
     setMe(user);
-    const allowed = Boolean(user.is_host || user.can_observe);
-    if (!allowed) {
+    if (new URLSearchParams(window.location.search).get("new") === "1") {
+      setPendingFirstTour(user.id);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    if (!user.is_host && !user.can_observe) {
       setUsers([]);
       setAsUser(null);
       setAs(null);

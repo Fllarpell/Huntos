@@ -1,0 +1,282 @@
+{
+  "data": [
+    {
+      "id": 699529378433859700,
+      "documentId": "legacy-699529378433859649",
+      "title": "Эксперт направления сопровождения пользователей",
+      "slug": "699529378433859649",
+      "isActive": true,
+      "createdAt": "2026-09-03T00:00:00.000Z",
+      "updatedAt": "2026-09-03T00:00:00.000Z",
+      "publishedAt": "2026-09-03T00:00:00.000Z",
+      "salaryFrom": null,
+      "salaryTo": null,
+      "description": null,
+      "mtsId": "699529378433859649",
+      "image": null,
+      "categories": [
+        {
+          "id": null,
+          "documentId": "category-Работа в IT",
+          "title": "Работа в IT",
+          "slug": "работа-в-it",
+          "createdAt": "2026-09-03T14:07:56.321Z",
+          "updatedAt": "2026-09-03T14:07:56.321Z",
+          "publishedAt": "2026-09-03T14:07:56.321Z",
+          "icon": null,
+          "image": null,
+          "subCategories": [],
+          "parentCategory": null
+        }
+      ],
+      "currency": {
+        "id": 1,
+        "documentId": "ja2zb8jti7wg1pqd7jrk8t1f",
+        "title": "RUB",
+        "createdAt": "2026-09-03T14:07:56.321Z",
+        "updatedAt": "2026-09-03T14:07:56.321Z",
+        "publishedAt": "2026-09-03T14:07:56.321Z"
+      },
+      "region": {
+        "id": null,
+        "documentId": "region-Москва",
+        "title": "Москва",
+        "createdAt": "2026-09-03T14:07:56.321Z",
+        "updatedAt": "2026-09-03T14:07:56.321Z",
+        "publishedAt": "2026-09-03T14:07:56.321Z",
+        "addresses": []
+      },
+      "address": null,
+      "experience": {
+        "id": 21,
+        "documentId": "3056986b26fb6605",
+        "title": "Без опыта",
+        "createdAt": "2026-09-03T14:07:56.321Z",
+        "updatedAt": "2026-09-03T14:07:56.321Z",
+        "publishedAt": "2026-09-03T14:07:56.321Z"
+      },
+      "FeedSettings": null,
+      "organization": {
+        "id": null,
+        "documentId": "org-ПАО МТС-Банк",
+        "title": "ПАО МТС-Банк",
+        "createdAt": "2026-09-03T14:07:56.321Z",
+        "updatedAt": "2026-09-03T14:07:56.321Z",
+        "publishedAt": "2026-09-03T14:07:56.321Z"
+      },
+      "workFormats": [
+        {
+          "id": 1,
+          "documentId": "worktype-1",
+          "title": "В офисе",
+          "createdAt": "2026-09-03T14:07:56.321Z",
+          "updatedAt": "2026-09-03T14:07:56.321Z",
+          "publishedAt": "2026-09-03T14:07:56.321Z"
+        }
+      ],
+      "workTypes": [],
+      "workSchedules": [
+        {
+          "id": 0,
+          "documentId": "schedule-0",
+          "title": "Полный день",
+          "createdAt": "2026-09-03T14:07:56.321Z",
+          "updatedAt": "2026-09-03T14:07:56.321Z",
+          "publishedAt": "2026-09-03T14:07:56.321Z"
+        }
+      ],
+      "tasks": [],
+      "offers": [],
+      "requirements": [],
+      "tags": []
+    },
+    {
+      "id": 698532811128176800,
+      "documentId": "legacy-698532811128176738",
+      "title": "Разработчик RPA Python (Служба роботизации бизнес-процессов)",
+      "slug": "698532811128176738",
+      "isActive": true,
+      "createdAt": "2026-09-03T00:00:00.000Z",
+      "updatedAt": "2026-09-03T00:00:00.000Z",
+      "publishedAt": "2026-09-03T00:00:00.000Z",
+      "salaryFrom": null,
+      "salaryTo": null,
+      "description": null,
+      "mtsId": "698532811128176738",
+      "image": null,
+      "categories": [
+        {
+          "id": null,
+          "documentId": "category-Работа в IT",
+          "title": "Работа в IT",
+          "slug": "работа-в-it",
+          "createdAt": "2026-09-03T14:07:56.321Z",
+          "updatedAt": "2026-09-03T14:07:56.321Z",
+          "publishedAt": "2026-09-03T14:07:56.321Z",
+          "icon": null,
+          "image": null,
+          "subCategories": [],
+          "parentCategory": null
+        }
+      ],
+      "currency": {
+        "id": 1,
+        "documentId": "ja2zb8jti7wg1pqd7jrk8t1f",
+        "title": "RUB",
+        "createdAt": "2026-09-03T14:07:56.321Z",
+        "updatedAt": "2026-09-03T14:07:56.321Z",
+        "publishedAt": "2026-09-03T14:07:56.321Z"
+      },
+      "region": {
+        "id": null,
+        "documentId": "region-Томск",
+        "title": "Томск",
+        "createdAt": "2026-09-03T14:07:56.321Z",
+        "updatedAt": "2026-09-03T14:07:56.321Z",
+        "publishedAt": "2026-09-03T14:07:56.321Z",
+        "addresses": []
+      },
+      "address": null,
+      "experience": {
+        "id": 21,
+        "documentId": "3056986b26fb6605",
+        "title": "Без опыта",
+        "createdAt": "2026-09-03T14:07:56.321Z",
+        "updatedAt": "2026-09-03T14:07:56.321Z",
+        "publishedAt": "2026-09-03T14:07:56.321Z"
+      },
+      "FeedSettings": null,
+      "organization": {
+        "id": null,
+        "documentId": "org-ПАО МТС-Банк",
+        "title": "ПАО МТС-Банк",
+        "createdAt": "2026-09-03T14:07:56.321Z",
+        "updatedAt": "2026-09-03T14:07:56.321Z",
+        "publishedAt": "2026-09-03T14:07:56.321Z"
+      },
+      "workFormats": [
+        {
+          "id": 1,
+          "documentId": "worktype-1",
+          "title": "В офисе",
+          "createdAt": "2026-09-03T14:07:56.321Z",
+          "updatedAt": "2026-09-03T14:07:56.321Z",
+          "publishedAt": "2026-09-03T14:07:56.321Z"
+        }
+      ],
+      "workTypes": [],
+      "workSchedules": [
+        {
+          "id": 0,
+          "documentId": "schedule-0",
+          "title": "Полный день",
+          "createdAt": "2026-09-03T14:07:56.321Z",
+          "updatedAt": "2026-09-03T14:07:56.321Z",
+          "publishedAt": "2026-09-03T14:07:56.321Z"
+        }
+      ],
+      "tasks": [],
+      "offers": [],
+      "requirements": [],
+      "tags": []
+    },
+    {
+      "id": 698880100099162200,
+      "documentId": "legacy-698880100099162195",
+      "title": "Ведущий разработчик РБО (АБС ЦФТ)",
+      "slug": "698880100099162195",
+      "isActive": true,
+      "createdAt": "2026-09-03T00:00:00.000Z",
+      "updatedAt": "2026-09-03T00:00:00.000Z",
+      "publishedAt": "2026-09-03T00:00:00.000Z",
+      "salaryFrom": null,
+      "salaryTo": null,
+      "description": null,
+      "mtsId": "698880100099162195",
+      "image": null,
+      "categories": [
+        {
+          "id": null,
+          "documentId": "category-Работа в IT",
+          "title": "Работа в IT",
+          "slug": "работа-в-it",
+          "createdAt": "2026-09-03T14:07:56.322Z",
+          "updatedAt": "2026-09-03T14:07:56.322Z",
+          "publishedAt": "2026-09-03T14:07:56.322Z",
+          "icon": null,
+          "image": null,
+          "subCategories": [],
+          "parentCategory": null
+        }
+      ],
+      "currency": {
+        "id": 1,
+        "documentId": "ja2zb8jti7wg1pqd7jrk8t1f",
+        "title": "RUB",
+        "createdAt": "2026-09-03T14:07:56.322Z",
+        "updatedAt": "2026-09-03T14:07:56.322Z",
+        "publishedAt": "2026-09-03T14:07:56.322Z"
+      },
+      "region": {
+        "id": null,
+        "documentId": "region-Москва",
+        "title": "Москва",
+        "createdAt": "2026-09-03T14:07:56.322Z",
+        "updatedAt": "2026-09-03T14:07:56.322Z",
+        "publishedAt": "2026-09-03T14:07:56.322Z",
+        "addresses": []
+      },
+      "address": null,
+      "experience": {
+        "id": 22,
+        "documentId": "02d88bc9ca993232",
+        "title": "3-6 лет",
+        "createdAt": "2026-09-03T14:07:56.322Z",
+        "updatedAt": "2026-09-03T14:07:56.322Z",
+        "publishedAt": "2026-09-03T14:07:56.322Z"
+      },
+      "FeedSettings": null,
+      "organization": {
+        "id": null,
+        "documentId": "org-ПАО МТС-Банк",
+        "title": "ПАО МТС-Банк",
+        "createdAt": "2026-09-03T14:07:56.322Z",
+        "updatedAt": "2026-09-03T14:07:56.322Z",
+        "publishedAt": "2026-09-03T14:07:56.322Z"
+      },
+      "workFormats": [
+        {
+          "id": 1,
+          "documentId": "worktype-1",
+          "title": "В офисе",
+          "createdAt": "2026-09-03T14:07:56.322Z",
+          "updatedAt": "2026-09-03T14:07:56.322Z",
+          "publishedAt": "2026-09-03T14:07:56.322Z"
+        }
+      ],
+      "workTypes": [],
+      "workSchedules": [
+        {
+          "id": 0,
+          "documentId": "schedule-0",
+          "title": "Полный день",
+          "createdAt": "2026-09-03T14:07:56.322Z",
+          "updatedAt": "2026-09-03T14:07:56.322Z",
+          "publishedAt": "2026-09-03T14:07:56.322Z"
+        }
+      ],
+      "tasks": [],
+      "offers": [],
+      "requirements": [],
+      "tags": []
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "page": 1,
+      "pageSize": 50,
+      "pageCount": 53,
+      "total": 2626
+    }
+  }
+}

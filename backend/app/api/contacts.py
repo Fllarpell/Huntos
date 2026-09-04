@@ -71,15 +71,15 @@ async def list_contacts(
     q: str | None = None,
     pool: str | None = None,
     session: AsyncSession = Depends(get_session),
-    actor: User = Depends(get_current_user),
     scope: User = Depends(get_scope_user),
+    actor: User = Depends(get_current_user),
 ) -> list[ContactOut]:
     if (pool or "").strip() == "all":
         if not actor.is_host:
-            raise HTTPException(403, "Общий пул контактов видит только хост")
+            raise HTTPException(403, "Общий пул контактов недоступен")
         people = filter_pool(await load_all_pools(session), q)
-    else:
-        people = filter_pool(await load_pool(session, scope.id), q)
+        return [_person_out(row) for row in people]
+    people = filter_pool(await load_pool(session, scope.id), q)
     return [_person_out(row) for row in people]
 
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,6 +8,7 @@ from app.models.user import User
 from app.services.auth import (
     claim_orphans,
     clear_session_cookie,
+    cookie_kwargs,
     create_session,
     ensure_profile,
     hash_password,
@@ -18,6 +19,14 @@ from app.services.auth import (
     verify_password,
 )
 from app.services.deps import can_view_others, get_current_user, require_host
+from app.services.google_calendar import (
+    OAUTH_CALLBACK_COOKIE,
+    OAUTH_COOKIE,
+    auth_url,
+    callback_uri_from_headers,
+    new_login_state,
+    resolved_client_credentials,
+)
 from app.services.telegram_parse import backfill_user_telegram, ensure_user_telegram_pool
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -29,26 +38,27 @@ class AuthIn(BaseModel):
 
 
 class UserOut(BaseModel):
+    model_config = ConfigDict(exclude_none=True)
+
     id: int
     email: str
-    is_host: bool = False
-    can_observe: bool = False
+    is_host: bool | None = None
+    can_observe: bool | None = None
 
 
 class ObserveIn(BaseModel):
     can_observe: bool
 
 
-def _out(user: User) -> UserOut:
-    return UserOut(
-        id=user.id,
-        email=user.email,
-        is_host=bool(user.is_host),
-        can_observe=bool(user.is_host or user.can_observe),
-    )
+def _out(user: User, *, staff: bool = False) -> UserOut:
+    if user.is_host:
+        return UserOut(id=user.id, email=user.email, is_host=True, can_observe=True)
+    if staff or user.can_observe:
+        return UserOut(id=user.id, email=user.email, can_observe=bool(user.can_observe))
+    return UserOut(id=user.id, email=user.email)
 
 
-@router.post("/register", response_model=UserOut)
+@router.post("/register", response_model=UserOut, response_model_exclude_none=True)
 async def register(
     payload: AuthIn,
     response: Response,
@@ -72,7 +82,7 @@ async def register(
     return _out(user)
 
 
-@router.post("/login", response_model=UserOut)
+@router.post("/login", response_model=UserOut, response_model_exclude_none=True)
 async def login(
     payload: AuthIn,
     response: Response,
@@ -99,23 +109,46 @@ async def logout(
     return {"ok": True}
 
 
-@router.get("/me", response_model=UserOut)
+@router.get("/me", response_model=UserOut, response_model_exclude_none=True)
 async def me(user: User = Depends(get_current_user)) -> UserOut:
     return _out(user)
 
 
-@router.get("/users", response_model=list[UserOut])
+@router.get("/google")
+async def google_available(session: AsyncSession = Depends(get_session)) -> dict:
+    client_id, client_secret = await resolved_client_credentials(session)
+    return {"available": bool(client_id and client_secret)}
+
+
+@router.post("/google")
+async def google_login_start(
+    request: Request,
+    response: Response,
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    client_id, client_secret = await resolved_client_credentials(session)
+    if not client_id or not client_secret:
+        raise HTTPException(400, "Google вход пока недоступен")
+    state = new_login_state()
+    callback = callback_uri_from_headers(request.headers)
+    kwargs = cookie_kwargs(max_age=600)
+    response.set_cookie(OAUTH_COOKIE, state, **kwargs)
+    response.set_cookie(OAUTH_CALLBACK_COOKIE, callback, **kwargs)
+    return {"url": auth_url(client_id, state, callback)}
+
+
+@router.get("/users", response_model=list[UserOut], response_model_exclude_none=True)
 async def list_users(
     session: AsyncSession = Depends(get_session),
     actor: User = Depends(get_current_user),
 ) -> list[UserOut]:
     if not can_view_others(actor):
-        raise HTTPException(403, "Список пользователей недоступен")
+        raise HTTPException(404, "Не найдено")
     rows = (await session.execute(select(User).order_by(User.id))).scalars().all()
-    return [_out(row) for row in rows]
+    return [_out(row, staff=actor.is_host) for row in rows]
 
 
-@router.patch("/users/{user_id}", response_model=UserOut)
+@router.patch("/users/{user_id}", response_model=UserOut, response_model_exclude_none=True)
 async def patch_user(
     user_id: int,
     payload: ObserveIn,
@@ -123,11 +156,9 @@ async def patch_user(
     _host: User = Depends(require_host),
 ) -> UserOut:
     row = await session.get(User, user_id)
-    if row is None:
-        raise HTTPException(404, "Пользователь не найден")
-    if row.is_host:
-        raise HTTPException(400, "Хост и так видит всех")
+    if row is None or row.is_host:
+        raise HTTPException(404, "Не найдено")
     row.can_observe = bool(payload.can_observe)
     await session.commit()
     await session.refresh(row)
-    return _out(row)
+    return _out(row, staff=True)

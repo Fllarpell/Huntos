@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { api } from "@/lib/api";
 import { NEXT_STEP_KINDS, addMinutesLocal, minutesSpan, toDatetimeLocalValue, todayYmd } from "@/lib/format";
 import { downloadVacancyIcs } from "@/lib/calendar";
@@ -108,31 +107,35 @@ function EventRow({
           setKind(nextKind);
         }}
       />
-      <div className="mt-3">
-        <p className="mb-1.5 text-[12px] text-muted">Длительность</p>
-        <div className="flex flex-wrap gap-1.5">
-          {DURATIONS.map((item) => (
-            <button
-              key={item}
-              type="button"
-              className={`rounded-full px-2.5 py-1 text-[12px] ${
-                minutes === item ? "bg-accent/18 text-accent ring-1 ring-accent/35" : "bg-white/5 text-muted hover:text-white"
-              }`}
-              onClick={() => setMinutes(item)}
-            >
-              {item} мин
-            </button>
-          ))}
+      {kind !== "offer_deadline" && kind !== "assignment" ? (
+        <div className="mt-3">
+          <p className="mb-1.5 text-[12px] text-muted">Длительность</p>
+          <div className="flex flex-wrap gap-1.5">
+            {DURATIONS.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={`rounded-full px-2.5 py-1 text-[12px] ${
+                  minutes === item ? "bg-accent/18 text-accent ring-1 ring-accent/35" : "bg-white/5 text-muted hover:text-white"
+                }`}
+                onClick={() => setMinutes(item)}
+              >
+                {item} мин
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-[12px] tabular-nums text-muted">
+            {when ? `${when.slice(11, 16)}–${addMinutesLocal(when, minutes).slice(11, 16)}` : ""}
+          </p>
         </div>
-        <p className="mt-2 text-[12px] tabular-nums text-muted">
-          {when ? `${when.slice(11, 16)}–${addMinutesLocal(when, minutes).slice(11, 16)}` : ""}
-        </p>
-      </div>
+      ) : (
+        <p className="mt-3 text-[12px] text-muted">Дедлайн — день и время, до которого ждут ответ.</p>
+      )}
       <input
         className="mt-3"
         value={label}
         onChange={(e) => setLabel(e.target.value)}
-        placeholder="например: скрин, собес 1"
+        placeholder="например: собес 1, дедлайн"
       />
       {peers.length > 0 && (
         <p className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/8 px-3 py-2 text-[13px] leading-5 text-amber-100">
@@ -155,7 +158,7 @@ function EventRow({
         </p>
       )}
       {vacancy.calendar_connected && event.google_event_id && !event.google_sync_error && (
-        <p className="mt-3 text-[13px] text-accent">создано в календаре Hunt</p>
+        <p className="mt-3 text-[13px] text-accent">создано в календаре HuntOS</p>
       )}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
@@ -214,32 +217,43 @@ export function VacancySteps({
           />
         ))}
       </div>
-      {!events.length && <p className="text-[13px] text-muted">Нет скрина или собеса. Добавь шаг — появится во «Времени».</p>}
+      {!events.length && (
+        <p className="text-[13px] text-muted">
+          Нет скрининга, собеса или техзадания. Скрининг и собес сразу уносят карточку из Inbox.
+        </p>
+      )}
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          disabled={busy}
-          className="rounded-xl bg-white/8 px-3 py-1.5 text-sm disabled:opacity-40"
-          onClick={() => {
-            setBusy(true);
-            void api
-              .addEvent(vacancy.id, {
-                kind: "interview",
-                starts_at: `${todayYmd()}T15:00:00`,
-                ends_at: `${todayYmd()}T16:00:00`,
-              })
-              .then(onChanged)
-              .catch((e) => onError(e instanceof Error ? e.message : "Не добавилось"))
-              .finally(() => setBusy(false));
-          }}
-        >
-          {busy ? "Добавляю…" : "Добавить шаг"}
-        </button>
-        {!vacancy.calendar_connected && (
-          <Link href="/settings" className="text-[13px] text-accent hover:underline">
-            Подключить Google Calendar
-          </Link>
-        )}
+        {(
+          [
+            ["screening", "скрининг"],
+            ["interview", "собес"],
+            ["assignment", "тех задание"],
+          ] as const
+        ).map(([kind, label]) => (
+          <button
+            key={kind}
+            type="button"
+            disabled={busy}
+            className="rounded-xl bg-white/8 px-3 py-1.5 text-sm disabled:opacity-40"
+            onClick={() => {
+              setBusy(true);
+              const start = kind === "assignment" ? `${todayYmd()}T18:00:00` : `${todayYmd()}T15:00:00`;
+              const end =
+                kind === "assignment" ? `${todayYmd()}T18:30:00` : `${todayYmd()}T16:00:00`;
+              void api
+                .addEvent(vacancy.id, {
+                  kind,
+                  starts_at: start,
+                  ends_at: end,
+                })
+                .then(onChanged)
+                .catch((e) => onError(e instanceof Error ? e.message : "Не добавилось"))
+                .finally(() => setBusy(false));
+            }}
+          >
+            {busy ? "Добавляю…" : label}
+          </button>
+        ))}
       </div>
     </section>
   );

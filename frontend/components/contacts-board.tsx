@@ -7,6 +7,7 @@ import type { HuntContact } from "@/lib/types";
 import { STAGE_LABEL } from "@/lib/types";
 import { normalizeInn, ruCount, telegramHandle, telegramUrl, telHref } from "@/lib/format";
 import { CompanyMark } from "./company-mark";
+import { GuideHint, GuideSpot } from "./guide";
 import { SearchField } from "./search-field";
 import { VacancyDrawer } from "./vacancy-drawer";
 import { useWorkspace } from "@/components/workspace-context";
@@ -145,9 +146,9 @@ function PersonDetail({
   person,
   org,
   compact,
+  allPool,
   busy,
   copied,
-  allPool,
   onCopy,
   onOpen,
   onRemove,
@@ -155,9 +156,9 @@ function PersonDetail({
   person: HuntContact;
   org?: HuntCompany;
   compact?: boolean;
+  allPool?: boolean;
   busy: boolean;
   copied: string | null;
-  allPool?: boolean;
   onCopy: (value: string) => void;
   onOpen: (id: number) => void;
   onRemove: (ids: number[]) => void;
@@ -183,9 +184,6 @@ function PersonDetail({
       <h2 className={`font-semibold tracking-tight ${compact ? "mt-4 text-[18px]" : "mt-6 text-[26px]"}`}>
         {title}
       </h2>
-      {person.owner_email ? (
-        <p className={`${compact ? "mt-1" : "mt-2"} text-[13px] text-muted`}>{person.owner_email}</p>
-      ) : null}
       {poolOnly && !allPool && (
         <button
           type="button"
@@ -292,6 +290,8 @@ export function ContactsBoard() {
   const [q, setQ] = useState("");
   const [view, setView] = useState<View>("people");
   const [pool, setPool] = useState<"mine" | "all">("mine");
+  const isHost = Boolean(me?.is_host);
+  const allPool = isHost && pool === "all";
   const [form, setForm] = useState(EMPTY);
   const [composer, setComposer] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -304,14 +304,18 @@ export function ContactsBoard() {
 
   const load = useCallback(async () => {
     try {
-      setItems(await api.contacts(q || undefined, pool === "all" ? "all" : undefined));
+      setItems(await api.contacts(q || undefined, allPool ? "all" : undefined));
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не загрузилось");
     } finally {
       setLoaded(true);
     }
-  }, [q, pool, asUserId]);
+  }, [q, asUserId, allPool]);
+
+  useEffect(() => {
+    if (!isHost) setPool("mine");
+  }, [isHost, asUserId]);
 
   useEffect(() => {
     const t = setTimeout(() => void load(), q ? 250 : 0);
@@ -394,68 +398,72 @@ export function ContactsBoard() {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <header className="flex shrink-0 items-center gap-6 px-7 pt-6 pb-4">
-        <div className="min-w-0">
-          <h1 className="text-[22px] font-semibold tracking-tight">Контакты</h1>
+        <GuideSpot id="contacts.header" className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-[22px] font-semibold tracking-tight">Контакты</h1>
+            <GuideHint id="contacts.header" />
+          </div>
           <p className="mt-0.5 text-[12px] text-muted">
             {loaded ? ruCount(items.length, "человек", "человека", "человек") : "…"}
-            {pool === "all" ? " · все аккаунты" : q ? " по запросу" : ""}
+            {q ? " по запросу" : ""}
           </p>
-        </div>
-        <div className="flex items-center gap-5 text-[13px]">
-          {(
-            [
-              ["people", "люди"],
-              ["companies", "компании"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => {
-                setView(value);
-                setComposer(false);
-              }}
-              className={`border-b pb-0.5 ${
-                view === value && !composer
-                  ? "border-accent text-white"
-                  : "border-transparent text-muted hover:text-white/80"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-          {me?.is_host && (
-            <button
-              type="button"
-              onClick={() => {
-                setPool((p) => (p === "all" ? "mine" : "all"));
-                setComposer(false);
-              }}
-              className={`border-b pb-0.5 ${
-                pool === "all" ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-              }`}
-            >
-              все
-            </button>
-          )}
-        </div>
-        {pool !== "all" && (
-          <div className="ml-auto flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setComposer((open) => !open);
-                setError(null);
-              }}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] ${
-                composer ? "bg-white/10 text-white" : "text-accent hover:bg-accent/10"
-              }`}
-            >
-              {composer ? <X size={14} /> : <Plus size={14} />}
-              {composer ? "Закрыть" : "HR"}
-            </button>
+        </GuideSpot>
+        <GuideSpot id="contacts.view">
+          <div className="flex items-center gap-5 text-[13px]">
+            {(
+              [
+                ["people", "люди"],
+                ["companies", "компании"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => {
+                  setView(value);
+                  setComposer(false);
+                }}
+                className={`border-b pb-0.5 ${
+                  view === value && !composer
+                    ? "border-accent text-white"
+                    : "border-transparent text-muted hover:text-white/80"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+            {isHost ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setPool((prev) => (prev === "all" ? "mine" : "all"));
+                  setComposer(false);
+                }}
+                className={`border-b pb-0.5 ${
+                  allPool ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
+                }`}
+              >
+                все
+              </button>
+            ) : null}
+            <GuideHint id="contacts.view" />
           </div>
-        )}
+        </GuideSpot>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setComposer((open) => !open);
+              setError(null);
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] ${
+              composer ? "bg-white/10 text-white" : "text-accent hover:bg-accent/10"
+            }`}
+          >
+            {composer ? <X size={14} /> : <Plus size={14} />}
+            {composer ? "Закрыть" : "HR"}
+          </button>
+        </div>
       </header>
 
       {error && (
@@ -466,9 +474,10 @@ export function ContactsBoard() {
 
       <div className="flex min-h-0 flex-1 border-t border-line">
         <aside className="flex w-[300px] shrink-0 flex-col border-r border-line">
-          <div className="border-b border-line px-3 py-3">
-            <SearchField className="w-full" value={q} onChange={setQ} placeholder="имя, компания, @hr" />
-          </div>
+          <GuideSpot id="contacts.search" className="flex items-center gap-1 border-b border-line px-3 py-3">
+            <SearchField className="min-w-0 flex-1" value={q} onChange={setQ} placeholder="имя, компания, @hr" />
+            <GuideHint id="contacts.search" />
+          </GuideSpot>
           <div className="min-h-0 flex-1 overflow-y-auto py-2">
             {!loaded ? (
               <p className="px-5 py-6 text-[13px] text-muted">Загрузка…</p>
@@ -478,7 +487,7 @@ export function ContactsBoard() {
               items.map((row) => {
                 const active = person?.id === row.id && !composer;
                 const sub = row.companies.map((c) => companyLine(c)).filter(Boolean).join(" · ");
-                const meta = [pool === "all" ? row.owner_email : null, sub].filter(Boolean).join(" · ");
+                const meta = [allPool ? row.owner_email : null, sub].filter(Boolean).join(" · ");
                 return (
                   <button
                     key={row.id}
@@ -615,9 +624,9 @@ export function ContactsBoard() {
           ) : view === "people" && person ? (
             <PersonDetail
               person={person}
+              allPool={allPool}
               busy={busy}
               copied={copied}
-              allPool={pool === "all"}
               onCopy={(value) => void copy(value)}
               onOpen={setOpenId}
               onRemove={(ids) => void removeSaved(ids)}
@@ -643,9 +652,9 @@ export function ContactsBoard() {
                     person={row}
                     org={group.org}
                     compact
+                    allPool={allPool}
                     busy={busy}
                     copied={copied}
-                    allPool={pool === "all"}
                     onCopy={(value) => void copy(value)}
                     onOpen={setOpenId}
                     onRemove={(ids) => void removeSaved(ids)}

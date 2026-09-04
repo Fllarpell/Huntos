@@ -2,12 +2,13 @@
 
 import type { CustomFieldDef } from "@/lib/types";
 import { FIELD_EXAMPLES, FIELD_KINDS, newFieldId } from "@/lib/custom-fields";
+import { GuideHint } from "@/components/guide";
 
 export function HuntFieldsEditor({
   fields,
   onChange,
   onSave,
-  huntName,
+  huntName: _huntName,
   hunts,
   huntId,
   onHuntId,
@@ -40,11 +41,11 @@ export function HuntFieldsEditor({
   return (
     <div className="mx-auto w-full max-w-[480px] space-y-8 pt-4">
       <section className="space-y-2">
-        <h2 className="text-[26px] font-semibold tracking-tight">Поля охоты</h2>
-        <p className="text-[13px] leading-5 text-muted">
-          {huntName ? `Поля охоты «${huntName}» ` : "Поля охоты "}
-          видны на всех её карточках — до восьми. Если поле нужно только одной вакансии, добавь его в карточке. Вакансия может быть в нескольких охотах, у каждой охоты свои поля.
-        </p>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-[26px] font-semibold tracking-tight">Поля охоты</h2>
+          <GuideHint id="settings.fields" />
+        </div>
+        <p className="text-[13px] leading-5 text-muted">До восьми полей на карточках охоты.</p>
       </section>
       {hunts && hunts.length > 1 && onHuntId && (
         <div className="flex flex-wrap gap-x-4 gap-y-1.5">

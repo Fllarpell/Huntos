@@ -51,12 +51,39 @@ class Settings(BaseSettings):
 
     scraper_min_delay_sec: float = 1.5
     scraper_max_delay_sec: float = 4.0
-    scraper_max_pages: int = 10
+    scraper_max_pages: int = 40
+    # Cap simultaneous crawls (CPU + NIC). Per-origin gates sit under this.
+    scraper_global_concurrency: int = 3
+    # hh + GetMatch share one Chrome. Do not raise this on a laptop.
+    scraper_browser_concurrency: int = 1
+    scraper_hirehi_concurrency: int = 2
+    scraper_hh_concurrency: int = 1
+    scraper_habr_concurrency: int = 2
+    scraper_getmatch_concurrency: int = 1
+    scraper_geekjob_concurrency: int = 2
+    scraper_career_concurrency: int = 3
+    scraper_global_min_interval_minutes: int = 30
+    # Shared donor cache. New subscribers copy listings; this only gates a recrawl.
+    scraper_cache_ttl_minutes: int = 360
+    # Safety rail, not the product limit. 0 = unlimited. Queue paces donor hits.
+    # 64 covers aggregators + every career board × a few filter sets.
+    scraper_max_configs_per_user: int = 64
 
     telegram_api_id: int = 0
     telegram_api_hash: str = ""
     telegram_parse_interval_minutes: int = 30
-    telegram_messages_per_channel: int = 40
+    telegram_bot_token: str = ""
+    # Optional extra chat for bug/idea pings (host bind is enough without this).
+    feedback_telegram_chat_id: str = ""
+
+    # Optional SMTP. Gmail: smtp.gmail.com:587 + app password. Empty = skip mail.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    smtp_starttls: bool = True
+    feedback_email_to: str = ""
 
     google_client_id: str = ""
     google_client_secret: str = ""

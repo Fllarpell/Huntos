@@ -15,6 +15,13 @@ RUN adduser --disabled-password --gecos "" --uid 65532 --home /nonexistent --she
     && chown -R 65532:65532 /data /app
 
 COPY --from=builder /install /usr/local
+
+# hh.ru / GetMatch. channel=chrome is not published for Linux Arm64 (Docker Desktop),
+# so ship bundled Chromium. HOME is /nonexistent — pin the browser cache.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN playwright install --with-deps chromium \
+    && chmod -R a+rX /ms-playwright
+
 COPY --chown=65532:65532 backend/app /app/app
 COPY --chown=65532:65532 backend/alembic.ini /app/alembic.ini
 COPY --chown=65532:65532 backend/alembic /app/alembic
@@ -24,6 +31,7 @@ USER 65532:65532
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
     APP_HOST=0.0.0.0 \
     APP_PORT=8000
 

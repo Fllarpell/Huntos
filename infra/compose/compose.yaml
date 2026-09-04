@@ -243,11 +243,12 @@ services:
     volumes:
       - backend_data:/data
     tmpfs:
-      - /tmp:size=64m,mode=1777
-    mem_limit: 512m
-    memswap_limit: 512m
+      - /tmp:size=256m,mode=1777
+    shm_size: 256mb
+    mem_limit: 1536m
+    memswap_limit: 1536m
     cpus: 1.0
-    pids_limit: 256
+    pids_limit: 512
     healthcheck:
       disable: true
     networks:

@@ -35,8 +35,9 @@ export function CompanyMark({
         alt=""
         width={size}
         height={size}
-        className="rounded-lg object-cover"
+        className="rounded-lg bg-white/8 object-contain"
         style={{ width: px, height: px }}
+        referrerPolicy="no-referrer"
         onError={() => setBroken(true)}
       />
     );

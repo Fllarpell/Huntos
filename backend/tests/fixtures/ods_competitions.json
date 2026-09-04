@@ -1,0 +1,310 @@
+{
+  "active": [
+    {
+      "id": "6561ce53-0840-4392-9bc7-197be0f60982",
+      "title": "SWE MERA Challenge",
+      "slug": "swe-mera-challenge",
+      "description": "We present a competition that challenges participants to build AI agents capable of autonomously fixing bugs in real-world open-source software.",
+      "type": {
+        "slug": "predictions",
+        "name": "Predictions"
+      },
+      "tags": [],
+      "duration_days": "129 дней",
+      "is_private": false,
+      "dates": {
+        "start_date": "2026-07-12T21:00:01Z",
+        "final_date": "2026-11-18T20:59:59Z",
+        "current_date": "2026-09-03T16:32:55.812Z"
+      },
+      "status": {
+        "is_active": true,
+        "is_started": true,
+        "is_finished": false,
+        "is_registration_available": false,
+        "is_merge_allowed": false
+      },
+      "participants_count": 77,
+      "solutions_count": 6,
+      "teams_count": 77,
+      "is_participant": false,
+      "is_available": true,
+      "is_statistic_disabled": false,
+      "is_external": false,
+      "reward_cash": 0,
+      "reward_place_max": 0,
+      "platform": {
+        "name": "ODS"
+      },
+      "reactions": [
+        {
+          "emoji": "smiling_face_with_3_hearts",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/smiling_face_with_3_hearts.png",
+          "count": 5,
+          "is_reacted": false
+        },
+        {
+          "emoji": "japanese_goblin",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/japanese_goblin.png",
+          "count": 3,
+          "is_reacted": false
+        },
+        {
+          "emoji": "drooling_face",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/drooling_face.png",
+          "count": 3,
+          "is_reacted": false
+        },
+        {
+          "emoji": "clown_face",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/clown_face.png",
+          "count": 1,
+          "is_reacted": false
+        }
+      ],
+      "reactions_count": 12,
+      "related_hubs": [],
+      "visibility_mode": "Visible for all"
+    }
+  ],
+  "past": [
+    {
+      "id": "0d0183cf-8864-4331-88be-f78da0c68dd2",
+      "title": "E-CUP 2026. Задача 1: Матчинг товаров",
+      "slug": "e-cup-2026-matching",
+      "description": "Участникам необходимо решить задачу идентификации одинаковых товаров на основе текстовой информации из их карточек.",
+      "image_rectangle": "https://storage.yandexcloud.net/ds-ods/files/media/competition/image_rectangle/f78da0c68dd2/5d09b22121e2_400_400_%D0%9C%D0%B0%D1%82%D1%87%D0%B8%D0%BD%D0%B3_%D1%82%D0%BE%D0%B2%D0%B0%D1%80%D0%BE%D0%B2.png",
+      "type": {
+        "slug": "predictions",
+        "name": "Predictions"
+      },
+      "tags": [],
+      "duration_days": "21 день",
+      "is_private": false,
+      "dates": {
+        "start_date": "2026-08-10T15:00:00Z",
+        "final_date": "2026-08-31T09:00:00Z",
+        "current_date": "2026-09-03T16:32:56.842Z"
+      },
+      "status": {
+        "is_active": false,
+        "is_started": true,
+        "is_finished": true,
+        "is_registration_available": false,
+        "is_merge_allowed": true
+      },
+      "participants_count": 535,
+      "solutions_count": 3370,
+      "teams_count": 405,
+      "is_participant": false,
+      "is_available": true,
+      "is_statistic_disabled": false,
+      "is_external": false,
+      "reward_cash": 0,
+      "reward_place_max": 0,
+      "platform": {
+        "name": "ODS"
+      },
+      "reactions": [
+        {
+          "emoji": "fire1",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/fire1.gif",
+          "count": 23,
+          "is_reacted": false
+        },
+        {
+          "emoji": "cold_face",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/cold_face.png",
+          "count": 10,
+          "is_reacted": false
+        },
+        {
+          "emoji": "smiling_face_with_3_hearts",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/smiling_face_with_3_hearts.png",
+          "count": 7,
+          "is_reacted": false
+        },
+        {
+          "emoji": "shopping_bags",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/shopping_bags.png",
+          "count": 5,
+          "is_reacted": false
+        },
+        {
+          "emoji": "space_invader",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/space_invader.png",
+          "count": 4,
+          "is_reacted": false
+        },
+        {
+          "emoji": "thinking_face",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/thinking_face.png",
+          "count": 4,
+          "is_reacted": false
+        },
+        {
+          "emoji": "money_mouth_face",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/money_mouth_face.png",
+          "count": 4,
+          "is_reacted": false
+        },
+        {
+          "emoji": "ultra_fast_parrot",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/ultra_fast_parrot.gif",
+          "count": 3,
+          "is_reacted": false
+        },
+        {
+          "emoji": "pear",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/pear.png",
+          "count": 3,
+          "is_reacted": false
+        },
+        {
+          "emoji": "fish",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/fish.png",
+          "count": 3,
+          "is_reacted": false
+        },
+        {
+          "emoji": "ghost",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/ghost.png",
+          "count": 3,
+          "is_reacted": false
+        },
+        {
+          "emoji": "rightparrothd",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/rightparrothd.gif",
+          "count": 2,
+          "is_reacted": false
+        },
+        {
+          "emoji": "twinsparrot",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/twinsparrot.gif",
+          "count": 2,
+          "is_reacted": false
+        },
+        {
+          "emoji": "grinning",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/grinning.png",
+          "count": 2,
+          "is_reacted": false
+        },
+        {
+          "emoji": "fast_pepe",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/fast_pepe.gif",
+          "count": 1,
+          "is_reacted": false
+        },
+        {
+          "emoji": "innocent",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/innocent.png",
+          "count": 1,
+          "is_reacted": false
+        },
+        {
+          "emoji": "flag-ge",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/flag-ge.png",
+          "count": 1,
+          "is_reacted": false
+        }
+      ],
+      "reactions_count": 78,
+      "related_hubs": [
+        {
+          "id": "78cc24a9-afb3-4a25-b2ce-5fd9155908ef",
+          "title": "Ozon Tech",
+          "slug": "ozontech",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/media/hub/icon/5fd9155908ef/8c0e0cf97ce7_%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_400_400.jpg"
+        }
+      ],
+      "visibility_mode": "Visible for all"
+    },
+    {
+      "id": "1d971d22-a20a-41bd-9a01-5d66fac4ce05",
+      "title": "E-CUP 2026. Задача 2: Контроль качества",
+      "slug": "e-cup-2026-quality",
+      "description": "Участникам необходимо разработать классификатор, который на основе заданных правил будет определять, относится ли товар к категории легковоспламеняющихся товаров или биологически активных добавок. Классификатор также должен формировать итоговый вердикт и объяснять принятое решение, используя данные о названии и описании товара, а также его изображения. В качестве примеров используются товары из категорий, для которых на маркетплейсах действуют повышенные требования к модерации и проверке. Задание моделирует типовые сценарии автоматической проверки карточек товаров.",
+      "image_rectangle": "https://storage.yandexcloud.net/ds-ods/files/media/competition/image_rectangle/5d66fac4ce05/c04a73910d94_400_400_%D0%9A%D0%BE%D0%BD%D1%82%D1%80%D0%BE%D0%BB%D1%8C_%D0%BA%D0%B0%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%B0.png",
+      "type": {
+        "slug": "predictions",
+        "name": "Predictions"
+      },
+      "tags": [],
+      "duration_days": "21 день",
+      "is_private": false,
+      "dates": {
+        "start_date": "2026-08-10T15:00:00Z",
+        "final_date": "2026-08-31T09:00:00Z",
+        "current_date": "2026-09-03T16:32:56.844Z"
+      },
+      "status": {
+        "is_active": false,
+        "is_started": true,
+        "is_finished": true,
+        "is_registration_available": false,
+        "is_merge_allowed": true
+      },
+      "participants_count": 400,
+      "solutions_count": 2608,
+      "teams_count": 294,
+      "is_participant": false,
+      "is_available": true,
+      "is_statistic_disabled": false,
+      "is_external": false,
+      "reward_cash": 0,
+      "reward_place_max": 0,
+      "platform": {
+        "name": "ODS"
+      },
+      "reactions": [
+        {
+          "emoji": "star-struck",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/star-struck.png",
+          "count": 7,
+          "is_reacted": false
+        },
+        {
+          "emoji": "boredparrot",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/boredparrot.gif",
+          "count": 5,
+          "is_reacted": false
+        },
+        {
+          "emoji": "top",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/top.png",
+          "count": 4,
+          "is_reacted": false
+        },
+        {
+          "emoji": "smiling_face_with_3_hearts",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/smiling_face_with_3_hearts.png",
+          "count": 2,
+          "is_reacted": false
+        },
+        {
+          "emoji": "fish",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/fish.png",
+          "count": 2,
+          "is_reacted": false
+        },
+        {
+          "emoji": "clown_face",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/emoji/clown_face.png",
+          "count": 1,
+          "is_reacted": false
+        }
+      ],
+      "reactions_count": 21,
+      "related_hubs": [
+        {
+          "id": "78cc24a9-afb3-4a25-b2ce-5fd9155908ef",
+          "title": "Ozon Tech",
+          "slug": "ozontech",
+          "icon": "https://storage.yandexcloud.net/ds-ods/files/media/hub/icon/5fd9155908ef/8c0e0cf97ce7_%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_400_400.jpg"
+        }
+      ],
+      "visibility_mode": "Visible for all"
+    }
+  ]
+}

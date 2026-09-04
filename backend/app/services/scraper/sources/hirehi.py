@@ -65,11 +65,11 @@ def strip_html(value: str | None) -> str:
         return ""
     text = re.sub(r"(?i)<li[^>]*>", "\n- ", value)
     text = re.sub(r"(?i)<br\s*/?>", "\n", text)
-    text = re.sub(r"(?i)</p>", "\n", text)
-    text = re.sub(r"(?i)</h[1-6]>", "\n", text)
+    text = re.sub(r"(?i)</?(h[1-6]|p|div|section|article|ul|ol|tr|blockquote)(?:\s[^>]*)?>", "\n", text)
     text = re.sub(r"<[^>]+>", " ", text)
-    text = html_lib.unescape(text)
+    text = html_lib.unescape(text).replace("\xa0", " ")
     text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r" *\n *", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
 

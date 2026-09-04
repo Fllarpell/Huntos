@@ -21,6 +21,7 @@ class HuntThesis(TimestampMixin, Base):
     formats: Mapped[list] = mapped_column(JSON, default=list)
     salary_min: Mapped[int | None] = mapped_column(Integer)
     no_nda: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    exclude_companies: Mapped[list] = mapped_column(JSON, default=list)
     days: Mapped[int] = mapped_column(Integer, default=14, nullable=False)
     min_sample: Mapped[int] = mapped_column(Integer, default=8, nullable=False)
     min_median_match: Mapped[int] = mapped_column(Integer, default=55, nullable=False)

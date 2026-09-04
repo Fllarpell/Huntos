@@ -1,0 +1,2985 @@
+
+
+<!DOCTYPE html>
+<html class="tdc mobile-friendly"
+      prefix="og: http://ogp.me/ns# ya: http://webmaster.yandex.ru/vocabularies/"
+      lang="ru">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <meta http-equiv="PICS-Label" content='(PICS-1.1 "http://www.icra.org/pics/vocabularyv03/" l gen true r (n 0 s 0 v 0 l 0) "http://www.icra.org/ratingsv02.html" l gen true r (nz 1 vz 1 lz 1 oz 1 cz 1) "http://www.rsac.org/ratingsv01.html" l gen true r (n 0 s 0 v 0 l 0))'/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!---->
+<script async="">
+	if (!isSearchBot()) {
+		document.documentElement.setAttribute("style", "opacity: 0 !important");
+	}
+	
+	let whiteScreenTimer;
+	
+	init();
+
+	function init() {
+		const supporttedBrowsers = {
+			firefox: 115,
+			chrome: 109,
+			edge: 130,
+			safari: 17
+		};
+
+		const [currentBrowserBrand, currentBrowserVersion] = sayWho();
+
+		if (currentBrowserVersion < supporttedBrowsers[currentBrowserBrand]) {
+			killWhiteScreen();
+			return;
+		}
+		console.debug(currentBrowserBrand, currentBrowserVersion);
+
+		whiteScreenTimer = setTimeout(killWhiteScreen, 4000);
+
+		createAndAppendScript();
+	}
+
+	function createAndAppendScript() {
+		const script = document.createElement('script');
+		script.src = 'https://services.kontur.ru/abtests/api/v1/scripts/main?v=13';
+		script.async = true;
+		script.onerror = killWhiteScreen;
+
+		document.head.append(script);
+	}
+
+	function sayWho() {
+		const { userAgent } = navigator;
+		const match = userAgent.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+		let temp;
+
+		// Chromium-производные: у них собственный токен версии, а в match попадает Chrome.
+		if (match[1] && /chrome/i.test(match[1])) {
+			temp = userAgent.match(/\bOPR\/(\d+)/);
+			if (temp !== null) return ['opera', parseInt(temp[1], 10)];
+
+			temp = userAgent.match(/\bEdg(?:e|A|iOS)?\/(\d+)/); // Edg/, EdgA/, EdgiOS/, Edge/
+			if (temp !== null) return ['edge', parseInt(temp[1], 10)];
+		}
+
+		const brand = match[1] ? match[1].toLowerCase() : navigator.appName;
+		let version = match[2] ? parseInt(match[2], 10) : NaN;
+
+		temp = userAgent.match(/version\/(\d+)/i);
+		if (temp !== null) version = parseInt(temp[1], 10);
+
+		return [brand, version];
+	}
+
+	function isSearchBot() {
+		const ua = navigator.userAgent;
+
+		if (/googlebot|google-inspectiontool|storebot-google|adsbot-google|mediapartners-google|googleother|apis-google/i.test(ua)) {
+			return true;
+		}
+
+		if (/Yandex(Bot|MobileBot|Images|Video|Media|Webmaster|Pagechecker|RenderResourcesBot|ScreenshotBot|AccessibilityBot|Metrika)/i.test(ua)) {
+			return true;
+		}
+		return false;
+	}
+
+	function killWhiteScreen() {
+		clearTimeout(whiteScreenTimer);
+		document.documentElement.setAttribute("style", "opacity: 1")
+	}
+</script>
+    <meta content="Вакансии в IT компании Контур: разработка, продажи, аналитика, маркетинг, дизайн и другие направления. Официальное трудоустройство, белая зарплата, карьерный рост. Откликнитесь на работу в Контуре прямо сейчас!" name="description" /><link href="https://kontur.ru/career/vacancies" rel="canonical" /><meta content="summary" name="twitter:card" />
+<meta content="@skbkontur" name="twitter:site" />
+<meta content="@skbkontur" name="twitter:creator" /><meta content="article" property="og:type" />
+<meta content="https://kontur.ru/career/vacancies" property="og:url" />
+<meta content="Работа в IT-компании удаленно или в офисе | Вакансии в Контуре" property="og:title" />
+<meta content="Контур" property="og:site_name" />
+<meta content="Вакансии в IT компании Контур: разработка, продажи, аналитика, маркетинг, дизайн и другие направления. Официальное трудоустройство, белая зарплата, карьерный рост. Откликнитесь на работу в Контуре прямо сейчас!" property="og:description" />
+<meta content="https://s.kontur.ru/common-v2/icons-products/kontur/avatar/kontur-avatar-512.png" property="og:image" />
+<link href="https://s.kontur.ru/common-v2/icons-products/kontur/avatar/kontur-avatar-512.png" rel="image_src" /><link href="/press/news/rss" rel="alternate" title="Контур RSS" type="application/rss&#x2B;xml" />
+
+    
+
+
+        <link rel="preconnect" href="https://s.kontur.ru" crossorigin>
+        <link rel="dns-prefetch" href="https://s.kontur.ru">
+        <link rel="preload" href="https://s.kontur.ru/common-v2/fonts/LabGrotesque/LabGrotesque-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+        <link rel="preload" href="https://s.kontur.ru/common-v2/fonts/LabGrotesque/LabGrotesque-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+        <link rel="preload" href="https://s.kontur.ru/common-v2/fonts/LabGrotesque/LabGrotesque-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+        <link rel="preload" href="https://s.kontur.ru/common-v2/fonts/LabGrotesque/LabGrotesque-Black.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+        <link rel="preload" href="https://s.kontur.ru/web-sites/libs/konturIconic/1.0.346/konturIconic20/Kontur-Iconic-eco-20px.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+        <link rel="preload" href="https://s.kontur.ru/web-sites/libs/konturIconic/1.0.346/konturIconic/Kontur-Iconic-eco-webfont.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
+        <link rel="icon" href="https://s.kontur.ru/common-v2/icons-products/kontur/favicon/favicon.ico" sizes="any"/>
+        <link rel="icon" href="https://s.kontur.ru/common-v2/icons-products/kontur/favicon/kontur-favicon.svg" type="image/svg+xml"/>
+        <link rel="apple-touch-icon" href="https://s.kontur.ru/common-v2/icons-products/kontur/favicon/kontur-favicon-180.png">
+            <link rel="manifest" href="/theme/ver-1805152636/manifest.json"/>
+
+
+
+
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/page-template.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/page-template.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/page-template.css">
+            </noscript>
+<link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/fonts.deprecated.css"/>
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/main-part-1.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/main-part-1.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/main-part-1.css">
+            </noscript>
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/main-part-2.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/main-part-2.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/main-part-2.css">
+            </noscript>
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/main-part-3.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/main-part-3.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/main-part-3.css">
+            </noscript>
+
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/lp-styles.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/lp-styles.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/lp-styles.css">
+            </noscript>
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/lp-styles.deprecated.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/lp-styles.deprecated.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/lp-styles.deprecated.css">
+            </noscript>
+
+<link media="print" rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/print.css"/>
+
+<script>
+</script>
+
+
+
+        <script type="application/json" id="referalLinksStatistics" data-container-encoded="false">{"siteUrl":"https://kontur.ru","statisticsUrl":"https://kontur.ru/ajax/partnership/linkConversion","debug":false}</script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.26.0/polyfill.min.js" nomodule></script>
+        <script src="https://s.kontur.ru/web-sites/libs/jquery/jquery-1.11.3.min.js" crossorigin="anonymous" ></script>
+<script type="text/javascript" src="https://kontur.ru/front/ver-678020712/build/js/modules/regenerator-runtime.js"></script><script type="text/javascript" src="https://kontur.ru/front/ver-678020712/build/js/career/wr~career.js"></script><script type="text/javascript" src="https://kontur.ru/front/ver-678020712/build/js/konturru-main/index.deprecated.js"></script>
+
+<script type="text/javascript" src="https://kontur.ru/front/ver-678020712/build/js/modules/lp-styles.js"></script>
+
+
+
+<link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/header.css"/><script type="text/javascript" src="https://kontur.ru/front/ver-678020712/build/js/modules/header.js"></script>
+    <script>
+        var data = {};
+            data['userRegionId'] = '16';
+        data['isStaff'] = 0;
+
+        dataLayer = [data];
+    </script>
+<meta name="google-site-verification" content="ghPciw-Z-OGUFXy3B64yA4rePI-Hq61wRaMZhk-u2-g">
+<meta name="google-site-verification" content="jQDMm3pKdfpGqf6ocYjc2o5rIdH_eTqivK3hytrEVpg">
+<meta name="google-site-verification" content="kwIXnWcJ2n2R1ee34o5nY36RkYTMSUUxWaSKGul4VLI">
+<meta name="google-site-verification" content="j7rdN6nk6AaX6D2qWhfYHGvK0EdXSkllkRL6nzx5Cic">
+<meta name="yandex-verification" content="43acf0690c9ca29d">
+<meta name="yandex-verification" content="a3beca8ed330da51">
+<meta name="msvalidate.01" content="AB3273100D58FFB9BC112C13EE07C50C" />
+
+<script>
+    var footerContactsRemove = function () {
+        var products = ['elba', 'diadoc', 'mercury', 'market', 'edi'];
+        var pathName = document.location.pathname.split('/')[1];
+
+        products.forEach(function (item) {
+            if (item === pathName) {
+                var footerContacts = document.querySelector('[data-footer-contacts]');
+                if (footerContacts) {
+                    //var callback = footerContacts.querySelector('[data-support-callback-link]').remove();
+                    //mail && callback.remove();
+
+                    var tel = footerContacts.querySelector('a[href*="tel:"]');
+                    tel && tel.parentElement.remove();
+                }
+
+            }
+        })
+    };
+    document.addEventListener("DOMContentLoaded", footerContactsRemove);
+
+    window.WebSitesSentryTracing = 0
+</script>
+
+
+<style>
+    /* old ver img - /nds */
+    .image_autosize {
+        max-width: calc(100vw + 16px);
+    }
+</style>
+
+    
+    <script>
+        window.__konturRuBaseUrl = 'https://kontur.ru';
+    </script>
+
+    <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/blocks/showcase-widget-reserve.css"/>
+
+    
+    <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/career/vacancies/list-page.css"/>
+
+<script type="text/javascript" src="https://kontur.ru/front/ver-678020712/build/js/career/vacancies/list-page.js"></script>    <style>
+    :root {
+    --color-primary-product: #222222;
+    }
+</style>
+
+
+
+        <script src="https://services.kontur.ru/kstoreproxy/script.js" type="text/javascript" defer></script>
+
+
+
+
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-NR6K2M');</script>
+
+<!-- Kontur.Metrika counter --> 
+<script>
+    var web_sitesQueue = web_sitesQueue || [];
+    var _paq = web_sitesQueue;
+    var abtestMetricValue = localStorage.getItem('abtest_active');
+    if (abtestMetricValue) {
+        web_sitesQueue.push(['setEventsContext', { abtest: abtestMetricValue }]);
+    }
+</script>
+
+<script>
+(function(){
+    function getIosOrMacOsInfo() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    
+        let osVersion = null;
+    
+        if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            osVersion = userAgent.match(/OS (\d+)_(\d+)_?(\d+)?/);
+            if (osVersion) {
+                osVersion = osVersion[1] + '.' + (osVersion[2] || 0);
+            }
+        } else if (/(Macintosh|MacIntel|MacPPC|Mac68K)/.test(userAgent)) {
+            osVersion = userAgent.match(/Mac OS X ([\d_]+)/);
+            if (osVersion) {
+                osVersion = osVersion[1].replace('_', '.');
+            }
+        }
+    
+        let browserName = null;
+        let browserVersion = null;
+    
+        if (/Safari/.test(userAgent)) {
+            browserName = 'Safari';
+            browserVersion = userAgent.match(/Version\/(\d+(\.\d+)*)/);
+            if (browserVersion) {
+                browserVersion = browserVersion[1];
+            }
+        } else if (/Chrome/.test(userAgent)) {
+            browserName = 'Chrome';
+            browserVersion = userAgent.match(/Chrome\/(\d+(\.\d+)*)/);
+            if (browserVersion) {
+                browserVersion = browserVersion[1];
+            }
+        } else if (/Firefox/.test(userAgent)) {
+            browserName = 'Firefox';
+            browserVersion = userAgent.match(/Firefox\/(\d+(\.\d+)*)/);
+            if (browserVersion) {
+                browserVersion = browserVersion[1];
+            }
+        } else if (/Edge/.test(userAgent)) {
+            browserName = 'Edge';
+            browserVersion = userAgent.match(/Edge\/(\d+(\.\d+)*)/);
+            if (browserVersion) {
+                browserVersion = browserVersion[1];
+            }
+        }
+    
+        return {
+            os: {
+                version: osVersion
+            },
+            browser: {
+                name: browserName,
+                version: browserVersion
+            }
+        };
+    }
+
+    const systemAndBrowserInfo = getIosOrMacOsInfo();
+    const isMetrikaLoadPrevented = systemAndBrowserInfo && (
+        systemAndBrowserInfo.browser.name === 'Safari' && systemAndBrowserInfo.browser.version?.startsWith('26')
+        || systemAndBrowserInfo.os.version?.startsWith('26')
+    );
+
+    if (isMetrikaLoadPrevented) {
+        console.log('metrika load prevented');
+    } else {
+        console.log('metrika loading');
+        const metrikaScript = document.createElement('script');
+        metrikaScript.src = 'https://metrika.kontur.ru/tracker/web_sites.js';
+        metrikaScript.async = true;
+        document.head.append(metrikaScript);
+    }
+})();
+</script>
+<!--<script src="https://metrika.kontur.ru/tracker/web_sites.js" async=""></script>-->
+<!--/Kontur.Metrika counter -->
+
+<script>
+    if(document.domain.indexOf('playsmallgame') != -1) {
+        window.location.replace('https://ko' + 'ntur.ru' + window.location.pathname + window.location.search);
+    }
+</script>
+
+<!-- Varioqub experiments -->
+<style>.varioqub-antiflicker {opacity: 0 !important;}</style>
+<script>
+    (function (a, n, t, i, f, li, c, k, e, r) {
+        a[t] = a[t] || function () { (a[t].a = a[t].a || []).push(arguments) }; n.classList.add(i); c = function () { n.classList.remove(i) }; li.callback = c; a[t].antiFlicker = li; setTimeout(c, f);
+    })(window, document.documentElement, 'ymab', 'varioqub-antiflicker', 4000, { 'metrika.70514191': true });
+</script>
+
+<script>
+(function(e, x, pe, r, i, me, nt){
+e[i]=e[i]||function(){(e[i].a=e[i].a||[]).push(arguments)},
+me=x.createElement(pe),me.async=1,me.src=r,nt=x.getElementsByTagName(pe)[0],nt.parentNode.insertBefore(me,nt),me.onerror;me.onerror=document.documentElement.classList && document.documentElement.classList.remove('varioqub-antiflicker')})
+(window, document, 'script', 'https://abt.s3.yandex.net/expjs/latest/exp.js', 'ymab');
+ymab('metrika.70514191', 'init', {}, function() { document.documentElement.classList.remove("async-hide"); });
+</script>
+<!-- End Varioqub experiments -->
+    <!--Crutches-->
+    <noindex>
+        <style>
+
+    .header .all-products-menu-category-list__link img {
+        width: 24px;
+        height: 24px;
+    }
+
+    @media screen and (min-width: 768px) {
+        .main-header__inner {
+            min-height: 80px;
+        }
+    }
+    
+    /* WS-90285 */.lp-styles.text.invert.button:not(.button_transparent):not(.button_link):hover {
+        color: #222;
+    }
+    
+    /* WS-90557 */.invert.termTitle:after {
+        color: white!important;
+    }
+    
+    /* в блоке .price убрать <br> */
+    .price__current + br {
+        display: none !important;
+    }
+    
+    [data-responses] [class*="col-sm-4"] + span {
+        display: none;
+    }
+    
+    .invert .slider__item.slider__item.slider__item {
+        color: white;
+    }
+
+    /*для всплывашке на компасе*/
+    .product-popup .button.button_link {
+        color: var(--color-primary-product);
+    }
+    
+    /*для старых табов в ценах*/
+    .btn.tabs-links__item_active {
+        color: #fff !important;
+        background: #222 !important;
+        background: var(--color-primary-product) !important;
+        box-shadow: inset 0 0 0 1px #222 !important;
+        box-shadow: inset 0 0 0 1px var(--color-primary-product) !important;
+    }
+    
+    .header-menu__list {
+        max-height: none;
+    }
+    
+    .teaser-list__sizes > .t-medium.m-t-3:first-child {
+        margin-top: 0 !important;
+    }
+    
+    @media screen and (min-width: 992px) {
+        .header-menu__list {
+            max-height: 36px;
+        }
+    }
+    
+    /* WS-99516 */
+    .kontur-logo__item [src*="logo-stream-32.svg"],
+    .kontur-logo__item [src*="logo-stream-32.svg"] + .kontur-logo-image-invert {
+        width: 183px;
+    }
+    
+    /* WS-100946 */
+    .is-additional-menu-open .kontur-logo_product {
+        display: none !important;
+    }
+    
+    .is-additional-menu-open [data-logo-menu] {
+        display: block !important;
+    }
+    
+    /* WS-101065 */
+    .all-products-menu__drop.all-products-menu__drop {
+        width: calc(100% - 16px);
+    }
+    
+    @media screen and (max-width: 1260px) {
+        .all-products-menu__.landings-layoutclose {
+            display: none;
+        }
+    }
+    
+    dialog.entry-links {
+        max-width: none;
+    }
+    
+    dialog.entry-links:not([open]) {
+        visibility: hidden;
+    }
+    
+    .landings-layout {
+        overflow-x: clip;
+    }
+    /* баг счетчика на странице /career/vacancies */
+    input[onclick^="_tmr.push({ type:"] {
+     display: none !important;
+    }
+    
+    @media screen and (min-width: 375px) {
+        .cover-buttons .button.button_arrow:after {
+            min-width: 22px;
+        }
+    }
+    
+    /*fix специфичности иконки в тултипе. Убрать после патча WS-122609 */
+    .lp-styles [data-popover] .icon-ui.icon-ui_info, 
+    .lp-styles [data-tooltip] .icon-ui.icon-ui_info {
+        width: 16px;
+        height: 16px
+    }
+    /*костыль для лого в отзывах */
+    .review-author img {
+        max-width: 200px!important;
+    }
+    
+
+</style>
+<script src="/script/text/CrutchManagerJS" async></script>    </noindex>
+    <!--#block_Crutches-->
+
+        
+    <title>Работа в IT-компании удаленно или в офисе | Вакансии в Контуре</title>
+
+    
+    <script type="module" src="https://services.kontur.ru/showcase/widget/loader"></script>
+</head>
+<body data-authenticated="true" data-theme-path="/theme/ver-1805152636" class="header-is-fixed">
+
+
+<script type="application/json" data-showcase-widget="true" data-container-encoded="false">{"placementId":"ws_konturru_default","showcaseFormats":["Lightbox"],"count":1}</script>
+<noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-NR6K2M" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>    <svg version="1.1" width="0" height="0" viewBox="0 0 0 0" display="none">
+        <defs>
+            
+            <g id="svg-chevrons" stroke="none" stroke-width="1" fill="currentColor" fill-rule="evenodd">
+                <g id="svg-chevron-up" transform="translate(-180.000000, -61.000000)" fill="currentColor">
+                    <path d="M199.565118,76 L190.60872,66.8629876 L190,66.2419917 L191.217441,65 L191.826161,65.6209959 L201.39128,75.3790041 L202,76 L201.69564,76.3104979 L201.39128,76.6209959 L191.826161,86.3790041 L191.217441,87 L190,85.7580083 L190.60872,85.1370124 L199.565118,76 L199.565118,76 Z" transform="translate(196.000000, 76.000000) scale(-1, -1) rotate(-270.000000) translate(-196.000000, -76.000000) "></path>
+                </g>
+                <g id="svg-chevron-down" transform="translate(-220.000000, -61.000000)" fill="currentColor">
+                    <path d="M239.565118,78 L230.60872,68.8629876 L230,68.2419917 L231.217441,67 L231.826161,67.6209959 L241.39128,77.3790041 L242,78 L241.69564,78.3104979 L241.39128,78.6209959 L231.826161,88.3790041 L231.217441,89 L230,87.7580083 L230.60872,87.1370124 L239.565118,78 L239.565118,78 Z" transform="translate(236.000000, 78.000000) scale(-1, 1) rotate(-270.000000) translate(-236.000000, -78.000000) "></path>
+                </g>
+                <g id="svg-chevron-left" transform="translate(-140.000000, -61.000000)" fill="currentColor">
+                    <path d="M158.565118,77 L149.60872,67.8629876 L149,67.2419917 L150.217441,66 L150.826161,66.6209959 L160.39128,76.3790041 L161,77 L160.69564,77.3104979 L160.39128,77.6209959 L150.826161,87.3790041 L150.217441,88 L149,86.7580083 L149.60872,86.1370124 L158.565118,77 L158.565118,77 Z" transform="translate(155.000000, 77.000000) scale(-1, 1) translate(-155.000000, -77.000000) "></path>
+                </g>
+                <g id="svg-chevron-right" transform="translate(-260.000000, -61.000000)" fill="currentColor">
+                    <path d="M280.565118,77 L271.60872,67.8629876 L271,67.2419917 L272.217441,66 L272.826161,66.6209959 L282.39128,76.3790041 L283,77 L282.69564,77.3104979 L282.39128,77.6209959 L272.826161,87.3790041 L272.217441,88 L271,86.7580083 L271.60872,86.1370124 L280.565118,77 L280.565118,77 Z"></path>
+                </g>
+            </g>
+            <g id="svg-arrows" stroke="none" stroke-width="1" fill="currentColor" fill-rule="evenodd">
+                <g id="svg-arrow-to-right" fill="none">
+                    <path d="M15 5L24 14L15 23" stroke="currentColor" stroke-width="2"/>
+                    <path d="M23.5 14L2 14" stroke="currentColor" stroke-width="2"/>
+                </g>
+            </g>
+            <g id="svg-check" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                <g transform="translate(-100.000000, -61.000000)" stroke="currentColor" stroke-width="1.39999998">
+                    <g transform="translate(105.000000, 64.000000)">
+                        <path d="M16.6182806,3.54101428 C14.9738855,2.5621996 13.0525971,2 11,2 C4.92486775,2 0,6.92486775 0,13 C0,19.0751322 4.92486775,24 11,24 C17.0751322,24 22,19.0751322 22,13 C22,11.6104574 21.742352,10.2810917 21.2722228,9.05706984" />
+                        <path d="M5.74511719,11.9272461 L10.262207,17.1264648 L22.7993164,0.911621094" />
+                    </g>
+                </g>
+            </g>
+            <g id="svg-lupe" stroke="none" stroke-width="1" fill="none">
+                <circle cx="17.5" cy="17.5" r="11.25" stroke="#fff" stroke-width="2.5"/>
+                <path d="M34.9393 37.0607C35.5251 37.6464 36.4749 37.6464 37.0607 37.0607C37.6464 36.4749 37.6464 35.5251 37.0607 34.9393L34.9393 37.0607ZM23.9393 26.0607L34.9393 37.0607L37.0607 34.9393L26.0607 23.9393L23.9393 26.0607Z" fill="#fff"/>
+            </g>
+            <g id="svg-play" stroke="none" stroke-width="1" fill="none">
+                <path d="M37.3794 19.8507C37.8789 20.1395 37.8789 20.8605 37.3794 21.1493L11.3754 36.1829C10.8754 36.4719 10.25 36.1111 10.25 35.5336L10.25 5.46643C10.25 4.88888 10.8754 4.52806 11.3754 4.81712L37.3794 19.8507Z" stroke="#fff" stroke-width="2.5"/>
+            </g>
+            <g id="svg-arrow-to-forward" fill="none">
+                <path d="M4.80078 1.59961L11.2008 7.99961L4.80078 14.3996" stroke="currentColor" stroke-width="2"></path>
+            </g>
+            <g id="svg-mail" fill="none">
+                <path d="M22.9941 14.0039C22.985 14.569 22.7891 15.043 22.4062 15.4258C22.0234 15.8086 21.554 16 20.998 16H3.00586C2.44987 16 1.97591 15.8041 1.58398 15.4121C1.19206 15.0202 0.996094 14.5508 0.996094 14.0039V3.05275L6.05469 6.94924C7.16667 8.00653 8.19206 8.78127 9.13086 9.27346C10.0697 9.76564 11.0221 9.98439 11.9883 9.92971C12.9544 9.87502 13.9115 9.61525 14.8594 9.15041C15.8073 8.67645 16.9147 7.94273 18.1816 6.94924L22.9941 3.24416V14.0039ZM20.998 0.00392433C21.39 0.00392433 21.7773 0.1452 22.1602 0.427752L14.7227 6.30666C13.9935 6.87176 13.1276 7.17254 12.125 7.209C11.1224 7.24546 10.252 6.9857 9.51367 6.42971L1.93945 0.345721C2.30404 0.108742 2.65951 -0.00519025 3.00586 0.00392433H20.998Z" fill="currentColor"/>
+            </g>
+            <g id="quote" fill="none">
+                <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M19.6534 19.8832C18.4516 20.3716 17.1103 20.5649 15.732 20.3846C11.4929 19.83 8.50896 15.9513 9.06713 11.7213C9.6253 7.49132 13.5142 4.51182 17.7533 5.06642C17.8387 5.0776 17.9237 5.09014 18.0081 5.104L18.0085 5.10203C23.2765 5.93436 29.1024 10.4525 27.0936 21.0973C25.687 28.5507 19.6567 33.2223 15.8147 35.5954C14.582 36.3568 12.988 36.0059 12.1049 34.8581C11.111 33.5662 11.3931 31.7665 12.7377 30.8435C14.9714 29.3102 17.5944 27.2101 18.9814 23.41C19.4326 22.1739 19.6326 20.9907 19.6534 19.8832ZM42.8585 19.8832C41.6567 20.3716 40.3154 20.5649 38.9371 20.3846C34.698 19.83 31.7141 15.9513 32.2722 11.7213C32.8304 7.49132 36.7193 4.51182 40.9584 5.06642C41.0438 5.0776 41.1288 5.09014 41.2132 5.104L41.2136 5.10203C46.4816 5.93436 52.3075 10.4525 50.2987 21.0973C48.8921 28.5507 42.8618 33.2223 39.0198 35.5954C37.7871 36.3568 36.1931 36.0059 35.31 34.8581C34.3161 33.5662 34.5982 31.7665 35.9428 30.8435C38.1765 29.3102 40.7995 27.2101 42.1865 23.41C42.6377 22.1739 42.8377 20.9907 42.8585 19.8832Z"></path>
+            </g>
+             <g id="svg-arrow-right" fill="none">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M17.1575 9.99997L0.713871 10L0.713867 8L17.1574 7.99997L11.1503 1.99283L12.5645 0.578613L20.9859 9.00001L12.5645 17.4214L11.1503 16.0072L17.1575 9.99997Z" fill="currentColor"/>
+            </g>
+         
+        </defs>
+    </svg>
+
+
+        <div id="pageWrapper" class="page-layout">
+            <div class="page-layout__inner">
+                        <div class="page-layout__banner">
+            <div data-browser-update-toolbar style="position: relative;"></div>
+        <script src="https://kontur.ru/front/ver-678020712/build/js/modules/old-browser-warning.js" nomodule></script>
+
+
+         </div>
+                <div class="page-layout__header">
+
+
+<header class="header header_fixed  header_with-custom-sticky-logo "
+        data-header
+        data-header-sticky="true">
+    <div id="smallBannerContainer"></div>
+    <div class="header__inner" data-header-inner>
+            <div class="header__item header__item_area-secondary-buttons">
+        <div class="all-products-menu" data-all-products-menu>
+        <button
+            type="button"
+            class="burger"
+            data-header-submenu-control
+            data-burger-control
+            data-id="60585c55-9079-487b-a361-03787e3ac508"
+            aria-label="Контрол дополнительного меню">
+            <span class="burger__top"></span>
+            <span class="burger__middle"></span>
+            <span class="burger__bottom"></span>
+        </button>
+            <div id="60585c55-9079-487b-a361-03787e3ac508" class="all-products-menu__drop" data-all-product-menu-drop>
+
+                <div class="all-products-menu__inner">
+                    <div class="all-products-menu__grid all-products-menu__grid_two-columns">
+                            <div class="all-products-menu__title">Экосистема продуктов для бизнеса</div>
+                        <div class="all-products-menu__nav">
+                <div class="all-products-menu__categories" data-menu-task>
+        <div class="all-products-menu-category-list" role="list">
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/docs?using=switcher&from=kontur.ru%2fcareer' data-event-name='docs'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/doc-arrow-sync/doc-arrow-sync-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Электронный документооборот
+                </a>
+        </div>
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/reporting?using=switcher&from=kontur.ru%2fcareer' data-event-name='reporting'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/check-circle-cut/check-circle-cut-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Учет и&#xA0;отчетность
+                </a>
+        </div>
+                </div>
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/check?using=switcher&from=kontur.ru%2fcareer' data-event-name='check'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/security-shield/security-shield-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Проверка контрагентов
+                </a>
+        </div>
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/retail?using=switcher&from=kontur.ru%2fcareer' data-event-name='retail'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/market-register-classic/market-register-classic-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Торговля и&#xA0;ритейл
+                </a>
+        </div>
+                </div>
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/business?using=switcher&from=kontur.ru%2fcareer' data-event-name='business'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/bag-briefcase/bag-briefcase-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Автоматизация бизнеса
+                </a>
+        </div>
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/hr-tech?using=switcher&from=kontur.ru%2fcareer' data-event-name='hr-tech'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/people-3/people-3-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Управление HR‑процессами
+                </a>
+        </div>
+                </div>
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/trades?using=switcher&from=kontur.ru%2fcareer' data-event-name='trades'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/delivery-box-iso-closed/delivery-box-iso-closed-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Участие в&#xA0;закупках
+                </a>
+        </div>
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/communications?using=switcher&from=kontur.ru%2fcareer' data-event-name='communications'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/tech-cam-video/tech-cam-video-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Коммуникации
+                </a>
+        </div>
+                </div>
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/nedvizhimost?using=switcher&from=kontur.ru%2fcareer' data-event-name='nedvizhimost'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/building-office-alt/building-office-alt-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Сделки с&#xA0;недвижимостью
+                </a>
+        </div>
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/otkrytie-scheta?using=switcher&from=kontur.ru%2fcareer' data-event-name='otkrytie-scheta'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/money-wallet-a/money-wallet-a-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Банковские услуги
+                </a>
+        </div>
+                </div>
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/sales-and-marketing?using=switcher&from=kontur.ru%2fcareer' data-event-name='sales-and-marketing'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/data-chart-pie-a-1/data-chart-pie-a-1-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Поиск клиентов
+                </a>
+        </div>
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/markirovka?using=switcher&from=kontur.ru%2fcareer' data-event-name='markirovka'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/delivery-box-iso/delivery-box-iso-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Маркировка товаров
+                </a>
+        </div>
+                </div>
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/information-security?using=switcher&from=kontur.ru%2fcareer' data-event-name='information-security'
+                >
+        <img src="https://s.kontur.ru/common-v2/icons-ui/black/security-lock-closed/security-lock-closed-24-regular.svg" width="24" height="24" aria-hidden="true">
+                    Информационная безопасность
+                </a>
+        </div>
+                </div>
+        </div>
+                </div>
+                <div class="all-products-menu__categories" data-menu-segment>
+        <div class="all-products-menu-category-list all-products-menu-category-list_separator" role="list">
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/suppliers?using=switcher&from=kontur.ru%2fcareer' data-event-name='suppliers'
+                >
+                    Для&#xA0;ритейла и&#xA0;поставщиков
+                </a>
+        </div>
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/start?using=switcher&from=kontur.ru%2fcareer' data-event-name='start'
+                >
+                    Для&#xA0;нового бизнеса
+                </a>
+        </div>
+                </div>
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/big-business?using=switcher&from=kontur.ru%2fcareer' data-event-name='big-business'
+                >
+                    Крупному бизнесу
+                </a>
+        </div>
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/gis?using=switcher&from=kontur.ru%2fcareer' data-event-name='gis'
+                >
+                    Работа с&#xA0;госсистемами
+                </a>
+        </div>
+                </div>
+                <div class="all-products-menu-category-list__group">
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/importozameshchenie?using=switcher&from=kontur.ru%2fcareer' data-event-name='importozameshchenie'
+                >
+                    Импортозамещение
+                </a>
+        </div>
+        <div class="all-products-menu-category-list__item ">
+                <a class="all-products-menu-category-list__link"
+                   data-category-link
+                   href='https://kontur.ru/products/logistika?using=switcher&from=kontur.ru%2fcareer' data-event-name='logistika'
+                >
+                    Транспортный ЭДО в&#xA0;2026
+                </a>
+        </div>
+                </div>
+        </div>
+                </div>
+        <a class="all-products-menu__link"
+           href='https://kontur.ru/products?using=switcher&from=kontur.ru%2fcareer' data-event-name='event_switcher_all_products'>
+            Все продукты и решения
+            <img src="https://s.kontur.ru/web-sites/images/icons-ui/white/arrow-a-up-right/arrow-a-up-right-56.svg" width="24" height="24" alt="" aria-hidden="true"/>
+        </a>
+                        </div>
+
+                            <div class="all-products-menu__products">
+                                <script type="application/json" data-showcase-widget="true" data-container-encoded="false">{"placementId":"ws_konturru_offers","showcaseFormats":["CardGraphic"],"viewType":"Slider1","count":1}</script>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            </div>
+
+        <div class="header__item header__item_area-logo">
+        <div class="kontur-logo  kontur-logo_product" data-logo-default>
+            <a class="kontur-logo__item" href="/career">
+                <img src="https://s.kontur.ru/common-v2/logos/logo-kontur-32.svg" alt="Контур" width="auto" height="32" class="kontur-logo-image"/>
+                
+            </a>
+            <a class="kontur-logo__item kontur-logo__item_suffix" href="/career">
+                <img src="/theme/ver-1805152636/images/logo/skbkontur-career-text.svg" alt="Работа у нас" width="auto" height="32" class="kontur-logo-image"/>
+                
+            </a>
+        </div>
+        <span class="kontur-logo" data-logo-menu hidden data-event-name="event_switcher_logo_click">
+            <a class="kontur-logo__item" href="https://kontur.ru">
+                <img src="https://s.kontur.ru/common-v2/logos/logo-kontur-32.svg" alt="Контур" width="auto" height="32" class="kontur-logo-image"/>
+                
+            </a>
+        </span>
+        </div>
+            <div class="header__item header__item_area-logo-sticky">
+            <a href="/career" class="sticky-header-logo sticky-header-logo_link">
+        <div class="sticky-header-logo__product-name sticky-header-logo__product-name_only">Работа у нас</div>
+            </a>
+            </div>
+        <nav class="header__item header__item_area-main-navigation">
+            
+
+<ul class="header-menu header-menu_align-right" aria-label="navigation" data-desktop-menu role="menubar">
+
+        <li
+            class="header-menu__item header-menu__item_desktop header-menu__item_active"
+            data-desktop-menu-item 
+            data-id="53ef1b8c-158f-4052-ab7a-1401b9b630f2"
+            data-type="simple"
+            role="none"
+            style="order: 0">
+            <span class="header-menu__link header-menu__link_active" role="menuitem">Вакансии</span>
+        </li>
+        <li
+            class="header-menu__item header-menu__item_desktop"
+            data-desktop-menu-item 
+            data-id="3bfd668b-3839-4be6-9f6e-99cec163f5ce"
+            data-type="simple"
+            role="none"
+            style="order: 1">
+    <a class="header-menu__link"
+       
+       href='/career/vacancies/conditions' data-event-name='event-menu-/career/vacancies/conditions-click'
+       role="menuitem"
+       tabindex="0"
+       >
+        Кандидатам
+    </a>
+        </li>
+        <li
+            class="header-menu__item header-menu__item_desktop"
+            data-desktop-menu-item 
+            data-id="8e4495ca-6989-40d9-b525-ea2989032a0c"
+            data-type="simple"
+            role="none"
+            style="order: 2">
+    <a class="header-menu__link"
+       
+       href='/education' data-event-name='event-menu-/education-click'
+       role="menuitem"
+       tabindex="0"
+       >
+        Начинающим
+    </a>
+        </li>
+        <li
+            class="header-menu__item header-menu__item_desktop"
+            data-desktop-menu-item 
+            data-id="7207d864-cc0b-44c1-8bdb-17c438848422"
+            data-type="simple"
+            role="none"
+            style="order: 3">
+    <a class="header-menu__link"
+       
+       href='/career/blog' data-event-name='event-menu-/career/blog-click'
+       role="menuitem"
+       tabindex="0"
+       >
+        Блог
+    </a>
+        </li>
+        <li
+            class="header-menu__item header-menu__item_desktop"
+            data-desktop-menu-item 
+            data-id="fe6940e3-c0d6-480b-b40e-5a9fc13e9d9d"
+            data-type="simple"
+            role="none"
+            style="order: 4">
+    <a class="header-menu__link"
+       
+       href='/career/vacancies/recommend' data-event-name='event-menu-/career/vacancies/recommend-click'
+       role="menuitem"
+       tabindex="0"
+       >
+        Рекомендовать друга
+    </a>
+        </li>
+
+    <li
+        class="header-menu__item header-menu__item_adaptive is-hidden"
+        data-flex-menu-parent
+        role="none"
+        style="order: 5">
+    <a
+        class="header-menu__link header-menu__link_submenu-control"
+        data-header-submenu-control
+        data-id="f457120a-c0d6-4904-bdbd-499c8749440f"
+        aria-label="Контролл выпадающего десктопного меню"
+        tabindex="-1"
+        role="menuitem">
+        <span
+            data-flex-menu-toggle
+            data-locale="ru">
+            Ещё
+        </span>
+        <svg class="submenu-control-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M2.96967 5.46967C3.26257 5.17678 3.73744 5.17678 4.03033 5.46967L7.8232 9.26256C7.92083 9.36019 8.07912 9.36019 8.17675 9.26256L11.9697 5.46967C12.2626 5.17678 12.7374 5.17678 13.0303 5.46967C13.3232 5.76257 13.3232 6.23744 13.0303 6.53033L9.23741 10.3232C8.55399 11.0066 7.44595 11.0066 6.76254 10.3232L2.96967 6.53033C2.67678 6.23743 2.67678 5.76256 2.96967 5.46967Z" fill="currentColor"/>
+        </svg>
+    </a>
+    <button
+        type="button"
+        class="burger"
+        data-header-submenu-control
+        data-id="f457120a-c0d6-4904-bdbd-499c8749440f"
+        aria-label="Контролл основного меню">
+        <span class="burger__top"></span>
+        <span class="burger__middle"></span>
+        <span class="burger__bottom"></span>
+    </button>
+    <div id="f457120a-c0d6-4904-bdbd-499c8749440f" class="header-flex-menu header-flex-menu_sm-align-right" data-flex-menu-popup hidden>
+    <ul class="header-flex-menu__body" data-flex-menu data-flex-menu-mobile data-type="simple" role="tree">
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <span class="header-flex-menu__item header-flex-menu__item_title header-flex-menu__item_active" role="menuitem">
+            Вакансии
+        </span>
+
+    </div>
+                        </li>
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <a href='/career/vacancies/conditions' data-event-name='event-menu-/career/vacancies/conditions-click'
+            data-event-name="event-menu-/career/vacancies/conditions-click"
+            class="header-flex-menu__item header-flex-menu__item_title"
+            role="menuitem">
+            Кандидатам
+        </a>
+
+    </div>
+                        </li>
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <a href='/education' data-event-name='event-menu-/education-click'
+            data-event-name="event-menu-/education-click"
+            class="header-flex-menu__item header-flex-menu__item_title"
+            role="menuitem">
+            Начинающим
+        </a>
+
+    </div>
+                        </li>
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <a href='/career/blog' data-event-name='event-menu-/career/blog-click'
+            data-event-name="event-menu-/career/blog-click"
+            class="header-flex-menu__item header-flex-menu__item_title"
+            role="menuitem">
+            Блог
+        </a>
+
+    </div>
+                        </li>
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <a href='/career/vacancies/recommend' data-event-name='event-menu-/career/vacancies/recommend-click'
+            data-event-name="event-menu-/career/vacancies/recommend-click"
+            class="header-flex-menu__item header-flex-menu__item_title"
+            role="menuitem">
+            Рекомендовать друга
+        </a>
+
+    </div>
+                        </li>
+            </ul>
+    <ul class="header-flex-menu__body" data-flex-menu data-flex-menu-desktop data-type="simple" role="tree">
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <span class="header-flex-menu__item header-flex-menu__item_title header-flex-menu__item_active" role="menuitem">
+            Вакансии
+        </span>
+
+    </div>
+                        </li>
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <a href='/career/vacancies/conditions' data-event-name='event-menu-/career/vacancies/conditions-click'
+            data-event-name="event-menu-/career/vacancies/conditions-click"
+            class="header-flex-menu__item header-flex-menu__item_title"
+            role="menuitem">
+            Кандидатам
+        </a>
+
+    </div>
+                        </li>
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <a href='/education' data-event-name='event-menu-/education-click'
+            data-event-name="event-menu-/education-click"
+            class="header-flex-menu__item header-flex-menu__item_title"
+            role="menuitem">
+            Начинающим
+        </a>
+
+    </div>
+                        </li>
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <a href='/career/blog' data-event-name='event-menu-/career/blog-click'
+            data-event-name="event-menu-/career/blog-click"
+            class="header-flex-menu__item header-flex-menu__item_title"
+            role="menuitem">
+            Блог
+        </a>
+
+    </div>
+                        </li>
+                        <li class="header-flex-menu__group is-hidden header-flex-menu__group_without-submenu" role="treeitem" data-flex-menu-item>
+    <div>
+        <a href='/career/vacancies/recommend' data-event-name='event-menu-/career/vacancies/recommend-click'
+            data-event-name="event-menu-/career/vacancies/recommend-click"
+            class="header-flex-menu__item header-flex-menu__item_title"
+            role="menuitem">
+            Рекомендовать друга
+        </a>
+
+    </div>
+                        </li>
+            </ul>
+
+    </div>
+    </li>
+</ul>
+        </nav>
+    </div>
+</header>
+
+         </div>
+                <main class="page-layout__content">
+            <div class="lp-styles" data-lp-styles>
+                <div class="lp-forms">
+                    
+
+
+
+
+
+
+
+    <section class="section section_no-indents">
+        <div class="section-block m-t-4 m-t-md-5 m-b-6 m-b-md-8">
+                <div class="section-block__content">
+                    <div class="row justify-content-md-between">
+                                  <div class="col-md-8 m-b-0">
+                                      <h1 class="t-32 t-sm-48 t-md-56 t-xl-72 text-semibold">Карьера в&nbsp;Контуре начинается здесь</h1>
+                                  </div>
+
+                                  <div class="col-8 col-sm-5 col-md-4">
+                                      <img class="image m-b-0" src="/Files/userfiles/image/career/home/vacancy-main-cover%402x.png" alt="">
+                                  </div>
+                              </div>
+                </div>
+        </div>
+
+        <div class="section-block section-block_no-indents">
+                <div class="section-block__content">
+                    <div class="row justify-content-md-between">
+                                  <div class="col-md-8 col-lg-7 order-2 order-md-1">
+                                      <div data-vacancy-list-container="/ajax/career/vacancies/list">
+                                          <div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/flag-b/flag-b-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Управление&#xA0;командой</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/3728" data-event-name="career-vacancies-click-development-3728">
+        <span href="/career/vacancies/3728" class="vacancy__title">Руководитель команды разработки</span>&nbsp;
+                <div class="vacancy__description">
+<span>Санкт-Петербург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/tech-pc-laptop/tech-pc-laptop-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Backend‑разработка и&#xA0;ML</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5833" data-event-name="career-vacancies-click-development-5833">
+        <span href="/career/vacancies/5833" class="vacancy__title">ML‑разработчик, middle&#x2B;/senior</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5818" data-event-name="career-vacancies-click-development-5818">
+        <span href="/career/vacancies/5818" class="vacancy__title">Ведущий data scientist по&#xA0;ИИ-агентам, senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5802" data-event-name="career-vacancies-click-development-5802">
+        <span href="/career/vacancies/5802" class="vacancy__title">ML‑разработчик в&#xA0;Толк, middle&#x2B;</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5824" data-event-name="career-vacancies-click-development-5824">
+        <span href="/career/vacancies/5824" class="vacancy__title">ML‑engineer в&#xA0;CV‑лабораторию, middle&#x2B;</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/tech-server/tech-server-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Эксплуатация, DevOps</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5705" data-event-name="career-vacancies-click-development-5705">
+        <span href="/career/vacancies/5705" class="vacancy__title">Инженер эксплуатации систем мониторинга и&#xA0;алертинга, middle</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 9 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5323" data-event-name="career-vacancies-click-development-5323">
+        <span href="/career/vacancies/5323" class="vacancy__title">Администратор баз данных NoSQL</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5798" data-event-name="career-vacancies-click-development-5798">
+        <span href="/career/vacancies/5798" class="vacancy__title">DevOps в&#xA0;инфраструктуру центра ИИ, senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5799" data-event-name="career-vacancies-click-development-5799">
+        <span href="/career/vacancies/5799" class="vacancy__title">MLOps в&#xA0;инфраструктуру Центра ИИ, senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/lightbulb-on/lightbulb-on-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Системный анализ</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/655" data-event-name="career-vacancies-click-analytics-655">
+        <span href="/career/vacancies/655" class="vacancy__title">Системный аналитик, senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/data-chart-trend-xy-up/data-chart-trend-xy-up-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Продуктовая аналитика</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5551" data-event-name="career-vacancies-click-analytics-5551">
+        <span href="/career/vacancies/5551" class="vacancy__title">Аналитик данных в&#xA0;Контур.Диадок, middle&#x2B;</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5812" data-event-name="career-vacancies-click-analytics-5812">
+        <span href="/career/vacancies/5812" class="vacancy__title">Продуктовый аналитик, senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/heart/heart-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Дизайн и&#xA0;проектирование интерфейсов</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5673" data-event-name="career-vacancies-click-design-5673">
+        <span href="/career/vacancies/5673" class="vacancy__title">UX‑исследователь, middle/middle&#x2B;</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/market-shopping-bag/market-shopping-bag-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Продуктовый маркетинг</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5701" data-event-name="career-vacancies-click-marketing-5701">
+        <span href="/career/vacancies/5701" class="vacancy__title">Продуктовый маркетолог в&#xA0; Контур.Толк, middle&#x2B;/senior</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5687" data-event-name="career-vacancies-click-marketing-5687">
+        <span href="/career/vacancies/5687" class="vacancy__title">Продуктовый маркетолог в&#xA0; Контур.Маркет, senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5478" data-event-name="career-vacancies-click-marketing-5478">
+        <span href="/career/vacancies/5478" class="vacancy__title">Продуктовый маркетолог в&#xA0;Контур.Диадок, senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5361" data-event-name="career-vacancies-click-marketing-5361">
+        <span href="/career/vacancies/5361" class="vacancy__title">Продуктовый маркетолог в&#xA0;Контур.Фокус, senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5774" data-event-name="career-vacancies-click-marketing-5774">
+        <span href="/career/vacancies/5774" class="vacancy__title">Продуктовый маркетолог в&#xA0;КЭДО от&#xA0;Контур.Диадока, senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5167" data-event-name="career-vacancies-click-marketing-5167">
+        <span href="/career/vacancies/5167" class="vacancy__title">Руководитель группы продуктовых маркетологов в&#xA0;Экстерн, lead</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург, Москва</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/calendar/calendar-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Событийный маркетинг</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5791" data-event-name="career-vacancies-click-marketing-5791">
+        <span href="/career/vacancies/5791" class="vacancy__title">Ведущий event‑маркетолог, middle&#x2B;/senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Москва</span><span>В&nbsp;офисе или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/comment-rect/comment-rect-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Маркетинговые коммуникации</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5760" data-event-name="career-vacancies-click-marketing-5760">
+        <span href="/career/vacancies/5760" class="vacancy__title">Руководитель отдела медийной рекламы, lead</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5754" data-event-name="career-vacancies-click-marketing-5754">
+        <span href="/career/vacancies/5754" class="vacancy__title">Менеджер по&#xA0;внешним коммуникациям</span>&nbsp;
+                <div class="vacancy__description">
+<span>Санкт-Петербург</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/people-2/people-2-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Продажи малому и&#xA0;среднему бизнесу</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5796" data-event-name="career-vacancies-click-sales-5796">
+        <span href="/career/vacancies/5796" class="vacancy__title">Менеджер по&#xA0;активации Контур.Логистики</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5843" data-event-name="career-vacancies-click-sales-5843">
+        <span href="/career/vacancies/5843" class="vacancy__title">Менеджер по&#xA0;продажам</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span><span class="label label_size-xsmall label_experience">Без&nbsp;опыта</span>
+                <div class="vacancy__description">
+<span>Челябинск</span><span>В&nbsp;офисе</span><span>от&nbsp;<span class="nowrap">68&#8239;000&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5809" data-event-name="career-vacancies-click-sales-5809">
+        <span href="/career/vacancies/5809" class="vacancy__title">Менеджер по&#xA0;продажам (сервис Контур.Закупки)</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span><span class="label label_size-xsmall label_experience">Без&nbsp;опыта</span>
+                <div class="vacancy__description">
+<span>Санкт-Петербург</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5826" data-event-name="career-vacancies-click-sales-5826">
+        <span href="/career/vacancies/5826" class="vacancy__title">Менеджер по&#xA0;продажам</span>&nbsp;<span class="label label_size-xsmall label_experience">Без&nbsp;опыта</span>
+                <div class="vacancy__description">
+<span>Самара</span><span>В&nbsp;офисе</span><span>от&nbsp;<span class="nowrap">67&#8239;000&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/people-3/people-3-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Продажи крупным клиентам</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5832" data-event-name="career-vacancies-click-sales-5832">
+        <span href="/career/vacancies/5832" class="vacancy__title">Менеджер по&#xA0;развитию корпоративных клиентов в&#xA0;ЭДО, junior/middle</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Владивосток</span><span>В&nbsp;офисе или&nbsp;гибридно</span><span>от&nbsp;<span class="nowrap">130&#8239;000&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5820" data-event-name="career-vacancies-click-sales-5820">
+        <span href="/career/vacancies/5820" class="vacancy__title">Клиентский бизнес-партнер b2g, middle&#x2B;/senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Казань</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5753" data-event-name="career-vacancies-click-sales-5753">
+        <span href="/career/vacancies/5753" class="vacancy__title">Менеджер по&#xA0;работе с&#xA0;ключевыми клиентами в&#xA0;Контур.Диадок, junior/middle</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5829" data-event-name="career-vacancies-click-sales-5829">
+        <span href="/career/vacancies/5829" class="vacancy__title">Менеджер по&#xA0;работе с&#xA0;корпоративными клиентами в&#xA0;Контур.Толк, middle/middle&#x2B;</span>&nbsp;
+                <div class="vacancy__description">
+<span>Пермь</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span><span>от&nbsp;<span class="nowrap">140&#8239;000&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5823" data-event-name="career-vacancies-click-sales-5823">
+        <span href="/career/vacancies/5823" class="vacancy__title">Менеджер по&#xA0;работе с&#xA0;корпоративными клиентами в&#xA0;Логистику от&#xA0;Диадока, middle</span>&nbsp;
+                <div class="vacancy__description">
+<span>Самара</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/4403" data-event-name="career-vacancies-click-sales-4403">
+        <span href="/career/vacancies/4403" class="vacancy__title">Менеджер по&#xA0;развитию федеральных клиентов</span>&nbsp;
+                <div class="vacancy__description">
+<span>Москва</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/people-1-check/people-1-check-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Продление клиентов</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5835" data-event-name="career-vacancies-click-sales-5835">
+        <span href="/career/vacancies/5835" class="vacancy__title">Менеджер по&#xA0;работе с&#xA0;клиентами Контур.EDI, junior/middle</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 2 города</span><span>В&nbsp;офисе или&nbsp;гибридно</span><span>от&nbsp;<span class="nowrap">136&#8239;000&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/data-chart-trend-xy-up/data-chart-trend-xy-up-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Развитие продаж</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5756" data-event-name="career-vacancies-click-sales-5756">
+        <span href="/career/vacancies/5756" class="vacancy__title">Клиентский бизнес-партнер b2g</span>&nbsp;
+                <div class="vacancy__description">
+<span>Москва</span><span>В&nbsp;офисе</span><span>от&nbsp;<span class="nowrap">238&#8239;000</span> до&nbsp;<span class="nowrap">315&#8239;000&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/people-1-boss/people-1-boss-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Управление продажами</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5819" data-event-name="career-vacancies-click-sales-5819">
+        <span href="/career/vacancies/5819" class="vacancy__title">Руководитель отдела корпоративных продаж в&#xA0;Логистику от&#xA0;Диадока, middle&#x2B;/senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Нижний Новгород</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/arrow-ui-auth-logout/arrow-ui-auth-logout-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Внедрение</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/4019" data-event-name="career-vacancies-click-implementation-4019">
+        <span href="/career/vacancies/4019" class="vacancy__title">Программист-внедренец 1С в&#xA0;Логистику, junior/middle</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span><span>от&nbsp;<span class="nowrap">110&#8239;000</span> до&nbsp;<span class="nowrap">140&#8239;000&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/3999" data-event-name="career-vacancies-click-implementation-3999">
+        <span href="/career/vacancies/3999" class="vacancy__title">Специалист по&#xA0;внедрению в&#xA0;Контур.EDI, junior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span><span><span class="nowrap">105&#8239;000&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/media-audio-headset/media-audio-headset-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Клиентская поддержка</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/1921" data-event-name="career-vacancies-click-support-1921">
+        <span href="/career/vacancies/1921" class="vacancy__title">Специалист поддержки, junior/middle</span>&nbsp;<span class="label label_size-xsmall label_experience">Без&nbsp;опыта</span>
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 4 города</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span><span>от&nbsp;<span class="nowrap">41&#8239;000</span> до&nbsp;<span class="nowrap">70&#8239;000&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/security-shield-check/security-shield-check-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Информационная безопасность</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/4424" data-event-name="career-vacancies-click-security-4424">
+        <span href="/career/vacancies/4424" class="vacancy__title">Инженер по&#xA0;информационной безопасности</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5513" data-event-name="career-vacancies-click-security-5513">
+        <span href="/career/vacancies/5513" class="vacancy__title">Специалист мониторинга информационной безопасности</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5803" data-event-name="career-vacancies-click-security-5803">
+        <span href="/career/vacancies/5803" class="vacancy__title">AI application security engineer, middle&#x2B;/senior</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/data-chart-bars-x/data-chart-bars-x-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Управление продуктами</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5837" data-event-name="career-vacancies-click-product-management-5837">
+        <span href="/career/vacancies/5837" class="vacancy__title">Менеджер продукта, middle&#x2B;</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5838" data-event-name="career-vacancies-click-product-management-5838">
+        <span href="/career/vacancies/5838" class="vacancy__title">Менеджер продукта, middle&#x2B;</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5839" data-event-name="career-vacancies-click-product-management-5839">
+        <span href="/career/vacancies/5839" class="vacancy__title">Менеджер продукта, middle&#x2B;</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5840" data-event-name="career-vacancies-click-product-management-5840">
+        <span href="/career/vacancies/5840" class="vacancy__title">Менеджер продукта, middle&#x2B;</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5841" data-event-name="career-vacancies-click-product-management-5841">
+        <span href="/career/vacancies/5841" class="vacancy__title">Product owner в&#xA0;Контур.Факторинг, senior</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург и ещё 8 городов</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/delivery-box-iso/delivery-box-iso-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Управление проектами</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5810" data-event-name="career-vacancies-click-product-management-5810">
+        <span href="/career/vacancies/5810" class="vacancy__title">Менеджер программ технологического развития, middle/middle&#x2B;</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5784" data-event-name="career-vacancies-click-product-management-5784">
+        <span href="/career/vacancies/5784" class="vacancy__title">Менеджер проектов изменений в&#xA0;веб-сервисы для&#xA0;бизнеса, middle</span>&nbsp;<span class="label label_size-xsmall label_new">Новая</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе, удалённо или&nbsp;гибридно</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5746" data-event-name="career-vacancies-click-product-management-5746">
+        <span href="/career/vacancies/5746" class="vacancy__title">Руководитель направления, lead</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/nature-fx-lightning-b/nature-fx-lightning-b-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Внутренний бренд</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5010" data-event-name="career-vacancies-click-staff-5010">
+        <span href="/career/vacancies/5010" class="vacancy__title">Специалист по&#xA0;внутрикорпоративным коммуникациям</span>&nbsp;
+                <div class="vacancy__description">
+<span>Москва</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="vacancy-rubric">
+        <button class="vacancy-rubric__head"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-collapse-vacancy-rubric>
+        <img class="vacancy-rubric__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/tool-magic-wand/tool-magic-wand-64-regular.svg" width="64" height="64" alt="" aria-hidden="true">
+            <h2 class="vacancy-rubric__title">Обслуживание офисов</h2>
+        </button>
+    <ul class="vacancy-rubric__body" >
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5813" data-event-name="career-vacancies-click-accompaniment-5813">
+        <span href="/career/vacancies/5813" class="vacancy__title">Заместитель директора макрорегионального центра по&#xA0;общим вопросам</span>&nbsp;
+                <div class="vacancy__description">
+<span>Новосибирск</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5739" data-event-name="career-vacancies-click-accompaniment-5739">
+        <span href="/career/vacancies/5739" class="vacancy__title">Разнорабочий-дворник</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе</span><span><span class="nowrap">50&#8239;800&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5565" data-event-name="career-vacancies-click-accompaniment-5565">
+        <span href="/career/vacancies/5565" class="vacancy__title">Уборщица в&#xA0;офис</span>&nbsp;<span class="label label_size-xsmall label_experience">Без&nbsp;опыта</span>
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе</span><span><span class="nowrap">20&#8239;900&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5777" data-event-name="career-vacancies-click-accompaniment-5777">
+        <span href="/career/vacancies/5777" class="vacancy__title">Уборщица в&#xA0;офис</span>&nbsp;
+                <div class="vacancy__description">
+<span>Екатеринбург</span><span>В&nbsp;офисе</span><span><span class="nowrap">41&#8239;800&#8239;₽</span></span>                </div>
+            </a>
+        </li>
+        <li class="vacancy-rubric__body-item" >
+            <a class="vacancy" href="/career/vacancies/5611" data-event-name="career-vacancies-click-accompaniment-5611">
+        <span href="/career/vacancies/5611" class="vacancy__title">Хозяюшка в&#xA0;офис</span>&nbsp;
+                <div class="vacancy__description">
+<span>Воронеж</span><span>В&nbsp;офисе</span>                </div>
+            </a>
+        </li>
+
+    </ul>
+</div>
+
+
+
+                                      </div>
+                                  </div>
+
+                                  <div class="col-md-4 order-1 order-md-2">
+                                      
+<div class="d-flex justify-content-between align-items-center d-md-none m-b-1 m-b-sm-3">
+    <span class="t-24 t-sm-32 text-bold">Вакансии</span>
+    <button class="vacancy-filters-button" data-vacancy-filters-lightbox-btn type="button">Фильтры</button>
+</div>
+
+<nav class="vacancy-filters-wrap" data-vacancy-filters-lightbox role="menu" aria-label="фильтры списка вакансий">
+    <div class="d-md-none t-20 text-bold m-b-2">Фильтры по вакансиям</div>
+    
+        <div class="vacancy-filter"
+             data-vacancy-filter="direction"
+             >
+
+            <button class="vacancy-filter__name"
+                 data-vacancy-filter-title
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-controls="direction"
+                 type="button"
+                 style="--arrow-icon-path: url(https://s.kontur.ru/common-v2/icons-ui/black/arrow-c-down/arrow-c-down-16-regular.svg)">
+                Направления
+            </button>
+
+            <ul id="direction" class="vacancy-filter__links" role="menu">
+<li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none is-active"
+            href="/career/vacancies"
+            
+            
+            aria-current="true"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value=""
+            data-event-name="career-filter-direction-click-"
+            
+            role="menuitem">
+                Все
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=development"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="development"
+            data-event-name="career-filter-direction-click-development"
+            
+            role="menuitem">
+                Разработка
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=analytics"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="analytics"
+            data-event-name="career-filter-direction-click-analytics"
+            
+            role="menuitem">
+                Аналитика
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=design"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="design"
+            data-event-name="career-filter-direction-click-design"
+            
+            role="menuitem">
+                Дизайн
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=marketing"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="marketing"
+            data-event-name="career-filter-direction-click-marketing"
+            
+            role="menuitem">
+                Маркетинг
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=sales"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="sales"
+            data-event-name="career-filter-direction-click-sales"
+            data-city-lightbox-link
+            role="menuitem">
+                Продажи
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=implementation"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="implementation"
+            data-event-name="career-filter-direction-click-implementation"
+            
+            role="menuitem">
+                Внедрение
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=support"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="support"
+            data-event-name="career-filter-direction-click-support"
+            
+            role="menuitem">
+                Поддержка
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=security"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="security"
+            data-event-name="career-filter-direction-click-security"
+            
+            role="menuitem">
+                Информационная безопасность
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=product-management"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="product-management"
+            data-event-name="career-filter-direction-click-product-management"
+            
+            role="menuitem">
+                Продуктовый менеджмент
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=staff"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="staff"
+            data-event-name="career-filter-direction-click-staff"
+            
+            role="menuitem">
+                Персонал
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?direction=accompaniment"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="direction"
+            data-vacancy-filter-value="accompaniment"
+            data-event-name="career-filter-direction-click-accompaniment"
+            
+            role="menuitem">
+                Сопровождение
+         </a>
+     </li>            </ul>
+            <span class="vacancy-filter__error" data-vacancy-filter-error hidden></span>
+        </div>
+        <div class="vacancy-filter"
+             data-vacancy-filter="format"
+             >
+
+            <button class="vacancy-filter__name"
+                 data-vacancy-filter-title
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-controls="format"
+                 type="button"
+                 style="--arrow-icon-path: url(https://s.kontur.ru/common-v2/icons-ui/black/arrow-c-down/arrow-c-down-16-regular.svg)">
+                Формат работы
+            </button>
+
+            <ul id="format" class="vacancy-filter__links" role="menu">
+<li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none is-active"
+            href="/career/vacancies"
+            
+            
+            aria-current="true"
+            data-vacancy-filter-name="format"
+            data-vacancy-filter-value=""
+            data-event-name="career-filter-format-click-"
+            
+            role="menuitem">
+                Любой
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?format=office"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="format"
+            data-vacancy-filter-value="office"
+            data-event-name="career-filter-format-click-office"
+            
+            role="menuitem">
+                В&nbsp;офисе
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?format=home"
+            data-hide-filter=city
+            
+            aria-current="false"
+            data-vacancy-filter-name="format"
+            data-vacancy-filter-value="home"
+            data-event-name="career-filter-format-click-home"
+            
+            role="menuitem">
+                Удалённо
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies?format=hybrid"
+            
+            
+            aria-current="false"
+            data-vacancy-filter-name="format"
+            data-vacancy-filter-value="hybrid"
+            data-event-name="career-filter-format-click-hybrid"
+            
+            role="menuitem">
+                Гибридно
+         </a>
+     </li>            </ul>
+            <span class="vacancy-filter__error" data-vacancy-filter-error hidden></span>
+        </div>
+        <div class="vacancy-filter"
+             data-vacancy-filter="city"
+             >
+
+            <button class="vacancy-filter__name"
+                 data-vacancy-filter-title
+                 aria-haspopup="true"
+                 aria-expanded="false"
+                 aria-controls="city"
+                 type="button"
+                 style="--arrow-icon-path: url(https://s.kontur.ru/common-v2/icons-ui/black/arrow-c-down/arrow-c-down-16-regular.svg)">
+                Город
+            </button>
+
+            <ul id="city" class="vacancy-filter__links" role="menu">
+<li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none is-active"
+            href="/career/vacancies"
+            
+            
+            aria-current="true"
+            data-vacancy-filter-name="city"
+            data-vacancy-filter-value=""
+            data-event-name="career-filter-city-click-"
+            
+            role="menuitem">
+                Все
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies/city-5457"
+            
+            data-filter-popular-value
+            aria-current="false"
+            data-vacancy-filter-name="city"
+            data-vacancy-filter-value="5457"
+            data-event-name="career-filter-city-click-5457"
+            
+            role="menuitem">
+                Екатеринбург
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies/city-5531"
+            
+            data-filter-popular-value
+            aria-current="false"
+            data-vacancy-filter-name="city"
+            data-vacancy-filter-value="5531"
+            data-event-name="career-filter-city-click-5531"
+            
+            role="menuitem">
+                Иваново
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies/city-5574"
+            
+            data-filter-popular-value
+            aria-current="false"
+            data-vacancy-filter-name="city"
+            data-vacancy-filter-value="5574"
+            data-event-name="career-filter-city-click-5574"
+            
+            role="menuitem">
+                Казань
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies/city-6012"
+            
+            data-filter-popular-value
+            aria-current="false"
+            data-vacancy-filter-name="city"
+            data-vacancy-filter-value="6012"
+            data-event-name="career-filter-city-click-6012"
+            
+            role="menuitem">
+                Новосибирск
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies/city-6120"
+            
+            data-filter-popular-value
+            aria-current="false"
+            data-vacancy-filter-name="city"
+            data-vacancy-filter-value="6120"
+            data-event-name="career-filter-city-click-6120"
+            
+            role="menuitem">
+                Пермь
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies/city-6238"
+            
+            data-filter-popular-value
+            aria-current="false"
+            data-vacancy-filter-name="city"
+            data-vacancy-filter-value="6238"
+            data-event-name="career-filter-city-click-6238"
+            
+            role="menuitem">
+                Самара
+         </a>
+     </li><li class="vacancy-filter__item"  role="none">
+         <a class="label label_size-small label_custom box-shadow-none "
+            href="/career/vacancies/city-6240"
+            
+            data-filter-popular-value
+            aria-current="false"
+            data-vacancy-filter-name="city"
+            data-vacancy-filter-value="6240"
+            data-event-name="career-filter-city-click-6240"
+            
+            role="menuitem">
+                Санкт-Петербург
+         </a>
+     </li><li class="vacancy-filter__item" hidden role="none">
+         <a class="label label_size-small label_custom box-shadow-none is-active"
+            href="/career/vacancies"
+            
+            data-filter-template-link
+            aria-current="true"
+            data-vacancy-filter-name="city"
+            data-vacancy-filter-value=""
+            data-event-name="career-filter-city-click-"
+            
+            role="menuitem">
+                Все
+         </a>
+     </li><li class="vacancy-filter__item d-block" role="none">
+                         <button type="button" class="label label_size-small label_city box-shadow-none" data-city-lightbox-link aria-haspopup="true">Смотреть другие</button>
+                     </li>
+            </ul>
+
+
+<div class="d-md-none">
+    <div class="city-filter-wrap" data-city-lightbox>
+        <div class="d-none d-md-block m-b-md-3">
+            <div class="h2 m-b-3 m-b-sm-6">
+                Выберите город
+            </div>
+
+        <ul class="vacancy-city-list">
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5457"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5457>Екатеринбург</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5531"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5531>Иваново</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5574"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5574>Казань</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-6012"
+           data-vacancy-filter-name=city data-vacancy-filter-value=6012>Новосибирск</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-6120"
+           data-vacancy-filter-name=city data-vacancy-filter-value=6120>Пермь</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-6238"
+           data-vacancy-filter-name=city data-vacancy-filter-value=6238>Самара</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-6240"
+           data-vacancy-filter-name=city data-vacancy-filter-value=6240>Санкт-Петербург</a>
+</li>
+        </ul>
+        </div>
+        
+        <div class="m-b-md-2">
+        <ul class="vacancy-city-list">
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5160"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5160>Барнаул</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5320"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5320>Владивосток</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5326"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5326>Волгоград</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5339"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5339>Воронеж</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5541"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5541>Ижевск</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-7067"
+           data-vacancy-filter-name=city data-vacancy-filter-value=7067>Иннополис</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5919"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5919>Москва</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-5977"
+           data-vacancy-filter-name=city data-vacancy-filter-value=5977>Нижний Новгород</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-6218"
+           data-vacancy-filter-name=city data-vacancy-filter-value=6218>Ростов-на-Дону</a>
+</li>
+                <li>        <a class="vacancy-city-link "
+           href="/career/vacancies/city-6590"
+           data-vacancy-filter-name=city data-vacancy-filter-value=6590>Челябинск</a>
+</li>
+        </ul>
+        </div>
+        
+        <div class="d-none d-md-block">
+            <hr class="section-separator w-100 m-t-2 m-b-3">
+
+            <div class="d-flex flex-column flex-sm-row">
+                <div class="m-r-sm-5 m-b-1 m-b-sm-0">
+                    <a class="vacancy-city-link text-normal"
+                       href="/career/vacancies"
+                       data-vacancy-filter-name=city data-vacancy-filter-value=>
+        <img class="vacancy-city-link__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/building-office-alt/building-office-alt-16-regular.svg" width="16" height="16" aria-hidden="true">
+                        Все города
+                    </a>
+                </div>
+                <a class="vacancy-city-link text-normal"
+                   href="/career/vacancies?format=home"
+                   data-hide-filter="city"
+                   data-lightbox-close
+                   data-vacancy-filter-name=format data-vacancy-filter-value=home>
+        <img class="vacancy-city-link__icon" src="https://s.kontur.ru/common-v2/icons-ui/black/building-home/building-home-16-regular.svg" width="16" height="16" aria-hidden="true">
+                    Удаленная работа
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <span class="vacancy-filter__error" data-vacancy-filter-error hidden></span>
+        </div>
+
+    <div class="d-md-none">
+        <button class="button button_size-medium button_secondary" data-vacancy-filters-lightbox-close-btn type="button">Применить</button>
+    </div>
+</nav>
+    
+
+
+                                  </div>
+                              </div>
+                </div>
+        </div>
+    </section>
+
+    <section class="section section_no-indents">
+        <div class="section-block">
+                <div class="section-block__content">
+                    <style>
+    .card_custom-folder {
+        border-top-right-radius: 0 !important;
+        position: relative;
+    }
+    .card_custom-folder svg {
+        position: absolute;
+        top: -21px;
+        right: -1px;
+    }
+</style>
+
+<div class="row compact-gutters">
+  <div class="col-sm-4 p-t-3">
+    <div class="card card_size-xsmall invert box-shadow-none h-100 card_custom-folder" style="background-color: #26AD50;">
+        <svg width="140" height="22" viewBox="0 0 140 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M115.142 0C127.723 4.80201e-05 138.041 9.68101 139.058 22H0C13.6448 17.0689 26.3606 4.02485 40.1689 0.675781C41.9889 0.234366 43.8899 0 45.8457 0H115.142Z" fill="#26AD50"/>
+        </svg>
+        
+        <div class="d-flex flex-column justify-content-between align-items-start h-100">
+            <div class="m-b-3">
+              <span class="t-20 t-sm-18 t-md-20 t-lg-24 text-bold">Бонус за&nbsp;рекомендацию</span>
+              <p class="m-t-2 t-16 t-sm-14 t-md-16 t-lg-18">Рекомендуйте друга, даже если не&nbsp;работаете в&nbsp;Контуре, получите бонус до&nbsp;80&nbsp;000&nbsp;₽</p>
+            </div>
+    
+            <a href="/career/vacancies/recommend" class="button button_size-large button_arrow button_link button_secondary button_no-indents" data-event-name="button-click">Рекомендовать</a>
+        </div>
+    </div>
+  </div>
+
+  <div class="col-sm-4 p-t-3">
+    <div class="card card_size-xsmall invert box-shadow-none h-100 card_custom-folder" style="background-color: #844BEC;">
+        <svg width="140" height="22" viewBox="0 0 140 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M115.142 0C127.723 4.80201e-05 138.041 9.68101 139.058 22H0C13.6448 17.0689 26.3606 4.02485 40.1689 0.675781C41.9889 0.234366 43.8899 0 45.8457 0H115.142Z" fill="#844BEC"/>
+        </svg>
+        
+        <div class="d-flex flex-column justify-content-between align-items-start h-100">
+            <div class="m-b-3">
+              <span class="t-20 t-sm-18 t-md-20 t-lg-24 text-bold">Рассылка вакансий</span>
+              <p class="m-t-2 t-16 t-sm-14 t-md-16 t-lg-18">Собираем в&nbsp;удобном дайджесте новые вакансии по&nbsp;выбранным вами направлениям </p>
+            </div>
+    
+            <a href="/career/vacancies/subscribe" class="button button_size-large button_arrow button_link button_no-indents button_secondary" data-event-name="button-click">Подписаться</a>
+        </div>
+    </div>
+  </div>
+
+  <div class="col-sm-4 p-t-3">
+    <div class="card card_size-xsmall invert h-100 card_custom-folder" style="background-color: #FC7630;">
+        <svg width="140" height="22" viewBox="0 0 140 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M115.142 0C127.723 4.80201e-05 138.041 9.68101 139.058 22H0C13.6448 17.0689 26.3606 4.02485 40.1689 0.675781C41.9889 0.234366 43.8899 0 45.8457 0H115.142Z" fill="#FC7630"/>
+        </svg>
+        
+        <div class="d-flex flex-column justify-content-between align-items-start h-100">
+            <div class="m-b-3">
+              <span class="t-20 t-sm-18 t-md-20 t-lg-24 text-bold">Жизнь в&nbsp;Контуре</span>
+              <p class="m-t-2 t-16 t-sm-14 t-md-16 t-lg-18">Рассказываем про&nbsp;наши команды, интересные проекты и&nbsp;работу внутри компании</p>
+            </div>
+    
+            <div>
+              <a href="https://t.me/+O3AcbwzS_6RlZjcy" class="d-inline-block m-r-1" data-event-name="button-click" rel="nofollow noopener" target="_blank">
+                <img alt="" src="https://s.kontur.ru/common-v2/icons-ui/white/logo-telegram/logo-telegram-32-regular@2x.png" width="32" height="32" loading="lazy">
+              </a>
+              <a href="https://vk.com/rabota_v_konture" class="d-inline-block" data-event-name="button-click" rel="nofollow noopener" target="_blank">
+                <img alt="" src="https://s.kontur.ru/common-v2/icons-ui/white/logo-vk/logo-vk-32-regular@2x.png" width="32" height="32" loading="lazy">
+              </a>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+                </div>
+        </div>
+    </section>
+
+
+
+
+
+
+
+
+
+
+
+                </div>
+            </div>
+         </main>
+                <div class="page-layout__footer">
+
+
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/footer/base.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/footer/base.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/footer/base.css">
+            </noscript>
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/blocks/region-choice-lightbox.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/blocks/region-choice-lightbox.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/blocks/region-choice-lightbox.css">
+            </noscript>
+
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/footer/custom-v2.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/footer/custom-v2.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/footer/custom-v2.css">
+            </noscript>
+<script type="text/javascript" src="https://kontur.ru/front/ver-678020712/build/js/modules/footer.js"></script>    <div class="footer">
+        <div class="footer__inner">
+            <div class="footer__nav">
+                
+
+<div class="footer-nav">
+        <div class="footer-nav__item">
+    <div class="footer-menu-title">
+        <button type="button"
+                class="arrow-control"
+                data-footer-collapse="f4226337-8001-46e5-ac2a-9e32425565a1">
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-open"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-down"></use>
+</svg>
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-close"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-up"></use>
+</svg>
+        </button>
+        <a href='/about' data-event-name='event-footer-about-click'
+           class="footer-menu-title__link">
+            Компания
+        </a>
+    </div>
+            <ul id="f4226337-8001-46e5-ac2a-9e32425565a1" class="footer-menu" hidden>
+                    <li class="footer-menu__item">
+    <a href='/press' data-event-name='event-footer-press-click' class="footer-link">Пресс-центр</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/lp/kso' data-event-name='event-footer-kso-click' class="footer-link">Контур для&#xA0;общества</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/about/zakupki' data-event-name='event-footer-zakupki-click' class="footer-link">Наши закупки</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/cybersecurity_for_users' data-event-name='event-footer-cybersecurity-for-users-click' class="footer-link">Безопасность в&#xA0;сети</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='https://kontur.ru/files/userfiles/file/about/ispolzuemoe-po.pdf' target='_blank' data-event-name='event-footer-tech-stack-click' class="footer-link">Технологический стек</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/contacts' data-event-name='event-footer-contacts-click' class="footer-link">Контакты</a>
+    <button type="button"
+            data-lb-open-link
+            data-lb-selector="#main-contacts-lightbox"
+            data-lb-show-footer="false"
+            data-lb-auto-open="false">
+<svg
+    width="16"
+    height="16"
+    viewBox="0 0 32 32"
+    focusable="false"
+    role=&quot;img&quot;
+    
+    >
+    <use xlink:href="#svg-chevron-down"></use>
+</svg>
+    </button>
+                    </li>
+            </ul>
+        </div>
+        <div class="footer-nav__item">
+    <div class="footer-menu-title">
+        <button type="button"
+                class="arrow-control"
+                data-footer-collapse="68c7e2d2-d1c1-4cdb-b1aa-796804fa89d7">
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-open"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-down"></use>
+</svg>
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-close"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-up"></use>
+</svg>
+        </button>
+        <a href='/career' data-event-name='event-footer-career-click'
+           class="footer-menu-title__link">
+            Работа у&#xA0;нас
+        </a>
+    </div>
+            <ul id="68c7e2d2-d1c1-4cdb-b1aa-796804fa89d7" class="footer-menu" hidden>
+                    <li class="footer-menu__item">
+    <a href='/career/vacancies' data-event-name='event-footer-vacancies-click' class="footer-link">Вакансии</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/career/vacancies/conditions' data-event-name='event-footer-conditions-click' class="footer-link">Кандидатам</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/education' data-event-name='event-footer-education-click' class="footer-link">Начинающим</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/education/internship' data-event-name='event-footer-internship-click' class="footer-link">Стажировка в&#xA0;IT</a>
+                    </li>
+            </ul>
+        </div>
+        <div class="footer-nav__item">
+    <div class="footer-menu-title">
+        <button type="button"
+                class="arrow-control"
+                data-footer-collapse="f6581483-d14b-4f93-bef9-5eacdbb3d776">
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-open"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-down"></use>
+</svg>
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-close"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-up"></use>
+</svg>
+        </button>
+        <a href='/products' data-event-name='event-footer-products-click'
+           class="footer-menu-title__link">
+            Продукты
+        </a>
+    </div>
+            <ul id="f6581483-d14b-4f93-bef9-5eacdbb3d776" class="footer-menu" hidden>
+                    <li class="footer-menu__item">
+    <a href='/products' data-event-name='event-footer-products-click' class="footer-link">Все продукты</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/business/big' data-event-name='event-footer-big-click' class="footer-link">Крупному бизнесу</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/start' data-event-name='event-footer-start-click' class="footer-link">Новым бизнесам</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/suppliers' data-event-name='event-footer-suppliers-click' class="footer-link">Ритейлу</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/podval-main-markirovka' data-event-name='event-footer-podval-main-markirovka-click' class="footer-link">Маркировка</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/podval-main-tedo' data-event-name='event-footer-tedo-click' class="footer-link">Транспортный ЭДО</a>
+                    </li>
+            </ul>
+        </div>
+        <div class="footer-nav__item">
+    <div class="footer-menu-title">
+        <button type="button"
+                class="arrow-control"
+                data-footer-collapse="274f1990-46e2-4590-bcdb-b59e5e813be2">
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-open"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-down"></use>
+</svg>
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-close"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-up"></use>
+</svg>
+        </button>
+        <a href='/articles' data-event-name='event-footer-articles-click'
+           class="footer-menu-title__link">
+            Журнал
+        </a>
+    </div>
+            <ul id="274f1990-46e2-4590-bcdb-b59e5e813be2" class="footer-menu" hidden>
+                    <li class="footer-menu__item">
+    <a href='/articles?from=footer' data-event-name='event-footer-articles-from-footer-click' class="footer-link">Статьи</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/cases' data-event-name='event-footer-cases-click' class="footer-link">Кейсы</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/qa' data-event-name='event-footer-qa-click' class="footer-link">Вопрос эксперту</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='https://event.kontur.ru/' target='_blank' data-event-name='event-footer-events-click' class="footer-link">События</a>
+                    </li>
+            </ul>
+        </div>
+        <div class="footer-nav__item">
+    <div class="footer-menu-title">
+        <button type="button"
+                class="arrow-control"
+                data-footer-collapse="2a0c8257-4f86-445e-a354-4499fb517c2f">
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-open"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-down"></use>
+</svg>
+<svg
+    width="18"
+    height="18"
+    viewBox="0 0 32 32"
+    class="arrow-control__item-close"
+    focusable="false"
+    
+    
+    >
+    <use xlink:href="#svg-chevron-up"></use>
+</svg>
+        </button>
+        <a href='/partnership' data-event-name='event-footer-partnership-click'
+           class="footer-menu-title__link">
+            Партнёрство
+        </a>
+    </div>
+            <ul id="2a0c8257-4f86-445e-a354-4499fb517c2f" class="footer-menu" hidden>
+                    <li class="footer-menu__item">
+    <a href='/partnership/online' data-event-name='event-footer-online-click' class="footer-link">Реферальная программа</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/partnership/sclegal' data-event-name='event-footer-sclegal-click' class="footer-link">Официальный представитель</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='https://kontur.ru/lp/ref-franchise' target='_blank' data-event-name='event-footer-ref-franchise-click' class="footer-link">Для&#xA0;франшиз</a>
+                    </li>
+                    <li class="footer-menu__item">
+    <a href='/brandbook' data-event-name='event-footer-brandbook-click' class="footer-link">Брендбук</a>
+                    </li>
+            </ul>
+        </div>
+    <div class="footer-nav__item footer-nav__item_contacts">
+            <div class="footer-menu-title">
+                <a href="/support"
+                   class="footer-menu-title__link"
+                   data-event-name="event-footer-support-click">
+                    Поддержка
+                </a>
+            </div>
+        <ul class="footer-menu" data-footer-contacts>
+        <li class="footer-menu__item">
+            
+                    <a href="tel:88005005080"
+                       
+                       class="footer-link"  data-event-name=event-footer-phone-click>
+                        8&nbsp;800&nbsp;500-50-80
+                    </a>
+             
+        </li>
+        <li class="footer-menu__item">
+            
+                    <button type="button" class="footer-link" data-support-mail-link>Написать письмо</button>
+             
+        </li>
+        </ul>
+    </div>
+</div>
+
+
+            </div>
+            <div class="footer__service-area">
+        <div class="footer-service-area">
+            <div class="footer-service-area__info-content">
+                <div class="footer-service-area__item footer-service-area__item_info">
+                    <div class="footer-companyname">©&nbsp;1988–2026 СКБ&nbsp;Контур</div>
+                    <div class="footer-policy">
+    Используем cookies для&nbsp;корректной работы сайта, персонализации пользователей и&nbsp;других целей, предусмотренных
+    <a href="https://kontur.ru/about/policy" class="footer-policy__link" target="_blank">политикой обработки персональных данных</a>.
+    На&nbsp;сайте применяются <a href="https://kontur.ru/about/policy/recomendation" class="footer-policy__link" target="_blank">рекомендательные технологии</a>.
+</div>
+                </div>
+            </div>
+
+            <div class="footer-service-area__additional-content">
+                        <div class="footer-service-area__item footer-service-area__item_other">
+        <div class="footer-social-icon-wrapper">
+        <a href='https://vk.com/rabota_v_konture' target='_blank' rel='nofollow noopener noreferrer' data-event-name='event-footer-social-vkontakte-click'
+            class="footer-social-icon footer-social-icon_vkontakte"
+            aria-label="Перейти на vkontakte">
+                <img src=https://s.kontur.ru/common-v2/icons-ui/black/logo-vk/logo-vk-16-solid.svg width="16" height="16" alt="LogoVk">
+        </a>
+        <a href='https://www.youtube.com/channel/UCoUiuNfbW-YY9SRpg7D9fMw' target='_blank' rel='nofollow noopener noreferrer' data-event-name='event-footer-social-youtube-click'
+            class="footer-social-icon footer-social-icon_youtube"
+            aria-label="Перейти на youtube">
+                <img src=https://s.kontur.ru/common-v2/icons-ui/black/logo-youtube/logo-youtube-16-solid.svg width="16" height="16" alt="LogoYoutube">
+        </a>
+        <a href='https://t.me/kontur_live' target='_blank' rel='nofollow noopener noreferrer' data-event-name='event-footer-social-telegramm-click'
+            class="footer-social-icon footer-social-icon_telegramm"
+            aria-label="Перейти на telegramm">
+                <img src=https://s.kontur.ru/common-v2/icons-ui/black/logo-telegram/logo-telegram-16-solid.svg width="16" height="16" alt="LogoTelegram">
+        </a>
+        <a href='https://zen.yandex.ru/id/623d61b4d4db7d4690dddbcc' target='_blank' rel='nofollow noopener noreferrer' data-event-name='event-footer-social-yandexzen-click'
+            class="footer-social-icon footer-social-icon_yandexzen"
+            aria-label="Перейти на yandexzen">
+                <img src=https://s.kontur.ru/common-v2/icons-ui/black/logo-yandex-zen/logo-yandex-zen-16-solid.svg width="16" height="16" alt="LogoYandexZen">
+        </a>
+        </div>
+        <a href="https://kontur-inc.com" rel='noopener noreferrer nofollow' target='_blank' data-event-name='event-footer-eng-click' class="footer-change-lang">
+            <svg class="footer-change-lang__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" focusable="false" role="img">
+                    <defs>
+                        <path id="reuse-0" fill="#fff" d="M0 0h16v16H0z"/>
+                    </defs>
+                    <g clip-path="url(#a)">
+                        <mask id="b" width="16" height="16" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha">
+                            <circle cx="8" cy="8" r="8" fill="#C4C4C4"/>
+                        </mask>
+                        <g mask="url(#b)">
+                            <use xlink:href="#reuse-0"/>
+                            <mask id="c" width="16" height="16" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha">
+                                <path fill="#C4C4C4" d="M0 0h16v16H0z"/>
+                            </mask>
+                            <g mask="url(#c)">
+                                <path fill="#0059C6" d="M0 0v16h16V0H0Z"/><path fill="#fff" d="m-12.2619-2.12738-.0035 2.291947L3.46255 8.0228-12.261 15.874l-.0056 2.2511 4.52947.0055 15.72772-7.8482 15.75561 7.8483 4.5195.0027-.0001-2.2381L12.52 8.02282 28.2647.162884l.002-2.295374-4.5035-.00081L7.99055 5.76194-7.81102-2.12945l-4.45088.00207Z"/><path fill="#DE2038" d="m7.98217 8.02512 3.02103-.01088 17.2635 8.65186-.0283 1.4557L7.98217 8.02512ZM25.2069-2.13327l2.9276.00419L7.98054 8.02989l-.00135-1.52252L25.2069-2.13327ZM-3.66318 3.65779-12.2666-.656613V-2.1333L7.98486 8.02167l-2.98455.00392-8.66349-4.3678Zm11.64436 4.364v1.47668L-9.24448 18.1315l-3.01242.0019L7.98118 8.02179Z"/><path fill="#fff" d="M5.3334 0v5.33333h-9.6v5.33337h9.6V16h5.3333v-5.3333h9.9556V5.33333h-9.9556V0H5.3334Z"/><path fill="#DE2038" d="M6.40007 0v6.4H-4.2666v3.2H6.40007V16h3.19999V9.6H20.6223V6.4H9.60006V0H6.40007Z"/>
+                            </g><rect width="15" height="15" x=".5" y=".5" stroke="#ECECEC" rx="7.5"/>
+                        </g>
+                    </g>
+                    <defs>
+                        <clipPath id="a">
+                            <use xlink:href="#reuse-0"/>
+                        </clipPath>
+                    </defs>
+            </svg>
+            <span class="footer-change-lang__text">In English</span>
+        </a>
+                        </div>
+
+
+        <div class="footer-service-area__item footer-service-area__item_search ">
+            
+
+
+<form action="/search" class="footer-search" method="get">
+    <input
+        type="text"
+        name="query"
+        class="footer-search__input"
+        placeholder="Поиск по сайту"
+        autocomplete="off"
+        aria-label="Поиск по сайту"/>
+    <input
+        type="hidden"
+        name="site"
+        value="portal"/>
+</form>
+        </div>
+            </div>
+        </div>
+            </div>
+        </div>
+    </div>
+
+
+<div hidden>
+    <div id="main-contacts-lightbox" class="region-choice-lightbox" data-event-name="footer-contacts">
+        <span class="region-choice-lightbox__title">Выберите город</span>
+        <ul class="region-choice-lightbox__region-list">
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/16/city-5574">Казань</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/66/city-5457">Екатеринбург</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/77/city-5919">Москва</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/78/city-6240">Санкт-Петербург</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/30/city-5122">Астрахань</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/22/city-5160">Барнаул</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/25/city-5320">Владивосток</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/33/city-5322">Владимир</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/34/city-5326">Волгоград</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/36/city-5339">Воронеж</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/18/city-5541">Ижевск</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/39/city-5582">Калининград</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/43/city-5660">Киров</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/23/city-5734">Краснодар</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/24/city-5746">Красноярск</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/7/city-5947">Нальчик</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/52/city-5977">Нижний Новгород</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/54/city-6012">Новосибирск</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/55/city-6069">Омск</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/59/city-6120">Пермь</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/10/city-6126">Петрозаводск</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/61/city-6218">Ростов-на-Дону</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/63/city-6238">Самара</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/91/city-6816">Симферополь</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/26/city-6334">Ставрополь</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/70/city-6429">Томск</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/72/city-6468">Тюмень</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/2/city-6532">Уфа</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/27/city-6542">Хабаровск</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/86/city-6545">Ханты-Мансийск</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/74/city-6590">Челябинск</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/8/city-6675">Элиста</a>
+                    </li>
+                    <li class="region-choice-lightbox__region">
+                        <a href="/contacts/76/city-6715">Ярославль</a>
+                    </li>
+        </ul>
+            <div class="region-choice-lightbox__all-items">
+                <a href="/contacts/all">Все города</a>
+            </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var lightbox = document.getElementById('main-contacts-lightbox');
+        var links = lightbox.querySelectorAll('a');
+
+        [].forEach.call(links, function(link) {
+            link.addEventListener('click', function () {
+                window.location = link.href;
+                window.location.reload()
+            })
+        })
+    })
+</script>
+
+<div hidden>
+    <div id="seo-products" class="region-choice-lightbox" data-event-name="footer-products">
+        <span class="region-choice-lightbox__title">Продукты</span>
+        <ul class="region-choice-lightbox__region-list">
+                <li class="region-choice-lightbox__region">
+                        <a href="https://kontur.ru/extern">Экстерн</a>   
+                </li>
+                <li class="region-choice-lightbox__region">
+                        <a href="https://www.diadoc.ru">Диадок</a>   
+                </li>
+                <li class="region-choice-lightbox__region">
+                        <a href="https://kontur.ru/elba">Эльба</a>   
+                </li>
+                <li class="region-choice-lightbox__region">
+                        <a href="https://kontur.ru/talk">Толк</a>   
+                </li>
+                <li class="region-choice-lightbox__region">
+                        <a href="https://kontur.ru/market">Маркет</a>   
+                </li>
+                <li class="region-choice-lightbox__region">
+                        <a href="https://focus.kontur.ru/site">Фокус</a>   
+                </li>
+                <li class="region-choice-lightbox__region">
+                        <a href="https://kontur.ru/ca">Удостоверяющий центр</a>   
+                </li>
+                <li class="region-choice-lightbox__region">
+                        <a href="https://zakupki.kontur.ru/site">Закупки</a>   
+                </li>
+                <li class="region-choice-lightbox__region">
+                        <a href="https://kontur.ru/ofd">ОФД</a>   
+                </li>
+        </ul>
+        <div class="region-choice-lightbox__all-items">
+            <a href="/products">Все продукты</a>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" data-showcase-widget="true" data-container-encoded="false">{"placementId":"ws_konturru_default","showcaseFormats":["Popup"],"count":1}</script>        <p data-policy-notification-content hidden>
+            Используя сайт, вы соглашаетесь на&nbsp;обработку данных в&nbsp;Cookies для&nbsp;корректной работы сайта. <a href="https://kontur.ru/about/policy/cookies" target="_blank" rel="nofollow">Подробнее</a>.
+        </p>
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/policy-notification.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/policy-notification.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/policy-notification.css">
+            </noscript>
+<script type="text/javascript" src="https://kontur.ru/front/ver-678020712/build/js/modules/policy-notification.js"></script>         </div>
+            </div>
+        </div>
+
+
+        <script type="application/json" id="support-settings" data-container-encoded="false">{"integrationId":"kontur.ru","defaultIntegrationId":"kontur.ru","segment":"career","button":{"icon":"Chat","size":"Big","forceInitButton":false,"forceHideButton":false},"pallet":{"primary":{"background":"#222222","text":"#ffffff"}},"marketingParams":{"userId":null,"productId":null}}</script>
+            <link rel="preload" href="https://kontur.ru/front/ver-678020712/build/css/_common/support-center.css" as="style">
+            <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/support-center.css" media="print" onload="this.media='all'">
+            <noscript>
+                <link rel="stylesheet" href="https://kontur.ru/front/ver-678020712/build/css/_common/support-center.css">
+            </noscript>
+<script type="text/javascript" src="https://kontur.ru/front/ver-678020712/build/js/modules/support-center.js"></script>
+<script defer  src="https://s.kontur.ru/web-sites/libs/sentry/7.x/sentry.js?beta-1" crossorigin="anonymous"  ></script> <script src="/script/partial/SentryInit?oC=Vacancy&oA=Index" defer></script>
+
+
+
+        <div id="utm-inserter-config"
+             data-utm-inserter-parameters="{&quot;urlWhitelist&quot;:[&quot;https://auth.kontur.ru&quot;,&quot;.kontur.ru&quot;,&quot;.diadoc.ru&quot;,&quot;.kontur-extern.ru&quot;,&quot;.b-kontur.ru&quot;,&quot;.buhonline.ru&quot;,&quot;.e-kontur.ru&quot;,&quot;.elba.ru&quot;,&quot;.kontur-inc.com&quot;,&quot;.kontur-ep.ru&quot;,&quot;.kontur-lp.ru&quot;,&quot;.kontur-event.ru&quot;,&quot;.product-start.ru&quot;,&quot;.hr-polls.ru&quot;,&quot;.ktalk.ru&quot;,&quot;voronkanaima.ru&quot;,&quot;survey.alchemer.eu&quot;],&quot;QUERY_NAME&quot;:&quot;p&quot;,&quot;filterSelector&quot;:null,&quot;urlBlacklist&quot;:[&quot;online-sales.kontur.ru&quot;],&quot;forceIncludeCurrentHostInBlacklist&quot;:true,&quot;debug&quot;:false}"
+             data-utm-inserter-product-name="">
+        </div>
+
+
+
+
+
+
+</body>
+</html>
+
+

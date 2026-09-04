@@ -39,7 +39,7 @@ function addMinutes(date: Date, minutes: number): Date {
 }
 
 function durationMinutes(kind: string | null | undefined): number {
-  return kind === "offer_deadline" ? 30 : 60;
+  return kind === "offer_deadline" || kind === "assignment" ? 30 : 60;
 }
 
 function endOf(input: CalendarEventInput, start: Date): Date {
@@ -84,7 +84,7 @@ export function eventTitle(input: CalendarEventInput): string {
 }
 
 export function eventDetails(input: CalendarEventInput): string {
-  const lines = ["Hunt — следующий шаг"];
+  const lines = ["HuntOS — следующий шаг"];
   if (input.source_url) lines.push(input.source_url);
   const tg = vacancyTelegramUrl(input);
   if (tg) lines.push(tg);
@@ -119,7 +119,7 @@ export function vacancyIcs(input: CalendarEventInput): string | null {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Hunt//Job CRM//RU",
+    "PRODID:-//HuntOS//Job CRM//RU",
     "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
     `UID:hunt-event-${input.id}@hunt.local`,
@@ -152,11 +152,11 @@ export function downloadPingIcs(input: { id: number; title: string; ping_at: str
   if (!start) return false;
   const end = addMinutes(start, 45);
   const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-  const details = input.details || "Hunt — один слот пинга на пачку.";
+  const details = input.details || "HuntOS — один слот пинга на пачку.";
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Hunt//Job CRM//RU",
+    "PRODID:-//HuntOS//Job CRM//RU",
     "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
     `UID:hunt-ping-${input.id}@hunt.local`,

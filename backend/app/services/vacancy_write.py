@@ -12,6 +12,7 @@ from app.services.custom_fields import MAX_CARD_FIELDS, normalize_defs, normaliz
 from app.services.scraper.salary import parse_salary
 from app.services.telegram import normalize_telegram_alias
 from app.services.wip import enter_stage, touch
+from app.services.vacancy_events import promote_for_step
 
 
 def normalize_email(raw: str | None) -> str | None:
@@ -103,6 +104,7 @@ def apply_vacancy_write(vacancy: Vacancy, payload: VacancyWrite) -> None:
         else:
             vacancy.next_step_at = step_at
             vacancy.next_step_kind = step_kind or NextStepKind.INTERVIEW
+            promote_for_step(vacancy, vacancy.next_step_kind)
     if "pipeline_stage" in data:
         enter_stage(vacancy, data.pop("pipeline_stage"))
     for key, value in data.items():

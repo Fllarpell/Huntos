@@ -13,7 +13,7 @@ export type ScoringStatus = "pending" | "scored" | "error" | "skipped";
 export type VacancyEventItem = {
   id: number;
   vacancy_id: number;
-  kind: "screening" | "interview" | "offer_deadline";
+  kind: "screening" | "interview" | "assignment" | "offer_deadline";
   starts_at: string;
   ends_at?: string | null;
   label: string | null;
@@ -71,14 +71,16 @@ export type Vacancy = {
   contact_phone?: string | null;
   telegram_url: string | null;
   telegram_message: string | null;
-  extra_sources: { source?: string; source_id?: string; source_url?: string }[];
+  extra_sources: { source?: string; source_id?: string; source_url?: string; label?: string }[];
+  searches?: { id: number; name: string; source: string }[];
+  stack_ids?: string[];
   last_touch_at: string | null;
   outreach_at: string | null;
   pinged_at?: string | null;
   hh_pulse?: "invited" | "discarded" | null;
   hh_pulse_at?: string | null;
   next_step_at?: string | null;
-  next_step_kind?: "screening" | "interview" | "offer_deadline" | null;
+  next_step_kind?: "screening" | "interview" | "assignment" | "offer_deadline" | null;
   google_event_id?: string | null;
   google_sync_error?: string | null;
   calendar_connected?: boolean;
@@ -187,6 +189,7 @@ export type ScraperConfig = {
   max_pages: number;
   last_run?: ScraperRun | null;
   next_run_at?: string | null;
+  from_pool?: boolean;
 };
 
 export type ScraperRun = {
@@ -199,6 +202,30 @@ export type ScraperRun = {
   new_count: number;
   updated_count: number;
   error: string | null;
+};
+
+export type CareerBoard = {
+  slug: string;
+  name: string;
+  listing_url: string;
+  hint: string;
+  logo_url?: string;
+};
+
+export type DonorCrawl = {
+  query_key: string;
+  source: string;
+  name: string;
+  listing_url: string | null;
+  query_params: Record<string, unknown>;
+  last_fetched_at: string | null;
+  last_status: string;
+  last_error: string | null;
+  found_count: number;
+  queue_status: string | null;
+  subscriber_count: number;
+  subscribers: string[];
+  host_subscribed: boolean;
 };
 
 export type Profile = {
@@ -228,7 +255,7 @@ export type CollisionItem = {
   label?: string | null;
   next_step_at: string;
   ends_at?: string | null;
-  next_step_kind: "screening" | "interview" | "offer_deadline" | null;
+  next_step_kind: "screening" | "interview" | "assignment" | "offer_deadline" | null;
   match_score: number | null;
   pipeline_stage: PipelineStage;
 };
@@ -271,6 +298,7 @@ export type Thesis = {
   formats: string[];
   salary_min: number | null;
   no_nda: boolean;
+  exclude_companies: string[];
   days: number;
   min_sample: number;
   min_median_match: number;
@@ -290,6 +318,7 @@ export type Thesis = {
     verdict: string;
     reason: string;
     sample: number;
+    inbox: number;
     median_match: number | null;
     nda_share: number;
     fresh_24h: number;
@@ -297,7 +326,99 @@ export type Thesis = {
     replies: number;
     age_days: number;
     window_days: number;
+    salary_corridor?: SalaryCorridorStats | null;
   } | null;
+};
+
+export type SalaryCorridorStats = {
+  n: number;
+  n_vacancies?: number;
+  n_aggregators?: number;
+  p25: number | null;
+  median: number | null;
+  p75: number | null;
+  currency?: string;
+  open_share?: number | null;
+  by_source?: Record<string, number>;
+  by_grade?: Array<{
+    key?: string;
+    label?: string;
+    n: number;
+    p25: number | null;
+    median: number | null;
+    p75: number | null;
+    by_source?: Record<string, number>;
+  }>;
+  by_specialty?: Array<{
+    key?: string;
+    label?: string;
+    n: number;
+    p25: number | null;
+    median: number | null;
+    p75: number | null;
+    by_source?: Record<string, number>;
+  }>;
+};
+
+export type LevelsBenchmark = {
+  key: string;
+  label: string;
+  url: string;
+  md_url?: string;
+  source: string;
+  attribution: string;
+  note?: string;
+  annual: { p25: number | null; median: number | null; p75: number | null };
+  monthly: {
+    p25: number | null;
+    median: number | null;
+    p75: number | null;
+    period?: string;
+    derived_from?: string;
+  };
+};
+
+export type DonorSalaryRow = {
+  key: string;
+  grade?: string | null;
+  specialty?: string | null;
+  label?: string;
+  n?: number | null;
+  p25?: number | null;
+  median?: number | null;
+  p75?: number | null;
+  p90?: number | null;
+  currency?: string;
+  period?: string;
+  source?: string;
+  url?: string;
+  attribution?: string;
+  note?: string;
+  mix?: boolean;
+};
+
+export type SalaryMarket = {
+  market?: SalaryCorridorStats;
+  sample: SalaryCorridorStats;
+  platforms: SalaryCorridorStats;
+  open_boards: SalaryCorridorStats;
+  filters?: {
+    grade?: string | null;
+    specialty?: string | null;
+    grades?: Array<{ key?: string; label?: string; n: number; p25?: number | null; median?: number | null; p75?: number | null }>;
+    specialties?: Array<{ key?: string; label?: string; n: number; p25?: number | null; median?: number | null; p75?: number | null }>;
+  };
+  aggregators?: DonorSalaryRow[];
+  levels_fyi: LevelsBenchmark[];
+  levels_meta?: { cached?: boolean; errors?: number };
+  habr_career?: DonorSalaryRow[];
+  habr_meta?: { cached?: boolean; errors?: number };
+  getmatch?: DonorSalaryRow[];
+  getmatch_meta?: { cached?: boolean; errors?: number };
+  hh_career?: DonorSalaryRow[];
+  hh_meta?: { cached?: boolean; errors?: number };
+  method?: Record<string, string>;
+  updated_at?: string;
 };
 
 export type HuntDesk = {
@@ -344,7 +465,7 @@ export type NudgeOut = {
 export const KANBAN: { stage: PipelineStage; label: string }[] = [
   { stage: "to_apply", label: "Откликнуться" },
   { stage: "waiting", label: "Жду ответа" },
-  { stage: "screening", label: "Тестовое" },
+  { stage: "screening", label: "Скрининг" },
   { stage: "interview", label: "Тех. собес" },
   { stage: "offer", label: "Оффер" },
   { stage: "rejected", label: "Отказ" },
@@ -354,7 +475,7 @@ export const STAGE_LABEL: Record<PipelineStage, string> = {
   inbox: "Inbox",
   to_apply: "Откликнуться",
   waiting: "Жду ответа",
-  screening: "Тестовое",
+  screening: "Скрининг",
   interview: "Тех. собес",
   offer: "Оффер",
   rejected: "Отказ",
@@ -372,3 +493,67 @@ export function adjacentStage(stage: PipelineStage, dir: -1 | 1): PipelineStage 
   if (n >= KANBAN.length) return null;
   return KANBAN[n].stage;
 }
+
+export type InternshipCatalogStatus = "open" | "waiting" | "closed" | "monitor";
+
+export type InternshipTrackStatus = "watch" | "applied" | "screening" | "offer" | "rejected" | "skip";
+
+export type InternshipKind = "internship" | "school";
+
+export type InternshipTrack = {
+  status: InternshipTrackStatus | null;
+  notes: string | null;
+  applied_at: string | null;
+  updated_at: string | null;
+};
+
+export type InternshipRow = {
+  slug: string;
+  name: string;
+  company: string;
+  url: string;
+  kind: InternshipKind;
+  catalog_status: InternshipCatalogStatus;
+  live_status: InternshipCatalogStatus | null;
+  checked_at: string | null;
+  check_error: string | null;
+  signal: string | null;
+  hint: string;
+  logo_url?: string | null;
+  track: InternshipTrack;
+};
+
+export type HackathonRegistrationStatus = "open" | "closed" | "unknown";
+export type HackathonEventStatus = "upcoming" | "active" | "finished" | "unknown";
+export type HackathonTrackStatus = "watch" | "applied" | "participating" | "won" | "rejected" | "skip";
+
+export type HackathonTrack = {
+  status: HackathonTrackStatus | null;
+  notes: string | null;
+  applied_at: string | null;
+  updated_at: string | null;
+};
+
+export type HackathonRow = {
+  id: number;
+  source: string;
+  source_label: string;
+  source_id: string;
+  title: string;
+  url: string;
+  description: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  registration_status: HackathonRegistrationStatus;
+  event_status: HackathonEventStatus;
+  format: string | null;
+  location: string | null;
+  tags: string | null;
+  prize_text?: string | null;
+  organizer?: string | null;
+  image_url?: string | null;
+  is_new: boolean;
+  first_seen_at: string | null;
+  last_seen_at: string | null;
+  track: HackathonTrack;
+};

@@ -1,18 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Plus } from "lucide-react";
 import { api } from "@/lib/api";
 import { useHunt } from "@/components/hunt-context";
-import type { CollisionItem, Vacancy } from "@/lib/types";
-import { MatchBadge } from "./match-badge";
+import type { CollisionItem, ScraperConfig, Vacancy } from "@/lib/types";
+import { GuideHint, GuideSpot } from "./guide";
 import { VacancyDrawer } from "./vacancy-drawer";
 import { CompanyMark } from "./company-mark";
 import { SearchField } from "./search-field";
-import { ChoiceChips, FilterChips } from "./filter-chips";
+import { ChoiceChips, FilterChips, OverflowFilterChips } from "./filter-chips";
+import { CompanyExcludeInput } from "./company-exclude-input";
 import { moneyLabel } from "@/lib/format";
+import { SalaryCorridorBlock } from "./salary-corridor";
 import { RelativeTime } from "./relative-time";
 import { FORMATS, LEVELS } from "@/lib/hirehi-filters";
+import { SEARCH_STACK } from "@/lib/hunt-search";
+import { extraSourcesLine, sourceLabel } from "@/components/source-badge";
 import { NextStepBadge } from "./next-step-badge";
 import { CollisionBanner } from "./collision-banner";
 import { CustomFieldChips } from "./custom-field-chips";
@@ -22,35 +26,67 @@ const SORTS = [
   { value: "best", label: "условия" },
   { value: "recent", label: "новизна" },
   { value: "grade", label: "грейд" },
-  { value: "match", label: "совпадение" },
 ];
 
 const NDA = [
-  { value: "any", label: "все компании" },
+  { value: "any", label: "все" },
   { value: "named", label: "не NDA" },
   { value: "nda", label: "NDA" },
 ];
 
 const SALARY = [
-  { value: "any", label: "любая зп" },
-  { value: "known", label: "зп указана" },
-  { value: "hidden", label: "зп скрыта" },
+  { value: "any", label: "любая" },
+  { value: "known", label: "указана" },
+  { value: "hidden", label: "скрыта" },
 ];
 
 const SOURCES = [
   { value: "hirehi", label: "HireHi" },
   { value: "hh", label: "hh.ru" },
+  { value: "habr", label: "Habr Career" },
+  { value: "getmatch", label: "GetMatch" },
+  { value: "geekjob", label: "GeekJob" },
+  { value: "career", label: "Компании" },
   { value: "telegram", label: "Telegram" },
   { value: "clip", label: "клиппер" },
   { value: "manual", label: "вручную" },
 ];
 
 const SORT_HINT: Record<string, string> = {
-  best: "сверху свежие за сутки, затем зарплата и совпадение с резюме",
+  best: "сверху свежие за сутки, затем зарплата",
   recent: "сверху самые новые",
   grade: "сверху выше грейд",
-  match: "сверху лучше совпадение с резюме",
 };
+
+const NOISE_BITS = new Set(["весь it", "весь it по россии", "все специальности", "все форматы"]);
+
+function inboxSearchLabel(name: string, source?: string) {
+  const bits = name
+    .split(" · ")
+    .map((bit) => bit.trim())
+    .filter((bit) => bit && !NOISE_BITS.has(bit.toLowerCase()));
+  return bits.join(" · ") || sourceLabel(source) || name;
+}
+
+function FilterRow({
+  id,
+  label,
+  children,
+}: {
+  id: string;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <GuideSpot id={id} className="grid grid-cols-[3.75rem_minmax(0,1fr)] items-start gap-x-3 gap-y-1">
+      <span className="inline-flex items-center gap-0.5 pt-0.5 text-[10px] tracking-[0.12em] text-muted uppercase">
+        {label}
+        <GuideHint id={id} />
+      </span>
+      <div className="min-w-0">{children}</div>
+    </GuideSpot>
+  );
+}
 
 export function InboxBoard() {
   const { activeHuntId } = useHunt();
@@ -66,6 +102,10 @@ export function InboxBoard() {
   const [nda, setNda] = useState("any");
   const [salary, setSalary] = useState("any");
   const [sources, setSources] = useState<string[]>([]);
+  const [stacks, setStacks] = useState<string[]>([]);
+  const [searchIds, setSearchIds] = useState<string[]>([]);
+  const [configs, setConfigs] = useState<ScraperConfig[]>([]);
+  const [excludeCompanies, setExcludeCompanies] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [upcoming, setUpcoming] = useState<CollisionItem[]>([]);
@@ -75,6 +115,15 @@ export function InboxBoard() {
     const id = Number(new URLSearchParams(window.location.search).get("open"));
     if (Number.isFinite(id) && id > 0) setOpenId(id);
   }, []);
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setFiltersOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [filtersOpen]);
 
   const load = useCallback(async (opts?: { quiet?: boolean }) => {
     try {
@@ -87,6 +136,9 @@ export function InboxBoard() {
         nda,
         salary,
         source: sources,
+        stack: stacks,
+        search_id: searchIds.map(Number).filter((id) => id > 0),
+        exclude_company: excludeCompanies,
         hunt_id: activeHuntId,
         limit: 200,
       });
@@ -103,7 +155,11 @@ export function InboxBoard() {
     } finally {
       setLoading(false);
     }
-  }, [q, sort, grades, formats, nda, salary, sources, activeHuntId]);
+  }, [q, sort, grades, formats, nda, salary, sources, stacks, searchIds, excludeCompanies, activeHuntId]);
+
+  useEffect(() => {
+    void api.configs().then(setConfigs).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(load, q ? 250 : 0);
@@ -194,87 +250,260 @@ export function InboxBoard() {
     grades.length +
     formats.length +
     sources.length +
+    stacks.length +
+    searchIds.length +
     (nda !== "any" ? 1 : 0) +
-    (salary !== "any" ? 1 : 0);
+    (salary !== "any" ? 1 : 0) +
+    excludeCompanies.length;
   const filtersIdle = !q && !filterCount && nda === "any" && salary === "any";
+  const searchOptions = useMemo(() => {
+    const aggregators = configs.filter((item) => item.source !== "career");
+    const career = configs.filter((item) => item.source === "career");
+    return [...aggregators, ...career].map((item) => ({
+      value: String(item.id),
+      label: inboxSearchLabel(item.name, item.source),
+    }));
+  }, [configs]);
+  const activeChips = useMemo(() => {
+    const chips: { key: string; label: string; clear: () => void }[] = [];
+    for (const option of LEVELS) {
+      if (grades.includes(option.value)) {
+        chips.push({
+          key: `grade:${option.value}`,
+          label: option.label,
+          clear: () => setGrades((prev) => prev.filter((item) => item !== option.value)),
+        });
+      }
+    }
+    for (const option of FORMATS) {
+      if (formats.includes(option.value)) {
+        chips.push({
+          key: `format:${option.value}`,
+          label: option.label,
+          clear: () => setFormats((prev) => prev.filter((item) => item !== option.value)),
+        });
+      }
+    }
+    if (nda !== "any") {
+      const option = NDA.find((item) => item.value === nda);
+      chips.push({ key: "nda", label: option?.label || nda, clear: () => setNda("any") });
+    }
+    if (salary !== "any") {
+      const option = SALARY.find((item) => item.value === salary);
+      chips.push({ key: "salary", label: `зп ${option?.label || salary}`, clear: () => setSalary("any") });
+    }
+    for (const option of SOURCES) {
+      if (sources.includes(option.value)) {
+        chips.push({
+          key: `source:${option.value}`,
+          label: option.label,
+          clear: () => setSources((prev) => prev.filter((item) => item !== option.value)),
+        });
+      }
+    }
+    for (const option of searchOptions) {
+      if (searchIds.includes(option.value)) {
+        chips.push({
+          key: `search:${option.value}`,
+          label: option.label,
+          clear: () => setSearchIds((prev) => prev.filter((item) => item !== option.value)),
+        });
+      }
+    }
+    for (const option of SEARCH_STACK) {
+      if (stacks.includes(option.value)) {
+        chips.push({
+          key: `stack:${option.value}`,
+          label: option.label,
+          clear: () => setStacks((prev) => prev.filter((item) => item !== option.value)),
+        });
+      }
+    }
+    for (const name of excludeCompanies) {
+      chips.push({
+        key: `ex:${name}`,
+        label: `кроме ${name}`,
+        clear: () => setExcludeCompanies((prev) => prev.filter((item) => item !== name)),
+      });
+    }
+    return chips;
+  }, [grades, formats, nda, salary, sources, searchIds, searchOptions, stacks, excludeCompanies]);
+
+  function clearFilters() {
+    setGrades([]);
+    setFormats([]);
+    setNda("any");
+    setSalary("any");
+    setSources([]);
+    setStacks([]);
+    setSearchIds([]);
+    setExcludeCompanies([]);
+  }
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden">
-      <header className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-3 px-7 pt-6 pb-4">
-        <div className="min-w-0">
-          <h1 className="text-[22px] font-semibold tracking-tight">Inbox</h1>
-          <p className="mt-0.5 text-[12px] text-muted">
-            {loading ? "…" : `${total}`}
-            {q ? " по запросу" : ""}
-          </p>
+      <header className="shrink-0 px-6 pt-4 pb-2">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <GuideSpot id="inbox.header" className="min-w-0 shrink-0">
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-[20px] font-semibold tracking-tight">Inbox</h1>
+              <GuideHint id="inbox.header" />
+              <p className="text-[12px] text-muted">{loading ? "…" : total}{q ? " по запросу" : ""}</p>
+            </div>
+          </GuideSpot>
+          <GuideSpot id="inbox.sort">
+            <div className="flex items-center gap-4 text-[13px]">
+              {SORTS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSort(option.value)}
+                  className={`border-b pb-0.5 ${
+                    sort === option.value ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
+                  }`}
+                  title={SORT_HINT[option.value]}
+                >
+                  {option.label}
+                </button>
+              ))}
+              <GuideHint id="inbox.sort" />
+            </div>
+          </GuideSpot>
+          <GuideSpot id="inbox.filters">
+            <span className="inline-flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setFiltersOpen((open) => !open)}
+                className={`text-[13px] ${filterCount || filtersOpen ? "text-accent" : "text-muted hover:text-white"}`}
+              >
+                {filtersOpen ? "закрыть" : "фильтры"}
+                {filterCount ? ` · ${filterCount}` : ""}
+              </button>
+              <GuideHint id="inbox.filters" />
+            </span>
+          </GuideSpot>
+          <GuideSpot id="inbox.search" className="ml-auto flex min-w-[180px] max-w-xs flex-1 items-center gap-1">
+            <SearchField
+              className="min-w-0 flex-1 !py-1"
+              value={q}
+              onChange={setQ}
+              placeholder="go, frontend, компания"
+            />
+            <GuideHint id="inbox.search" />
+          </GuideSpot>
+          <GuideSpot id="inbox.add">
+            <span className="inline-flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => void addManual()}
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] text-accent hover:bg-accent/10"
+              >
+                <Plus size={14} />
+                вакансия
+              </button>
+              <GuideHint id="inbox.add" />
+            </span>
+          </GuideSpot>
         </div>
-        <div className="flex items-center gap-5 text-[13px]">
-          {SORTS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setSort(option.value)}
-              className={`border-b pb-0.5 ${
-                sort === option.value ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-              }`}
-              title={SORT_HINT[option.value]}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => setFiltersOpen((open) => !open)}
-          className={`text-[13px] ${filterCount || filtersOpen ? "text-accent" : "text-muted hover:text-white"}`}
-        >
-          фильтры{filterCount ? ` · ${filterCount}` : ""}
-        </button>
-        <div className="ml-auto min-w-[200px] max-w-xs flex-1">
-          <SearchField
-            value={q}
-            onChange={setQ}
-            placeholder="роль, компания, @hr"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => void addManual()}
-          className="inline-flex items-center gap-1.5 text-[13px] text-accent hover:bg-accent/10 rounded-full px-3 py-1.5"
-        >
-          <Plus size={14} />
-          вакансия
-        </button>
+        {!loading ? (
+          <GuideSpot id="inbox.corridor" className="mt-2 max-w-xl">
+            <SalaryCorridorBlock huntId={activeHuntId} compact />
+          </GuideSpot>
+        ) : null}
       </header>
 
-      {filtersOpen && (
-        <section className="shrink-0 space-y-2 border-t border-line px-7 py-4">
-          <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-            <span className="w-16 shrink-0 text-[11px] tracking-[0.14em] text-muted uppercase">Грейд</span>
-            <FilterChips options={LEVELS} value={grades} onChange={setGrades} />
-          </div>
-          <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-            <span className="w-16 shrink-0 text-[11px] tracking-[0.14em] text-muted uppercase">Формат</span>
-            <FilterChips options={FORMATS} value={formats} onChange={setFormats} />
-          </div>
-          <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-            <span className="w-16 shrink-0 text-[11px] tracking-[0.14em] text-muted uppercase">Ещё</span>
-            <ChoiceChips options={NDA} value={nda} onChange={setNda} />
-            <ChoiceChips options={SALARY} value={salary} onChange={setSalary} />
-            <FilterChips options={SOURCES} value={sources} onChange={setSources} />
-          </div>
-        </section>
+      {!filtersOpen && activeChips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 px-6 pb-2">
+          {activeChips.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              onClick={chip.clear}
+              className="rounded-full border border-accent/40 bg-accent/12 px-2.5 py-0.5 text-[12px] text-accent hover:bg-accent/20"
+            >
+              {chip.label}
+              <span className="ml-1 text-accent/70">×</span>
+            </button>
+          ))}
+          <button type="button" onClick={clearFilters} className="px-1 text-[12px] text-muted hover:text-white">
+            сбросить
+          </button>
+        </div>
       )}
 
       <CollisionBanner items={upcoming} onOpen={setOpenId} />
 
       {error && (
-        <p className="mx-7 mb-3 rounded-xl border border-rose-400/20 bg-rose-400/8 px-4 py-2.5 text-sm text-rose-100">
+        <p className="mx-6 mb-2 rounded-xl border border-rose-400/20 bg-rose-400/8 px-4 py-2 text-sm text-rose-100">
           {error}
         </p>
       )}
 
-      <div className="min-h-0 flex-1 overflow-y-auto border-t border-line pb-28">
+      <div className="relative min-h-0 flex-1">
+        {filtersOpen && (
+          <button
+            type="button"
+            aria-label="закрыть фильтры"
+            onClick={() => setFiltersOpen(false)}
+            className="absolute inset-0 z-10 bg-black/25"
+          />
+        )}
+        {filtersOpen && (
+          <section className="absolute inset-x-0 top-0 z-20 max-h-[min(42vh,320px)] space-y-2 overflow-y-auto border-b border-line bg-[#12141b] px-6 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
+            {filterCount > 0 ? (
+              <div className="flex justify-end">
+                <button type="button" onClick={clearFilters} className="text-[12px] text-muted hover:text-white">
+                  сбросить все
+                </button>
+              </div>
+            ) : null}
+            <FilterRow id="inbox.grade" label="Грейд">
+              <FilterChips options={LEVELS} value={grades} onChange={setGrades} variant="chip" />
+            </FilterRow>
+            <FilterRow id="inbox.format" label="Формат">
+              <FilterChips options={FORMATS} value={formats} onChange={setFormats} variant="chip" />
+            </FilterRow>
+            <GuideSpot id="inbox.more" className="space-y-2">
+              <div className="grid grid-cols-[3.75rem_minmax(0,1fr)] items-start gap-x-3">
+                <span className="inline-flex items-center gap-0.5 pt-0.5 text-[10px] tracking-[0.12em] text-muted uppercase">
+                  Компании
+                  <GuideHint id="inbox.more" />
+                </span>
+                <ChoiceChips options={NDA} value={nda} onChange={setNda} variant="chip" />
+              </div>
+              <div className="grid grid-cols-[3.75rem_minmax(0,1fr)] items-start gap-x-3">
+                <span className="pt-0.5 text-[10px] tracking-[0.12em] text-muted uppercase">Зарплата</span>
+                <ChoiceChips options={SALARY} value={salary} onChange={setSalary} variant="chip" />
+              </div>
+              <div className="grid grid-cols-[3.75rem_minmax(0,1fr)] items-start gap-x-3">
+                <span className="pt-0.5 text-[10px] tracking-[0.12em] text-muted uppercase">Откуда</span>
+                <FilterChips options={SOURCES} value={sources} onChange={setSources} variant="chip" />
+              </div>
+            </GuideSpot>
+            {searchOptions.length > 0 && (
+              <FilterRow id="inbox.searches" label="Поиск">
+                <OverflowFilterChips
+                  options={searchOptions}
+                  value={searchIds}
+                  onChange={setSearchIds}
+                  preview={6}
+                  searchPlaceholder="авиасейлс, hh…"
+                />
+              </FilterRow>
+            )}
+            <FilterRow id="inbox.stack" label="Стек">
+              <OverflowFilterChips options={SEARCH_STACK} value={stacks} onChange={setStacks} preview={8} />
+            </FilterRow>
+            <FilterRow id="inbox.except" label="Кроме">
+              <div className="max-w-md rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">
+                <CompanyExcludeInput value={excludeCompanies} onChange={setExcludeCompanies} />
+              </div>
+            </FilterRow>
+          </section>
+        )}
+
+      <div className="h-full overflow-y-auto border-t border-line pb-28">
+        <GuideSpot id="inbox.list" className="min-h-full">
         {loading ? (
           <p className="px-7 py-10 text-[13px] text-muted">Загрузка…</p>
         ) : items.length === 0 ? (
@@ -303,12 +532,12 @@ export function InboxBoard() {
               <span className="w-[200px]">Компания</span>
               <span className="flex-1">Роль</span>
               <span className="w-[132px] text-right">Условия</span>
-              <span className="w-10 text-center">Fit</span>
             </div>
             {items.map((v) => {
               const money = moneyLabel(v);
               const focused = v.id === focusId;
               const isChecked = checked.has(v.id);
+              const extras = extraSourcesLine(v);
               const meta = [v.grade, v.work_format].filter(Boolean).join(" · ");
               return (
                 <article
@@ -348,7 +577,11 @@ export function InboxBoard() {
                     </div>
                     <p className="mt-0.5 truncate text-[12px] text-muted">
                       {meta || "без грейда"}
-                      {v.source ? ` · ${v.source === "manual" ? "вручную" : v.source}` : ""}
+                      {v.source ? ` · ${v.source === "manual" ? "вручную" : sourceLabel(v.source) || v.source}` : ""}
+                      {v.searches?.length
+                        ? ` · ${v.searches.map((item) => item.name).filter(Boolean).slice(0, 2).join(" · ")}`
+                        : ""}
+                      {extras ? ` · ${extras}` : ""}
                     </p>
                     <CustomFieldChips bits={v.custom_bits} className="mt-1" />
                   </div>
@@ -377,14 +610,13 @@ export function InboxBoard() {
                       </button>
                     </div>
                   </div>
-                  <div className="w-10 shrink-0 text-center">
-                    <MatchBadge score={v.match_score} status={v.scoring_status} size="sm" />
-                  </div>
                 </article>
               );
             })}
           </div>
         )}
+        </GuideSpot>
+      </div>
       </div>
 
       {checkedIds.length > 0 && (
@@ -410,6 +642,17 @@ export function InboxBoard() {
             void api.collisions().then((cal) => setUpcoming(cal.upcoming)).catch(() => undefined);
           }}
           onChanged={(fresh) => {
+            if (fresh.pipeline_stage !== "inbox") {
+              setItems((prev) => prev.filter((v) => v.id !== fresh.id));
+              setTotal((n) => Math.max(0, n - 1));
+              setChecked((prev) => {
+                if (!prev.has(fresh.id)) return prev;
+                const next = new Set(prev);
+                next.delete(fresh.id);
+                return next;
+              });
+              return;
+            }
             setItems((prev) => prev.map((v) => (v.id === fresh.id ? { ...v, ...fresh } : v)));
           }}
         />

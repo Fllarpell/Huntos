@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import re
 from html import unescape
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
@@ -11,11 +10,12 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.donor_cache import DonorListing
 from app.models.vacancy import PipelineStage, ScoringStatus, Vacancy
-from app.services.company_icon import hydrate_company_icon, logo_from_hiring_org, normalize_company_icon
-from app.services.scraper.engine import upsert_vacancy
+from app.services.company_icon import hydrate_company_icon, normalize_company_icon
+from app.services.scraper.engine import upsert_donor_listing, upsert_vacancy
+from app.services.scraper.jsonld import extract_job_posting
 from app.services.scraper.salary import parse_salary
-from app.services.scraper.sources.hirehi import strip_html
 
 TRACKING = {
     "utm_source",
@@ -31,6 +31,36 @@ TRACKING = {
 
 _HH = re.compile(r"(?:hh\.ru|rabota\.by|hh\.kz|hh1\.az)/vacancy/(\d+)", re.I)
 _HIREHI = re.compile(r"hirehi\.ru/[^/?#]+/.+-(\d+)/?(?:$|[?#])", re.I)
+_HABR = re.compile(r"career\.habr\.com/vacancies/(\d+)", re.I)
+_GETMATCH = re.compile(r"getmatch\.ru/vacancies/(\d+)", re.I)
+_GEEKJOB = re.compile(r"geekjob\.ru/vacancy/([0-9a-f]{24})", re.I)
+_AVIASALES = re.compile(r"aviasales\.ru/(?:about/)?vacancies/(\d+)", re.I)
+_VK = re.compile(r"team\.vk\.company/vacancy/(\d+)", re.I)
+_YANDEX = re.compile(r"yandex\.ru/jobs/(?:vacancies/([^/?#]+)|api/publications/(\d+))", re.I)
+_AVITO = re.compile(r"career\.avito\.(?:com|ru)/vacancies/([^/]+)/(\d+)", re.I)
+_KASPERSKY = re.compile(r"careers\.kaspersky\.ru/vacancy/(\d+)", re.I)
+_YADRO = re.compile(r"careers\.yadro\.com/vacancy/(\d+)", re.I)
+_MEGAFON = re.compile(r"job\.megafon\.ru/vacancy/([^/?#]+)", re.I)
+_SOLAR = re.compile(r"team\.rt-solar\.ru/vacancies/(\d+)", re.I)
+_SELECTEL = re.compile(r"selectel\.ru/careers/all/vacancy/(\d+)", re.I)
+_X5 = re.compile(
+    r"x5(?:-tech\.ru|\.tech)/vacancy/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+    re.I,
+)
+_ITONE = re.compile(r"it-one\.ru/vacancies/([0-9a-f]{16,})", re.I)
+_CLOUDRU = re.compile(r"cloud\.ru/career/vacancies/(\d+)", re.I)
+_CROC = re.compile(r"careers\.croc\.ru/vacancies/([a-z0-9-]+)", re.I)
+_JET = re.compile(r"jet\.su/career/vacancies/([a-z0-9-]+)", re.I)
+_MTS = re.compile(r"job\.mts\.ru/vacancy/(\d+)", re.I)
+_IBS = re.compile(r"ibs\.ru/career/jobs/([a-z0-9-]+)", re.I)
+_TGIS = re.compile(r"job\.2gis\.ru/vacancies/[a-z0-9_]+/(\d+)", re.I)
+_ALFA = re.compile(r"job\.alfabank\.ru/vacancies/(.+?)/?(?:$|[?#])", re.I)
+_KONTUR = re.compile(r"kontur\.ru/career/vacancies/(\d+)", re.I)
+_WB = re.compile(r"career\.(?:wb|rwb)\.ru/vacancy/(\d+)", re.I)
+_TBANK = re.compile(
+    r"(?:tbank|tinkoff)\.ru/career/it/vacancy/[^/]+/([^/]+)/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+    re.I,
+)
 _TITLE = re.compile(r"<title[^>]*>([^<]+)", re.I)
 _OG_TITLE = re.compile(
     r'<meta[^>]+(?:property|name)=["\']og:title["\'][^>]+content=["\']([^"\']+)',
@@ -40,32 +70,8 @@ _OG_TITLE_REV = re.compile(
     r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\']og:title["\']',
     re.I,
 )
-_JSONLD = re.compile(r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', re.I | re.S)
 
-TRACKING = {
-    "utm_source",
-    "utm_medium",
-    "utm_campaign",
-    "utm_term",
-    "utm_content",
-    "fbclid",
-    "gclid",
-    "ysclid",
-    "yclid",
-}
-
-_HH = re.compile(r"(?:hh\.ru|rabota\.by|hh\.kz|hh1\.az)/vacancy/(\d+)", re.I)
-_HIREHI = re.compile(r"hirehi\.ru/[^/?#]+/.+-(\d+)/?(?:$|[?#])", re.I)
-_TITLE = re.compile(r"<title[^>]*>([^<]+)", re.I)
-_OG_TITLE = re.compile(
-    r'<meta[^>]+(?:property|name)=["\']og:title["\'][^>]+content=["\']([^"\']+)',
-    re.I,
-)
-_OG_TITLE_REV = re.compile(
-    r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\']og:title["\']',
-    re.I,
-)
-_JSONLD = re.compile(r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', re.I | re.S)
+KNOWN_BOARDS = {"hh", "hirehi", "habr", "getmatch", "geekjob", "career"}
 
 
 def canonical_url(raw: str | None) -> str | None:
@@ -96,72 +102,92 @@ def detect_source(url: str | None) -> tuple[str, str]:
     hirehi = _HIREHI.search(text)
     if hirehi:
         return "hirehi", hirehi.group(1)
+    habr = _HABR.search(text)
+    if habr:
+        return "habr", habr.group(1)
+    getmatch = _GETMATCH.search(text)
+    if getmatch:
+        return "getmatch", getmatch.group(1)
+    geekjob = _GEEKJOB.search(text)
+    if geekjob:
+        return "geekjob", geekjob.group(1).lower()
+    aviasales = _AVIASALES.search(text)
+    if aviasales:
+        return "career", f"aviasales:{aviasales.group(1)}"
+    vk = _VK.search(text)
+    if vk:
+        return "career", f"vk:{vk.group(1)}"
+    yandex = _YANDEX.search(text)
+    if yandex:
+        local = yandex.group(2) or yandex.group(1)
+        return "career", f"yandex:{local}"
+    avito = _AVITO.search(text)
+    if avito:
+        return "career", f"avito:{avito.group(1)}/{avito.group(2)}"
+    kaspersky = _KASPERSKY.search(text)
+    if kaspersky:
+        return "career", f"kaspersky:{kaspersky.group(1)}"
+    yadro = _YADRO.search(text)
+    if yadro:
+        return "career", f"yadro:{yadro.group(1)}"
+    megafon = _MEGAFON.search(text)
+    if megafon:
+        return "career", f"megafon:1/{megafon.group(1)}"
+    solar = _SOLAR.search(text)
+    if solar:
+        return "career", f"solar:{solar.group(1)}"
+    selectel = _SELECTEL.search(text)
+    if selectel:
+        return "career", f"selectel:{selectel.group(1)}"
+    x5 = _X5.search(text)
+    if x5:
+        return "career", f"x5:{x5.group(1).lower()}"
+    itone = _ITONE.search(text)
+    if itone:
+        return "career", f"itone:{itone.group(1).lower()}"
+    cloudru = _CLOUDRU.search(text)
+    if cloudru:
+        return "career", f"cloudru:{cloudru.group(1)}"
+    croc = _CROC.search(text)
+    if croc and croc.group(1) not in {"", "vacancies"}:
+        return "career", f"croc:{croc.group(1).lower()}"
+    jet = _JET.search(text)
+    if jet and jet.group(1) not in {"", "vacancies"}:
+        return "career", f"jet:{jet.group(1).lower()}"
+    mts = _MTS.search(text)
+    if mts:
+        return "career", f"mts:{mts.group(1)}"
+    ibs = _IBS.search(text)
+    if ibs and ibs.group(1) not in {"filter", "jobs"}:
+        return "career", f"ibs:{ibs.group(1).lower()}"
+    tgis = _TGIS.search(text)
+    if tgis:
+        return "career", f"2gis:{tgis.group(1)}"
+    alfa = _ALFA.search(text)
+    if alfa:
+        slug = alfa.group(1).strip("/").lower()
+        tail = re.search(r"_(\d+)$", slug)
+        if tail:
+            return "career", f"alfa:{tail.group(1)}"
+        if slug.isdigit():
+            return "career", f"alfa:{slug}"
+    kontur = _KONTUR.search(text)
+    if kontur:
+        return "career", f"kontur:{kontur.group(1)}"
+    wb = _WB.search(text)
+    if wb:
+        return "career", f"wb:{wb.group(1)}"
+    tbank = _TBANK.search(text)
+    if tbank:
+        return "career", f"tbank:{tbank.group(1)}/{tbank.group(2).lower()}"
     if text:
         digest = hashlib.sha256(text.encode()).hexdigest()[:16]
         return "clip", digest
     return "clip", hashlib.sha256(b"empty").hexdigest()[:16]
 
 
-def _first_job_posting(node: object) -> dict | None:
-    if isinstance(node, list):
-        for item in node:
-            found = _first_job_posting(item)
-            if found:
-                return found
-        return None
-    if not isinstance(node, dict):
-        return None
-    types = node.get("@type")
-    labels = types if isinstance(types, list) else [types]
-    if any(str(label).lower() == "jobposting" for label in labels if label):
-        return node
-    graph = node.get("@graph")
-    if graph is not None:
-        return _first_job_posting(graph)
-    return None
-
-
 def extract_html(html: str, *, page_url: str | None = None) -> dict[str, str]:
-    out: dict[str, str] = {}
-    for script in _JSONLD.findall(html or ""):
-        try:
-            data = json.loads(unescape(script))
-        except json.JSONDecodeError:
-            continue
-        job = _first_job_posting(data)
-        if not job:
-            continue
-        title = str(job.get("title") or "").strip()
-        org = job.get("hiringOrganization")
-        company = ""
-        if isinstance(org, dict):
-            company = str(org.get("name") or "").strip()
-            logo = logo_from_hiring_org(org, page_url=page_url)
-            if logo:
-                out["company_icon"] = logo
-        elif isinstance(org, str):
-            company = org.strip()
-        description = strip_html(str(job.get("description") or ""))
-        salary = job.get("baseSalary")
-        salary_raw = ""
-        if isinstance(salary, dict):
-            value = salary.get("value")
-            if isinstance(value, dict):
-                lo = value.get("minValue") or value.get("value")
-                hi = value.get("maxValue") or lo
-                unit = value.get("unitText") or salary.get("currency") or ""
-                salary_raw = " ".join(str(part) for part in (lo, hi, unit) if part)
-            elif value is not None:
-                salary_raw = str(value)
-        if title:
-            out["title"] = title[:512]
-        if company:
-            out["company"] = company[:255]
-        if description:
-            out["description"] = description[:20000]
-        if salary_raw:
-            out["salary_raw"] = salary_raw[:128]
-        break
+    out = extract_job_posting(html, page_url=page_url)
     if "title" not in out:
         og = _OG_TITLE.search(html or "") or _OG_TITLE_REV.search(html or "")
         title_tag = _TITLE.search(html or "")
@@ -251,6 +277,7 @@ async def clip_vacancy(
     salary_raw: str | None,
 ) -> tuple[Vacancy, str]:
     page_url = canonical_url(url)
+    source, source_id = detect_source(page_url)
     incoming = {
         "title": (title or "").strip(),
         "company": (company or "").strip(),
@@ -258,6 +285,28 @@ async def clip_vacancy(
         "salary_raw": (salary_raw or "").strip(),
         "company_icon": "",
     }
+    cached = None
+    if source in KNOWN_BOARDS and source_id:
+        cached = (
+            await session.execute(
+                select(DonorListing).where(
+                    DonorListing.source == source, DonorListing.source_id == source_id
+                )
+            )
+        ).scalar_one_or_none()
+        if cached and cached.payload:
+            payload = dict(cached.payload)
+            for key in ("title", "company", "description"):
+                if incoming.get(key) and not payload.get(key):
+                    payload[key] = incoming[key]
+            vacancy, action = await upsert_vacancy(
+                session, payload, scraper_config_id=None, user_id=user_id
+            )
+            if action != "new":
+                _fill_vacancy(vacancy, incoming)
+                await hydrate_company_icon(session, vacancy)
+            return vacancy, action
+
     if page_url and (not incoming["title"] or not incoming["description"]):
         fetched = await fetch_page(page_url)
         for key, value in fetched.items():
@@ -267,7 +316,6 @@ async def clip_vacancy(
     if not incoming["title"] and not incoming["description"] and not page_url:
         raise ValueError("Нужен URL или текст вакансии")
 
-    source, source_id = detect_source(page_url)
     if source == "clip" and not page_url:
         source_id = uuid4().hex[:16]
 
@@ -303,6 +351,9 @@ async def clip_vacancy(
             return by_url, "merged"
 
     vacancy, action = await upsert_vacancy(session, payload, scraper_config_id=None, user_id=user_id)
+    if source in KNOWN_BOARDS and payload.get("source_id"):
+        await upsert_donor_listing(session, payload)
+        await session.commit()
     if action != "new":
         _fill_vacancy(vacancy, incoming)
         await hydrate_company_icon(session, vacancy)

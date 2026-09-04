@@ -12,7 +12,7 @@ export type GridBlock = {
   range: string;
   title: string;
   sub: string;
-  kind: "screening" | "interview" | "offer_deadline" | "ping";
+  kind: "screening" | "interview" | "assignment" | "offer_deadline" | "ping";
   collision: boolean;
   vacancyId: number | null;
   eventId: number | null;
@@ -22,7 +22,7 @@ function blockClass(block: GridBlock) {
   if (block.kind === "ping" || block.collision) {
     return "border-amber-400/30 bg-amber-400/18 text-amber-50";
   }
-  if (block.kind === "offer_deadline") {
+  if (block.kind === "offer_deadline" || block.kind === "assignment") {
     return "border-accent/35 bg-accent/18 text-accent";
   }
   return "border-sky-400/25 bg-sky-400/16 text-ink";

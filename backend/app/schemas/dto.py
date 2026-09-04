@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, model_validator
 
 from app.models.vacancy import HhPulse, NextStepKind, PipelineStage, ScoringStatus
 from app.services.telegram import telegram_chat_url
@@ -31,6 +31,12 @@ class VacancyEventPatch(BaseModel):
     starts_at: datetime | None = None
     ends_at: datetime | None = None
     label: str | None = None
+
+
+class VacancySearchRef(BaseModel):
+    id: int
+    name: str
+    source: str
 
 
 class CompanyContactHint(BaseModel):
@@ -134,6 +140,8 @@ class VacancyOut(BaseModel):
     events: list[VacancyEventOut] = Field(default_factory=list)
     company_contacts: list[CompanyContactHint] = Field(default_factory=list)
     hunts: list[VacancyHuntRef] = Field(default_factory=list)
+    searches: list[VacancySearchRef] = Field(default_factory=list)
+    stack_ids: list[str] = Field(default_factory=list)
     last_seen_at: datetime | None
     created_at: datetime
     updated_at: datetime
@@ -148,6 +156,27 @@ class VacancyOut(BaseModel):
     @field_validator("extra_sources", mode="before")
     @classmethod
     def _extra_sources(cls, value: object) -> list:
+        return value if isinstance(value, list) else []
+
+    @model_validator(mode="after")
+    def _compact_extra_sources(self):
+        from app.services.extra_sources import compact_extra_sources
+
+        self.extra_sources = compact_extra_sources(
+            self.extra_sources, source=self.source, source_id=self.source_id
+        )
+        return self
+
+    @field_validator("stack_ids", mode="before")
+    @classmethod
+    def _stack_ids(cls, value: object) -> list:
+        if not isinstance(value, list):
+            return []
+        return [str(item) for item in value if item]
+
+    @field_validator("searches", mode="before")
+    @classmethod
+    def _searches(cls, value: object) -> list:
         return value if isinstance(value, list) else []
 
     @field_validator("custom_values", mode="before")
@@ -320,6 +349,31 @@ class ScraperConfigOut(ScraperConfigIn):
     id: int
     last_run: ScraperRunOut | None = None
     next_run_at: datetime | None = None
+    from_pool: bool = False
+
+
+class CareerBoardOut(BaseModel):
+    slug: str
+    name: str
+    listing_url: str
+    hint: str = ""
+    logo_url: str = ""
+
+
+class DonorCrawlOut(BaseModel):
+    query_key: str
+    source: str
+    name: str
+    listing_url: str | None = None
+    query_params: dict = Field(default_factory=dict)
+    last_fetched_at: datetime | None = None
+    last_status: str
+    last_error: str | None = None
+    found_count: int = 0
+    queue_status: str | None = None
+    subscriber_count: int = 0
+    subscribers: list[str] = Field(default_factory=list)
+    host_subscribed: bool = False
 
 
 class ProfileOut(BaseModel):

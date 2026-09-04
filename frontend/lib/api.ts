@@ -11,13 +11,21 @@ import type {
   Profile,
   ScraperConfig,
   ScraperRun,
+  DonorCrawl,
   Thesis,
   Vacancy,
   WavePack,
+  CareerBoard,
+  InternshipKind,
+  InternshipRow,
+  InternshipTrackStatus,
+  HackathonRow,
+  HackathonTrackStatus,
+  SalaryMarket,
 } from "./types";
 
 export type VacancyEventDraft = {
-  kind: "screening" | "interview" | "offer_deadline";
+  kind: "screening" | "interview" | "assignment" | "offer_deadline";
   starts_at: string;
   ends_at?: string | null;
   label?: string | null;
@@ -44,7 +52,7 @@ export type VacancyDraft = {
   hunt_id?: number | null;
   pipeline_stage?: PipelineStage;
   next_step_at?: string | null;
-  next_step_kind?: "screening" | "interview" | "offer_deadline" | null;
+  next_step_kind?: "screening" | "interview" | "assignment" | "offer_deadline" | null;
 };
 
 export type AuthUser = {
@@ -52,6 +60,25 @@ export type AuthUser = {
   email: string;
   is_host?: boolean;
   can_observe?: boolean;
+};
+
+export type ChatThread = {
+  id: number;
+  peer_id: number;
+  peer_name: string;
+  online: boolean;
+  last_seen_at: string | null;
+  last_body: string | null;
+  last_at: string | null;
+  unread: number;
+};
+
+export type ChatMessage = {
+  id: number;
+  sender_id: number;
+  mine: boolean;
+  body: string;
+  created_at: string;
 };
 
 export type TelegramHost = {
@@ -152,12 +179,15 @@ export const api = {
   health: () => request<{ ok: boolean }>("/api/health", undefined, { authRedirect: false }),
   me: () => request<AuthUser>("/api/auth/me", undefined, { authRedirect: false, asUser: false }),
   users: () => request<AuthUser[]>("/api/auth/users", undefined, { asUser: false }),
-  setObserve: (id: number, can_observe: boolean) =>
-    request<AuthUser>(
-      `/api/auth/users/${id}`,
-      { method: "PATCH", body: JSON.stringify({ can_observe }) },
-      { asUser: false },
-    ),
+  patchUser: (id: number, can_observe: boolean) =>
+    request<AuthUser>(`/api/auth/users/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ can_observe }),
+    }, { asUser: false }),
+  googleAvailable: () =>
+    request<{ available: boolean }>("/api/auth/google", undefined, { authRedirect: false, asUser: false }),
+  googleLogin: () =>
+    request<{ url: string }>("/api/auth/google", { method: "POST" }, { authRedirect: false, asUser: false }),
   register: (email: string, password: string) =>
     request<AuthUser>("/api/auth/register", {
       method: "POST",
@@ -169,6 +199,97 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }, { authRedirect: false, asUser: false }),
   logout: () => request<{ ok: boolean }>("/api/auth/logout", { method: "POST" }, { authRedirect: false, asUser: false }),
+  telegramBot: () =>
+    request<{
+      available: boolean;
+      username: string | null;
+      connected: boolean;
+      paused: boolean;
+      telegram_username: string | null;
+      want_vacancies: boolean;
+      want_internships: boolean;
+      want_hackathons: boolean;
+      want_steps: boolean;
+      want_ping: boolean;
+    }>("/api/telegram/bot", undefined, { asUser: false }),
+  telegramBotLink: () => request<{ url: string; username: string }>("/api/telegram/bot/link", { method: "POST" }, { asUser: false }),
+  telegramBotUnlink: () =>
+    request<{
+      available: boolean;
+      username: string | null;
+      connected: boolean;
+      paused: boolean;
+      telegram_username: string | null;
+      want_vacancies: boolean;
+      want_internships: boolean;
+      want_hackathons: boolean;
+      want_steps: boolean;
+      want_ping: boolean;
+    }>("/api/telegram/bot/unlink", { method: "POST" }, { asUser: false }),
+  saveTelegramBotPrefs: (payload: Record<string, boolean>) =>
+    request<{
+      available: boolean;
+      connected: boolean;
+      want_vacancies: boolean;
+      want_internships: boolean;
+      want_hackathons: boolean;
+      want_steps: boolean;
+      want_ping: boolean;
+      paused: boolean;
+      telegram_username: string | null;
+      username: string | null;
+    }>("/api/telegram/bot/prefs", { method: "PUT", body: JSON.stringify(payload) }, { asUser: false }),
+  saveTelegramBotToken: (token: string) =>
+    request<{ available: boolean; username: string | null }>(
+      "/api/telegram/bot/token",
+      { method: "PUT", body: JSON.stringify({ token }) },
+      { asUser: false },
+    ),
+  sendFeedback: (payload: {
+    kind: "bug" | "idea";
+    body: string;
+    page?: string;
+    contact_name?: string;
+    reply_to?: string;
+  }) =>
+    request<{ ok: boolean }>("/api/feedback", { method: "POST", body: JSON.stringify(payload) }, { asUser: false }),
+  feedback: () =>
+    request<
+      {
+        id: number;
+        kind: string;
+        body: string;
+        page: string | null;
+        contact_name: string | null;
+        reply_to: string | null;
+        email: string;
+        created_at: string;
+      }[]
+    >("/api/feedback", undefined, { asUser: false }),
+  chatInbox: () =>
+    request<{
+      host: boolean;
+      unread_total: number;
+      admin: { online: boolean; last_seen_at: string | null; name: string };
+      threads: ChatThread[];
+    }>("/api/chat/inbox", undefined, { asUser: false }),
+  chatOpen: (userId?: number) =>
+    request<ChatThread>("/api/chat/open", {
+      method: "POST",
+      body: JSON.stringify(userId != null ? { user_id: userId } : {}),
+    }, { asUser: false }),
+  chatMessages: (conversationId: number, after = 0) =>
+    request<ChatMessage[]>(
+      `/api/chat/${conversationId}/messages${after ? `?after=${after}` : ""}`,
+      undefined,
+      { asUser: false },
+    ),
+  chatSend: (conversationId: number, body: string) =>
+    request<ChatMessage>(
+      `/api/chat/${conversationId}/messages`,
+      { method: "POST", body: JSON.stringify({ body }) },
+      { asUser: false },
+    ),
   vacancies: (
     params: {
       stage?: PipelineStage;
@@ -179,6 +300,9 @@ export const api = {
       nda?: string;
       salary?: string;
       source?: string[];
+      exclude_company?: string[];
+      stack?: string[];
+      search_id?: number[];
       hunt_id?: number | null;
       limit?: number;
     } = {},
@@ -194,6 +318,9 @@ export const api = {
     for (const g of params.grade ?? []) sp.append("grade", g);
     for (const f of params.format ?? []) sp.append("format", f);
     for (const s of params.source ?? []) sp.append("source", s);
+    for (const name of params.exclude_company ?? []) sp.append("exclude_company", name);
+    for (const item of params.stack ?? []) sp.append("stack", item);
+    for (const id of params.search_id ?? []) sp.append("search_id", String(id));
     return request<{ items: Vacancy[]; total: number }>(`/api/vacancies?${sp.toString()}`);
   },
   vacancy: (id: number) => request<Vacancy>(`/api/vacancies/${id}`),
@@ -268,7 +395,9 @@ export const api = {
       ? request<ScraperConfig>(`/api/scraper-configs/${id}`, { method: "PUT", body: JSON.stringify(payload) })
       : request<ScraperConfig>("/api/scraper-configs", { method: "POST", body: JSON.stringify(payload) }),
   deleteConfig: (id: number) => request<{ ok: boolean }>(`/api/scraper-configs/${id}`, { method: "DELETE" }),
-  runScraper: (id: number) => request<{ ok: boolean }>(`/api/scraper/run/${id}`, { method: "POST" }),
+  runScraper: (id: number) => request<{ ok: boolean; status?: string }>(`/api/scraper/run/${id}`, { method: "POST" }),
+  crawls: () => request<DonorCrawl[]>("/api/scraper/crawls", undefined, { asUser: false }),
+  boards: () => request<CareerBoard[]>("/api/scraper/boards"),
   runs: () => request<ScraperRun[]>("/api/scraper/runs"),
   scorePending: () => request<{ scored: number }>("/api/scraper/score-pending", { method: "POST" }),
   telegramPool: () => request<TelegramPool>("/api/telegram/pool", undefined, { asUser: false }),
@@ -355,11 +484,50 @@ export const api = {
     }),
   deleteSavedContact: (id: number) =>
     request<{ ok: boolean }>(`/api/contacts/saved/${id}`, { method: "DELETE" }),
+  internships: (kind?: InternshipKind) => {
+    const qs = kind ? `?kind=${encodeURIComponent(kind)}` : "";
+    return request<InternshipRow[]>(`/api/internships${qs}`);
+  },
+  saveInternshipTrack: (
+    slug: string,
+    payload: { status?: InternshipTrackStatus | null; notes?: string | null; applied_at?: string | null },
+  ) =>
+    request<InternshipRow>(`/api/internships/${encodeURIComponent(slug)}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  hackathons: (params?: { status?: string; registration?: string; source?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.status) qs.set("status", params.status);
+    if (params?.registration) qs.set("registration", params.registration);
+    if (params?.source) qs.set("source", params.source);
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return request<HackathonRow[]>(`/api/hackathons${suffix}`);
+  },
+  syncHackathons: () => request<{ created: number; updated: number; errors: number; total: number }>("/api/hackathons/sync", { method: "POST" }),
+  saveHackathonTrack: (
+    id: number,
+    payload: { status?: HackathonTrackStatus | null; notes?: string | null; applied_at?: string | null },
+  ) =>
+    request<HackathonRow>(`/api/hackathons/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
   saveThesis: (payload: Partial<Thesis> & { name: string }, id?: number) =>
     id
       ? request<Thesis>(`/api/theses/${id}`, { method: "PUT", body: JSON.stringify(payload) })
       : request<Thesis>("/api/theses", { method: "POST", body: JSON.stringify(payload) }),
   deleteThesis: (id: number) => request<{ ok: boolean }>(`/api/theses/${id}`, { method: "DELETE" }),
+  salaryMarket: (params?: { hunt_id?: number; grade?: string; specialty?: string; refresh?: boolean }) => {
+    const qs = new URLSearchParams();
+    if (params?.hunt_id) qs.set("hunt_id", String(params.hunt_id));
+    if (params?.grade) qs.set("grade", params.grade);
+    if (params?.specialty) qs.set("specialty", params.specialty);
+    if (params?.refresh) qs.set("refresh", "1");
+    const suffix = qs.toString() ? `?${qs}` : "";
+    return request<SalaryMarket>(`/api/salary-market${suffix}`);
+  },
+  refreshLevelsFyi: () => request<{ count: number; errors: number }>("/api/salary-market/levels/refresh", { method: "POST" }),
   wavePack: (thesisId: number) => request<WavePack>(`/api/theses/${thesisId}/wave-pack`),
   waveWrote: (thesisId: number, ids: number[]) =>
     request<{ ok: boolean; wrote: number; wave: Thesis["last_wave"] }>(`/api/theses/${thesisId}/wave/wrote`, {

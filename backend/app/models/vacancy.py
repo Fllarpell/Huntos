@@ -30,6 +30,7 @@ class ScoringStatus(str, enum.Enum):
 class NextStepKind(str, enum.Enum):
     SCREENING = "screening"
     INTERVIEW = "interview"
+    ASSIGNMENT = "assignment"
     OFFER_DEADLINE = "offer_deadline"
 
 
@@ -39,7 +40,7 @@ class HhPulse(str, enum.Enum):
 
 
 class Vacancy(TimestampMixin, Base):
-    """Normalized vacancy. Dedup key: (source, source_id)."""
+    """Normalized vacancy. Dedup key: (user_id, source, source_id)."""
 
     __tablename__ = "vacancies"
     __table_args__ = (
@@ -52,7 +53,7 @@ class Vacancy(TimestampMixin, Base):
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
 
     source: Mapped[str] = mapped_column(String(32), nullable=False, default="hirehi")
-    source_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_id: Mapped[str] = mapped_column(String(512), nullable=False)
     source_url: Mapped[str | None] = mapped_column(String(512))
 
     title: Mapped[str] = mapped_column(String(512), nullable=False)
@@ -81,6 +82,7 @@ class Vacancy(TimestampMixin, Base):
 
     skills: Mapped[list] = mapped_column(JSON, default=list)
     tags: Mapped[list] = mapped_column(JSON, default=list)
+    stack_ids: Mapped[list] = mapped_column(JSON, default=list)
     raw_payload: Mapped[dict | None] = mapped_column(JSON)
 
     published_at: Mapped[datetime | None] = mapped_column(DateTime())
@@ -129,5 +131,5 @@ class Vacancy(TimestampMixin, Base):
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime())
     scraper_config_id: Mapped[int | None] = mapped_column(
         Integer,
-        ForeignKey("scraper_configs.id"),
+        ForeignKey("scraper_configs.id", ondelete="SET NULL"),
     )

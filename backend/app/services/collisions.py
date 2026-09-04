@@ -25,6 +25,7 @@ KIND_RANK = {
     NextStepKind.OFFER_DEADLINE: 3,
     NextStepKind.INTERVIEW: 2,
     NextStepKind.SCREENING: 1,
+    NextStepKind.ASSIGNMENT: 1,
 }
 
 WEEKDAYS = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]

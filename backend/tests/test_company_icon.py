@@ -101,6 +101,60 @@ def test_logo_from_image_object() -> None:
     assert logo_from_hiring_org(org) == "https://cdn.example.com/x.webp"
 
 
+def test_icon_brand_key_aliases() -> None:
+    from app.services.company_icon import icon_brand_key
+
+    assert icon_brand_key("VK") == icon_brand_key("ВКонтакте") == "vk"
+    assert icon_brand_key("ВК") == "vk"
+    assert icon_brand_key("VK Team") == "vk"
+    assert icon_brand_key("Т-Банк") == icon_brand_key("Tinkoff") == "tbank"
+    assert icon_brand_key("Сбербанк") == icon_brand_key("Сбер") == "sber"
+    assert icon_brand_key("СберТех") == "sber"
+    assert icon_brand_key("Ozon Tech") == "ozon"
+    assert icon_brand_key("Звук") == icon_brand_key("Zvuk") == "zvuk"
+    assert icon_brand_key("2ГИС") == icon_brand_key("2GIS") == "2gis"
+    assert icon_brand_key("NDA") is None
+    assert icon_brand_key("Avk") != "vk"
+
+
+def test_pick_consensus_icon_prefers_frequent_then_real_logo() -> None:
+    from app.services.company_icon import consensus_should_overwrite, pick_consensus_icon
+
+    fake = "https://www.google.com/s2/favicons?sz=128&domain=vk.com"
+    real = "https://hhcdn.ru/employer-logo/vk.png"
+    other = "https://cdn.example.com/wrong-vk.png"
+    winner, win, runner = pick_consensus_icon([fake, real, real, other])
+    assert winner == real
+    assert win == 2
+    assert runner == 1
+    assert consensus_should_overwrite(fake, real, win, runner)
+    assert consensus_should_overwrite(None, real, 1, 0)
+    assert not consensus_should_overwrite(other, fake, 1, 1)
+
+
+def test_career_vacancy_gets_board_logo() -> None:
+    from app.services.company_icon import icon_for_career_vacancy
+
+    assert icon_for_career_vacancy("career", "vk:45850")
+    assert "vk.com" in (icon_for_career_vacancy("career", "vk:45850") or "")
+    assert icon_for_career_vacancy("hh", "123") is None
+
+
+def test_getmatch_logotype_filename_becomes_cdn_url() -> None:
+    from app.services.company_icon import fallback_company_icon, icon_from_raw_payload, resolve_getmatch_logotype
+
+    filename = "549a17dc-3363-4bd7-a9e0-0b6a068a6f65.png"
+    url = resolve_getmatch_logotype(filename)
+    assert url == f"https://getmatch.ru/uploads/companies_logos/{filename}"
+    assert icon_from_raw_payload("getmatch", {"company": {"name": "2ГИС", "logotype": filename}}) == url
+    assert fallback_company_icon("2ГИС")
+    assert "2gis.ru" in (fallback_company_icon("2ГИС") or "")
+    assert "sber.ru" in (fallback_company_icon("Сбер") or "")
+    assert "zvuk.com" in (fallback_company_icon("Звук") or "")
+    assert fallback_company_icon("NDA") is None
+    assert "reddit.com" in (fallback_company_icon("Reddit, Inc.") or "")
+
+
 def test_contact_org_reuses_vacancy_logo_by_name() -> None:
     from app.services.contacts import _org_icon
 

@@ -45,6 +45,8 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, password_hash: str) -> bool:
+    if not password or not password_hash:
+        return False
     try:
         return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
     except ValueError:
@@ -136,3 +138,43 @@ async def ensure_profile(session: AsyncSession, user: User) -> UserProfile:
         await session.commit()
         await session.refresh(profile)
     return profile
+
+
+async def upsert_google_user(session: AsyncSession, email: str, google_sub: str) -> tuple[User, bool]:
+    sub = (google_sub or "").strip()
+    if not sub:
+        raise HTTPException(400, "Google не отдал аккаунт")
+    cleaned = normalize_email(email)
+    if not _EMAIL.match(cleaned):
+        raise HTTPException(400, "Google не отдал email")
+    existing = (await session.execute(select(User).where(User.google_sub == sub))).scalar_one_or_none()
+    if existing is not None:
+        if existing.email != cleaned:
+            taken = (
+                await session.execute(select(User.id).where(User.email == cleaned))
+            ).scalar_one_or_none()
+            if taken is not None and taken != existing.id:
+                raise HTTPException(409, "Этот email уже занят")
+            existing.email = cleaned
+        return existing, False
+    by_email = (await session.execute(select(User).where(User.email == cleaned))).scalar_one_or_none()
+    if by_email is not None:
+        if by_email.google_sub == sub:
+            return by_email, False
+        # Password (or other) account already owns this email. Auto-linking would
+        # let anyone pre-register victim@x and later sit on the victim's Google login.
+        raise HTTPException(409, "email-taken")
+    is_first = (await session.execute(select(User.id).limit(1))).scalar_one_or_none() is None
+    user = User(
+        email=cleaned,
+        password_hash=hash_password(secrets.token_urlsafe(32)),
+        google_sub=sub,
+        is_host=is_first,
+    )
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    if is_first:
+        await claim_orphans(session, user.id)
+    await ensure_profile(session, user)
+    return user, True

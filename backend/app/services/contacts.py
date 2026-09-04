@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.contact import SavedContact
 from app.models.user import User
 from app.models.vacancy import PipelineStage, Vacancy
-from app.services.company_icon import normalize_company_icon
+from app.services.company_icon import icon_brand_key, normalize_company_icon, pick_consensus_icon
 from app.services.telegram import normalize_telegram_alias
 from app.services.vacancy_write import company_key, is_anon_company_name, normalize_email, normalize_inn, normalize_phone
 
@@ -55,20 +55,26 @@ def hintable_org_key(name: str | None, inn: str | None) -> str | None:
 
 
 def _icon_maps(vacancies: list[Vacancy]) -> tuple[dict[str, str], dict[str, str]]:
-    by_inn: dict[str, str] = {}
-    by_name: dict[str, str] = {}
+    by_inn: dict[str, list[str]] = defaultdict(list)
+    by_name: dict[str, list[str]] = defaultdict(list)
     for row in vacancies:
         icon = normalize_company_icon(row.company_icon, page_url=row.source_url)
         if not icon:
             continue
         inn = normalize_inn(row.company_inn)
         if inn:
-            by_inn.setdefault(inn, icon)
-        if not is_anon_company_name(row.company):
-            key = company_key(row.company)
-            if key:
-                by_name.setdefault(key, icon)
-    return by_inn, by_name
+            by_inn[inn].append(icon)
+        brand = icon_brand_key(row.company)
+        if brand:
+            by_name[brand].append(icon)
+
+    def _winner(urls: list[str]) -> str | None:
+        return pick_consensus_icon(urls)[0]
+
+    return (
+        {key: icon for key, urls in by_inn.items() if (icon := _winner(urls))},
+        {key: icon for key, urls in by_name.items() if (icon := _winner(urls))},
+    )
 
 
 def _org_icon(
@@ -87,8 +93,8 @@ def _org_icon(
         return by_inn[inn_n]
     if is_anon_company_name(name):
         return None
-    key = company_key(name)
-    return by_name.get(key) if key else None
+    brand = icon_brand_key(name)
+    return by_name.get(brand) if brand else None
 
 
 def phone_key(raw: str | None) -> str | None:

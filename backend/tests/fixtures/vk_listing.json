@@ -1,0 +1,26 @@
+{
+  "count": 2,
+  "next": null,
+  "results": [
+    {
+      "id": 45850,
+      "title": "Go-разработчик",
+      "work_format": "гибкий",
+      "remote": false,
+      "specialty": {"id": 282, "name": "Backend"},
+      "town": {"id": 1, "name": "Москва"},
+      "group": {"id": 135, "name": "VK", "project_logo": "https://corp.vkcdn.ru/logo.png"},
+      "tags": [{"id": 2225, "name": "go"}]
+    },
+    {
+      "id": 52666,
+      "title": "Бизнес-ассистент",
+      "work_format": "офис",
+      "remote": false,
+      "specialty": {"id": 289, "name": "Административный персонал"},
+      "town": {"id": 1, "name": "Москва"},
+      "group": {"id": 289, "name": "Дзен", "project_logo": null},
+      "tags": []
+    }
+  ]
+}

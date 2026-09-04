@@ -1,12 +1,6 @@
-export const HH_AREAS = [
-  { value: "1", label: "Москва" },
-  { value: "2", label: "Санкт-Петербург" },
-  { value: "113", label: "Россия" },
-  { value: "3", label: "Екатеринбург" },
-  { value: "4", label: "Новосибирск" },
-  { value: "88", label: "Казань" },
-  { value: "66", label: "Нижний Новгород" },
-] as const;
+import { SEARCH_CITIES, RUSSIA_AREA } from "@/lib/hunt-cities";
+
+export const HH_AREAS = SEARCH_CITIES;
 
 export const HH_EXPERIENCE = [
   { value: "noExperience", label: "без опыта" },
@@ -58,7 +52,7 @@ export type HhFilters = {
 
 export const EMPTY_HH_FILTERS: HhFilters = {
   search: "",
-  area: ["1"],
+  area: [RUSSIA_AREA],
   experience: [],
   schedule: [],
   employment: [],
@@ -78,7 +72,7 @@ export function hhFiltersFromParams(params: Record<string, unknown> | undefined)
   const data = params ?? {};
   return {
     search: String(data.search || data.text || ""),
-    area: asList(data.area).length ? asList(data.area) : ["1"],
+    area: asList(data.area).length ? asList(data.area) : [RUSSIA_AREA],
     experience: asList(data.experience),
     schedule: asList(data.schedule),
     employment: asList(data.employment),
@@ -99,9 +93,21 @@ const LABELS: Record<string, string> = Object.fromEntries([
 export function hhAutoName(filters: HhFilters): string {
   const parts: string[] = [];
   if (filters.search.trim()) parts.push(filters.search.trim());
-  for (const area of filters.area) parts.push(LABELS[area] ?? area);
-  for (const item of filters.schedule) parts.push(LABELS[item] ?? item);
-  for (const item of filters.experience) parts.push(LABELS[item] ?? item);
+  const areas = filters.area.length ? filters.area : [RUSSIA_AREA];
+  if (areas.length === 1 && areas[0] === RUSSIA_AREA) parts.push("Россия");
+  else parts.push(...areas.map((v) => LABELS[v] ?? v));
+  const schedules = new Set(filters.schedule);
+  const huntSchedules = ["remote", "fullDay", "flexible"];
+  const allSchedules = huntSchedules.every((item) => schedules.has(item));
+  const allExp =
+    filters.experience.length >= 4 ||
+    new Set(filters.experience).size >= HH_EXPERIENCE.length;
+  if (allSchedules && (allExp || !filters.experience.length)) parts.push("весь IT");
+  else {
+    if (!allSchedules) parts.push(...filters.schedule.map((v) => LABELS[v] ?? v));
+    if (!allExp) parts.push(...filters.experience.map((v) => LABELS[v] ?? v));
+  }
+  if (filters.only_with_salary) parts.push("с зарплатой");
   return [...new Set(parts)].slice(0, 5).join(" · ") || "hh.ru поиск";
 }
 

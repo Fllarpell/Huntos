@@ -1,0 +1,16 @@
+{
+  "id": 15322,
+  "title": "Backend-разработчик",
+  "publication_slug_url": "backend-python-moscow",
+  "description": "Команда поиска.",
+  "key_qualifications": "* Python\n* Go",
+  "duties": "Писать сервисы",
+  "conditions": "Гибрид, Москва",
+  "short_summary": "Пишем на Python и Go",
+  "public_service": {"name": "Яндекс"},
+  "vacancy": {
+    "cities": [{"id": 1, "name": "Москва"}],
+    "skills": [{"id": 34, "name": "Python"}, {"id": 74, "name": "Go"}],
+    "work_modes": [{"id": 3, "name": "Гибридный", "slug": "mixed"}]
+  }
+}

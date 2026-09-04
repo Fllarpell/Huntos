@@ -1,0 +1,135 @@
+{
+  "items": [
+    {
+      "id": 478,
+      "title": "Главный специалист по информационной безопасности",
+      "shortDescription": "Группа защиты данных и управления доступом ищет к себе в команду коллегу",
+      "isRemote": false,
+      "isCareerStartAvailable": false,
+      "city": {
+        "id": 150,
+        "name": "Новосибирск"
+      },
+      "direction": {
+        "id": 36,
+        "name": "Информационная безопасность",
+        "slug": "information_security"
+      },
+      "specialization": null,
+      "technology": null,
+      "salaryFrom": null,
+      "salaryTo": null,
+      "currency": {
+        "id": "RUB",
+        "name": "₽"
+      }
+    },
+    {
+      "id": 477,
+      "title": "Администратор прикладных систем",
+      "shortDescription": "Занимаемся управлением и поддержкой  высоконагруженных кластеров баз данных Microsoft SQL, PostgreSQL.",
+      "isRemote": true,
+      "isCareerStartAvailable": false,
+      "city": null,
+      "direction": {
+        "id": 27,
+        "name": "Инфраструктура и администрирование",
+        "slug": "infrastructure_administration"
+      },
+      "specialization": null,
+      "technology": null,
+      "salaryFrom": null,
+      "salaryTo": null,
+      "currency": {
+        "id": "RUB",
+        "name": "₽"
+      }
+    },
+    {
+      "id": 474,
+      "title": "QA IOS",
+      "shortDescription": "Отвечаем за качество и стабильную работу приложения на актуальных версиях iOS — от проверки фич до контроля после релиза",
+      "isRemote": false,
+      "isCareerStartAvailable": true,
+      "city": {
+        "id": 150,
+        "name": "Новосибирск"
+      },
+      "direction": {
+        "id": 23,
+        "name": "Тестирование",
+        "slug": "testing"
+      },
+      "specialization": {
+        "id": 55,
+        "name": "Мануальное тестирование"
+      },
+      "technology": null,
+      "salaryFrom": null,
+      "salaryTo": null,
+      "currency": {
+        "id": "RUB",
+        "name": "₽"
+      }
+    },
+    {
+      "id": 471,
+      "title": "Бизнес-аналитик",
+      "shortDescription": "Ищем опытного бизнес-аналитика, который поможет нам навести порядок, улучшить и автоматизировать процессы в HR-направлении, а также вести проекты изменений от идеи до внедрения.",
+      "isRemote": false,
+      "isCareerStartAvailable": false,
+      "city": {
+        "id": 150,
+        "name": "Новосибирск"
+      },
+      "direction": {
+        "id": 37,
+        "name": "Аналитика",
+        "slug": "analytics"
+      },
+      "specialization": {
+        "id": 88,
+        "name": "Бизнес-аналитик"
+      },
+      "technology": null,
+      "salaryFrom": null,
+      "salaryTo": null,
+      "currency": {
+        "id": "RUB",
+        "name": "₽"
+      }
+    },
+    {
+      "id": 461,
+      "title": "Techlead в команду Поиск Otello",
+      "shortDescription": "Ищем техлида направления поиска в бэкенд команду сервиса бронирования отелей и впечатлений Отелло. Аудитория и покрытие сервиса по\nвсему миру активно растут, мы активно работаем над брендом и хотим попробовать на практике кучу новых идей. Под это расширяем команду\nразработки и выделяем самостоятельные направления.",
+      "isRemote": true,
+      "isCareerStartAvailable": false,
+      "city": null,
+      "direction": {
+        "id": 22,
+        "name": "Разработка",
+        "slug": "development"
+      },
+      "specialization": {
+        "id": 50,
+        "name": "Backend"
+      },
+      "technology": {
+        "id": 23,
+        "name": "Go"
+      },
+      "salaryFrom": null,
+      "salaryTo": null,
+      "currency": {
+        "id": "RUB",
+        "name": "₽"
+      }
+    }
+  ],
+  "page": 1,
+  "pageSize": 5,
+  "totalItems": 39,
+  "totalPages": 8,
+  "searchQuery": null
+}

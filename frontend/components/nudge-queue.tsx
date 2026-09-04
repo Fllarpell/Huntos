@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { downloadPingIcs, pingEventTitle } from "@/lib/calendar";
@@ -207,16 +206,7 @@ function PingSlotCard({
         <p className="rounded-xl bg-rose-400/10 px-3 py-2 text-[13px] text-rose-200">Google: {slot.google_sync_error}</p>
       )}
       {slot.ping_at && connected && slot.google_event_id && !slot.google_sync_error && (
-        <p className="text-[13px] text-amber-100">создано в календаре Hunt</p>
-      )}
-      {!connected && (
-        <p className="text-[13px] text-amber-100/70">
-          <Link href="/settings" className="text-amber-100 underline underline-offset-2">
-            Подключить Google Calendar
-          </Link>
-          {" — "}
-          иначе скачай .ics и добавь в календарь сам.
-        </p>
+        <p className="text-[13px] text-amber-100">создано в календаре HuntOS</p>
       )}
       {slot.ping_at && (
         <button
@@ -227,7 +217,7 @@ function PingSlotCard({
               id: slot.id,
               title,
               ping_at: slot.ping_at || "",
-              details: "Hunt — один слот пинга на пачку, не встреча на каждую карточку.",
+              details: "HuntOS — один слот пинга на пачку, не встреча на каждую карточку.",
             })
           }
         >

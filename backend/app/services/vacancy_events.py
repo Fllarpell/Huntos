@@ -5,13 +5,29 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.vacancy import NextStepKind, Vacancy
+from app.models.vacancy import NextStepKind, PipelineStage, Vacancy
 from app.models.vacancy_event import VacancyEvent
+from app.services.wip import enter_stage
 
 KIND_LABEL = {
-    NextStepKind.SCREENING: "скрин",
+    NextStepKind.SCREENING: "скрининг",
     NextStepKind.INTERVIEW: "собес",
+    NextStepKind.ASSIGNMENT: "тех задание",
     NextStepKind.OFFER_DEADLINE: "оффер до",
+}
+
+STEP_STAGE = {
+    NextStepKind.SCREENING: PipelineStage.SCREENING,
+    NextStepKind.INTERVIEW: PipelineStage.INTERVIEW,
+}
+
+STAGE_RANK = {
+    PipelineStage.INBOX: 0,
+    PipelineStage.TO_APPLY: 1,
+    PipelineStage.WAITING: 2,
+    PipelineStage.SCREENING: 3,
+    PipelineStage.INTERVIEW: 4,
+    PipelineStage.OFFER: 5,
 }
 
 
@@ -26,7 +42,7 @@ def kind_label(kind: object) -> str:
 
 def duration_minutes(kind: object) -> int:
     value = getattr(kind, "value", kind)
-    return 30 if value == "offer_deadline" else 60
+    return 30 if value in {"offer_deadline", "assignment"} else 60
 
 
 def event_end(event: VacancyEvent) -> datetime:
@@ -100,6 +116,19 @@ def refresh_next_step(vacancy: Vacancy, events: list[VacancyEvent]) -> None:
     vacancy.google_sync_error = pick.google_sync_error if pick else None
 
 
+def promote_for_step(vacancy: Vacancy, kind: NextStepKind | None) -> bool:
+    """Scoring/interview steps pull the card forward. Never demote offer/refusal."""
+    target = STEP_STAGE.get(kind) if kind is not None else None
+    if target is None:
+        return False
+    current = vacancy.pipeline_stage
+    here = STAGE_RANK.get(current)
+    want = STAGE_RANK.get(target)
+    if here is None or want is None or here >= want:
+        return False
+    return enter_stage(vacancy, target)
+
+
 def event_out(event: VacancyEvent, labels: dict[int, str], connected: bool) -> dict:
     return {
         "id": event.id,
@@ -145,6 +174,7 @@ async def create_event(
     await session.flush()
     events = await list_events(session, vacancy.id)
     refresh_next_step(vacancy, events)
+    promote_for_step(vacancy, step)
     return event
 
 
@@ -179,6 +209,7 @@ async def update_event(
     await session.flush()
     events = await list_events(session, vacancy.id)
     refresh_next_step(vacancy, events)
+    promote_for_step(vacancy, event.kind)
     return event
 
 

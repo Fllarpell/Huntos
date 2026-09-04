@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, type AuthUser, type TelegramPool } from "@/lib/api";
 import { fromNow, relativeTime } from "@/lib/format";
+import { GuideHint } from "@/components/guide";
 
 export function TelegramPoolPanel({ user }: { user: AuthUser | null }) {
   const [pool, setPool] = useState<TelegramPool | null>(null);
@@ -52,15 +53,15 @@ export function TelegramPoolPanel({ user }: { user: AuthUser | null }) {
 
   return (
     <section className="mx-auto w-full max-w-[480px] pt-4">
-      <h2 className="text-[26px] font-semibold tracking-tight">Telegram</h2>
-      <p className="mt-2 text-[13px] leading-5 text-muted">
-        Один аккаунт читает каналы. Вакансии копируются каждому в свой inbox. Свой Telegram другим подключать не нужно.
-      </p>
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-[26px] font-semibold tracking-tight">Telegram</h2>
+        <GuideHint id="settings.telegram" />
+      </div>
       {error && <p className="mt-4 text-sm text-rose-200">{error}</p>}
       {status && <p className="mt-4 text-sm text-accent">{status}</p>}
 
       <div className="mt-8 space-y-4">
-        <p className="text-[11px] tracking-[0.16em] text-muted uppercase">Хост-сессия</p>
+        <p className="text-[11px] tracking-[0.16em] text-muted uppercase">Сессия</p>
         {host?.connected ? (
           <p className="text-sm">
             подключено{host.username ? ` · @${host.username}` : ""}
@@ -73,7 +74,7 @@ export function TelegramPoolPanel({ user }: { user: AuthUser | null }) {
               ? "код ушёл в Telegram — введи его ниже"
               : host?.needs_password
                 ? "нужен облачный пароль 2FA"
-                : "хост ещё не вошёл в Telegram — каналы ждут, читать некому"}
+                : "ещё не вошёл в Telegram"}
           </p>
         )}
         {host?.error && <p className="text-sm text-rose-200">{host.error}</p>}
@@ -145,7 +146,7 @@ export function TelegramPoolPanel({ user }: { user: AuthUser | null }) {
                     void wrap(async () => {
                       const next = await api.telegramHostConfirm({ code, password: password || undefined });
                       if (next.needs_password) setStatus("Нужен облачный пароль");
-                      else setStatus("Telegram хоста подключён");
+                      else setStatus("Telegram подключён");
                       setCode("");
                       setPassword("");
                     })
@@ -164,12 +165,12 @@ export function TelegramPoolPanel({ user }: { user: AuthUser | null }) {
             onClick={() =>
               void wrap(async () => {
                 await api.telegramHostDisconnect();
-                setStatus("Хост отключён");
+                setStatus("Отключён");
               })
             }
             className="rounded-xl px-4 py-2 text-sm text-muted hover:text-rose-200"
           >
-            Отключить хост
+            Отключить
           </button>
         )}
       </div>
@@ -187,7 +188,7 @@ export function TelegramPoolPanel({ user }: { user: AuthUser | null }) {
             void wrap(async () => {
               await api.addTelegramChannel(url.trim());
               setUrl("");
-              setStatus("Канал в списке. Вакансии появятся в твоём inbox, когда сессия подключена.");
+              setStatus("Канал в списке");
             })
           }
           className="text-[14px] text-accent disabled:opacity-50"

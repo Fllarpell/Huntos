@@ -17,18 +17,28 @@ from app.models import (  # noqa: F401
     OutreachWave,
     PingSlot,
     SavedContact,
+    DonorListing,
+    DonorQueryCache,
+    ScrapeQueueItem,
     ScraperConfig,
     ScraperRun,
     TelegramChannel,
     TelegramParseRun,
     TelegramPost,
+    TelegramBotBind,
     User,
     UserProfile,
     Vacancy,
     VacancyEvent,
 )
 from app.observability import setup_tracing
-from app.services.scheduler import start_scheduler, sync_jobs
+from app.services.scheduler import (
+    run_hackathon_sync_job,
+    run_internship_monitor_job,
+    run_salary_market_job,
+    start_scheduler,
+    sync_jobs,
+)
 
 log = logging.getLogger("worker")
 
@@ -48,6 +58,9 @@ async def _run() -> None:
     _serve_metrics()
     start_scheduler()
     await sync_jobs()
+    asyncio.create_task(run_internship_monitor_job())
+    asyncio.create_task(run_hackathon_sync_job())
+    asyncio.create_task(run_salary_market_job())
     scheduler_running.set(1)
     log.info("worker scheduler running role=%s redis=%s", settings.app_role, bool(settings.redis_url))
     while True:
