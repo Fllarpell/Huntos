@@ -18,7 +18,7 @@ class PingSlot(TimestampMixin, Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     thesis_id: Mapped[int | None] = mapped_column(ForeignKey("hunt_theses.id", ondelete="SET NULL"), index=True)
     scope: Mapped[str] = mapped_column(String(32), nullable=False)
-    label: Mapped[str] = mapped_column(String(128), nullable=False, default="без тезиса")
+    label: Mapped[str] = mapped_column(String(128), nullable=False, default="без направления")
     vacancy_ids: Mapped[list] = mapped_column(JSON, default=list)
     card_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     ping_at: Mapped[datetime | None] = mapped_column(DateTime())

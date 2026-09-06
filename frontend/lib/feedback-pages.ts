@@ -5,7 +5,8 @@ export const FEEDBACK_PAGES = [
   { href: "/contacts", label: "Контакты" },
   { href: "/internships", label: "Стажировки" },
   { href: "/hackathons", label: "Хакатоны" },
-  { href: "/thesis", label: "Тезис" },
+  { href: "/thesis", label: "Направления" },
+  { href: "/resume", label: "Резюме" },
   { href: "/settings", label: "Настройки" },
 ] as const;
 

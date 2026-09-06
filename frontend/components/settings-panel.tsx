@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api } from "@/lib/api";
 import type { CustomFieldDef, Profile } from "@/lib/types";
 import { TelegramPoolPanel } from "@/components/telegram-pool";
@@ -13,6 +14,7 @@ import { useWorkspace } from "@/components/workspace-context";
 import { FeedbackInbox } from "@/components/feedback-inbox";
 import { setFeedbackSettingsTab } from "@/lib/feedback-pages";
 import { TelegramBotPanel } from "@/components/telegram-bot-panel";
+import { PageHead } from "./page-head";
 
 export function SettingsPanel() {
   const { hunts, activeHuntId, refresh: refreshHunts } = useHunt();
@@ -64,7 +66,7 @@ export function SettingsPanel() {
   useEffect(() => {
     const labels: Record<string, string> = {
       profile: "Профиль",
-      fields: "Поля охоты",
+      fields: "Поля карточки",
       searches: "Поиски",
       notify: "Уведомления",
       calendar: "Календарь",
@@ -116,7 +118,7 @@ export function SettingsPanel() {
 
   const TABS = [
     { id: "profile" as const, label: "Профиль" },
-    { id: "fields" as const, label: "Поля охоты" },
+    { id: "fields" as const, label: "Поля карточки" },
     { id: "searches" as const, label: "Поиски" },
     { id: "notify" as const, label: "Уведомления" },
     ...(me?.is_host
@@ -130,11 +132,9 @@ export function SettingsPanel() {
   ];
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <header className="flex shrink-0 items-center px-7 pt-6 pb-4">
-        <div>
-          <h1 className="text-[22px] font-semibold tracking-tight">Настройки</h1>
-        </div>
+    <div className="flex h-full flex-col overflow-hidden">
+      <header className="flex shrink-0 items-end px-7 pt-5 pb-4">
+        <PageHead title="настройки" />
       </header>
       {error && <p className="mx-7 mb-3 text-sm text-rose-200">{error}</p>}
       {status && <p className="px-7 pb-2 text-[13px] text-accent">{status}</p>}
@@ -150,7 +150,7 @@ export function SettingsPanel() {
               type="button"
               onClick={() => setTab(item.id)}
               className={`flex w-full px-5 py-2.5 text-left text-[14px] ${
-                tab === item.id ? "bg-white/[0.05] text-white" : "text-muted hover:bg-white/[0.03] hover:text-white"
+                tab === item.id ? "bg-fill-strong text-ink" : "text-muted hover:bg-fill hover:text-ink"
               }`}
             >
               {item.label}
@@ -166,16 +166,15 @@ export function SettingsPanel() {
                   <h2 className="text-[26px] font-semibold tracking-tight">Профиль</h2>
                   <GuideHint id="settings.resume" />
                 </div>
-                <p className="text-[13px] text-muted">Вставь текст или загрузи файл.</p>
-                <textarea
-                  className="field-area"
-                  rows={12}
-                  value={resume}
-                  onChange={(e) => setResume(e.target.value)}
-                  placeholder="Вставь текст резюме…"
-                />
+                <p className="text-[13px] leading-5 text-muted">
+                  Резюме правится в{" "}
+                  <Link href="/resume" className="text-accent hover:underline">
+                    кабинете
+                  </Link>
+                  . PDF можно залить здесь — текст попадёт в редактор.
+                </p>
                 <div className="flex items-center gap-3">
-                  <label className="rounded-xl bg-white/6 px-3 py-2 text-sm">
+                  <label className="rounded-xl bg-fill-strong px-3 py-2 text-sm">
                     Загрузить PDF / TXT
                     <input
                       type="file"
@@ -189,11 +188,32 @@ export function SettingsPanel() {
                   </label>
                   {profile?.resume_filename && <span className="text-sm text-muted">{profile.resume_filename}</span>}
                 </div>
-                <button onClick={() => void saveProfile()} className="text-[14px] text-accent">
-                  Сохранить профиль
-                </button>
+                <details className="text-[13px] text-muted">
+                  <summary className="cursor-pointer hover:text-ink">сырой текст</summary>
+                  <textarea
+                    className="field-area mt-3"
+                    rows={10}
+                    value={resume}
+                    onChange={(e) => setResume(e.target.value)}
+                    placeholder="Если редактор ещё пуст — вставь текст сюда."
+                  />
+                  <button type="button" onClick={() => void saveProfile()} className="mt-3 text-[14px] text-accent">
+                    Сохранить текст
+                  </button>
+                </details>
               </section>
               </GuideSpot>
+              <section className="space-y-3">
+                <h2 className="text-[18px] font-semibold tracking-tight">Клиппер</h2>
+                <p className="text-[13px] leading-5 text-muted">
+                  Chrome: chrome://extensions → «Режим разработчика» → «Загрузить распакованное» → папка{" "}
+                  <code className="text-ink">extension/</code> в репозитории HuntOS. Сначала зайди в HuntOS в этом же
+                  Chrome. Кнопка расширения кладёт текущую вкладку в inbox.
+                </p>
+                <p className="text-[13px] leading-5 text-muted">
+                  С телефона — ссылка боту в Telegram. Или вставка URL в inbox.
+                </p>
+              </section>
             </div>
           )}
 

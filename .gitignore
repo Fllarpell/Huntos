@@ -45,3 +45,8 @@ infra/cloud-init/generated/
 .idea/
 .vscode/
 *.log
+
+partners (4).pdf
+resume_ML.pdf
+
+.cursor/

@@ -63,7 +63,7 @@ export function TelegramBotPanel() {
   }
 
   const hint = bot?.connected
-    ? `подключено${bot.telegram_username ? ` · @${bot.telegram_username}` : ""}${bot.paused ? " · пауза" : ""}`
+    ? `подключено${bot.telegram_username ? ` · @${bot.telegram_username}` : ""}${bot.paused ? " · пауза" : ""} · кинь ссылку на вакансию — положу в inbox`
     : bot?.available
       ? "откроется Telegram — сообщения только про твои вакансии"
       : isHost

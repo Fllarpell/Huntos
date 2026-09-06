@@ -17,7 +17,7 @@ export function SearchField({
   className?: string;
 }) {
   return (
-    <label className={`flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-2 ${className}`}>
+    <label className={`flex items-center gap-2 rounded-full border border-line bg-input px-3 py-2 ${className}`}>
       <Search size={14} strokeWidth={1.75} className="shrink-0 text-muted" />
       <input
         ref={inputRef}

@@ -115,7 +115,17 @@ def extract_job_posting(html: str, *, page_url: str | None = None) -> dict[str, 
             elif isinstance(addr, str) and addr.strip():
                 out["location"] = addr.strip()
         elif isinstance(loc, list) and loc:
-            out["location"] = str(loc[0])
+            first = loc[0]
+            if isinstance(first, dict):
+                addr = first.get("address")
+                if isinstance(addr, dict) and addr.get("addressLocality"):
+                    out["location"] = str(addr["addressLocality"])
+                elif isinstance(addr, str) and addr.strip():
+                    out["location"] = addr.strip()
+                elif first.get("name"):
+                    out["location"] = str(first["name"])
+            elif str(first).strip():
+                out["location"] = str(first).strip()[:128]
         remote = job.get("jobLocationType") or ""
         if "TELECOMMUTE" in str(remote).upper():
             out["work_format"] = "удалённо"

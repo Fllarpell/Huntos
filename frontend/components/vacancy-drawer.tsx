@@ -25,6 +25,7 @@ import { SourceBadge, sourceLabel, uniqueExtraSources } from "./source-badge";
 import { VacancySteps } from "./vacancy-steps";
 import { CustomFieldInputs } from "./custom-field-inputs";
 import { HhPulseMark } from "./hh-pulse-mark";
+import { normalizeResume } from "@/lib/resume";
 
 type Draft = {
   title: string;
@@ -169,6 +170,7 @@ export function VacancyDrawer({
   const [upcoming, setUpcoming] = useState<CollisionItem[]>([]);
   const [pane, setPane] = useState<DrawerPane>(initialPane);
   const [jdOpen, setJdOpen] = useState(false);
+  const [wroteAdapt, setWroteAdapt] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { hunts, activeHuntId, activeHunt, refresh: refreshHunts } = useHunt();
 
@@ -177,6 +179,7 @@ export function VacancyDrawer({
     setDraft(null);
     setPane(initialPane === "hr" ? "hr" : initialPane === "more" ? "more" : "deal");
     setJdOpen(false);
+    setWroteAdapt(false);
     api.vacancy(vacancyId).then((v) => {
       setVacancy(v);
       setDraft(fromVacancy(v));
@@ -275,7 +278,7 @@ export function VacancyDrawer({
       setVacancy(fresh);
       onChanged(fresh);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Охота не обновилась");
+      setError(e instanceof Error ? e.message : "Направление не обновилось");
     } finally {
       setBusy(null);
     }
@@ -312,34 +315,43 @@ export function VacancyDrawer({
 
   if (!vacancy || !draft) {
     return (
-      <div className="fixed inset-y-0 right-0 z-40 w-[min(560px,100%)] border-l border-line bg-bg-soft p-8">
+      <div className="fixed bottom-0 right-0 top-14 z-[85] w-[min(560px,100%)] border-l border-line bg-bg-soft p-8">
         <p className="text-muted">Загрузка…</p>
       </div>
     );
   }
 
   const chatUrl = vacancyTelegramUrl({ telegram_alias: draft.telegram_alias, telegram_url: vacancy.telegram_url });
+  const adaptJobs = (vacancy.adaptation_advice?.experience || []).filter(
+    (job) => job.company || job.title || job.bullets.some((b) => b.text || b.children.length),
+  );
+  const adaptSuggestions = vacancy.adaptation_advice?.suggestions || [];
   const pageUrl = normalizeHttpUrl(draft.source_url);
   const extras = uniqueExtraSources(vacancy.extra_sources, vacancy);
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-black/40" onClick={onClose}>
-      <section
-        className="flex h-full w-[min(560px,100%)] flex-col border-l border-line bg-bg-soft shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed bottom-0 left-0 right-0 top-14 z-[85] flex justify-end">
+      <button type="button" aria-label="Закрыть" className="absolute inset-0 bg-overlay" onClick={onClose} />
+      <section className="relative flex h-full w-[min(560px,100%)] flex-col border-l border-line bg-bg-soft shadow-2xl">
         <header className="flex items-start gap-4 border-b border-line px-7 py-5">
           <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <MatchBadge score={vacancy.match_score} status={vacancy.scoring_status} />
               <SourceBadge
                 source={vacancy.source}
+                href={pageUrl}
                 label={vacancy.source === "career" && vacancy.company ? vacancy.company : undefined}
               />
               {(vacancy.searches || []).map((item) => (
                 <SourceBadge key={`search-${item.id}`} source={item.source} label={item.name} />
               ))}
             </div>
+            <input
+              value={draft.title}
+              onChange={(e) => patch({ title: e.target.value })}
+              placeholder="Роль / название вакансии"
+              className="text-xl font-semibold tracking-tight !border-0 !bg-transparent !px-0 !py-1 field-line"
+            />
             <div className="flex gap-2">
               <input
                 value={draft.company}
@@ -356,12 +368,49 @@ export function VacancyDrawer({
                 className="w-[9rem] shrink-0 !py-1.5"
               />
             </div>
-            <input
-              value={draft.title}
-              onChange={(e) => patch({ title: e.target.value })}
-              placeholder="Роль / название вакансии"
-              className="text-xl font-semibold tracking-tight !py-2"
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              {pageUrl && (
+                <ExternalTextLink href={pageUrl} className="text-[13px]">
+                  открыть вакансию
+                </ExternalTextLink>
+              )}
+              {(() => {
+                const left = adjacentStage(vacancy.pipeline_stage, -1);
+                const right = adjacentStage(vacancy.pipeline_stage, 1);
+                const toApply = vacancy.pipeline_stage === "inbox";
+                return (
+                  <>
+                    {toApply && (
+                      <button
+                        type="button"
+                        disabled={busy === "stage"}
+                        className="chip chip-on"
+                        onClick={() => void setStage("to_apply")}
+                      >
+                        в воронку
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      disabled={!left || busy === "stage"}
+                      className="chip"
+                      onClick={() => left && void setStage(left)}
+                    >
+                      ← {left ? STAGE_LABEL[left] : ""}
+                    </button>
+                    <span className="text-[13px] text-muted">{STAGE_LABEL[vacancy.pipeline_stage]}</span>
+                    <button
+                      type="button"
+                      disabled={!right || busy === "stage"}
+                      className="chip"
+                      onClick={() => right && void setStage(right)}
+                    >
+                      {right ? STAGE_LABEL[right] : ""} →
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <select value={draft.grade} onChange={(e) => patch({ grade: e.target.value })}>
                 <option value="">грейд</option>
@@ -404,30 +453,25 @@ export function VacancyDrawer({
               }}
               className="text-[13px]"
             />
-            {pageUrl && <ExternalTextLink href={pageUrl} className="block text-[13px]" />}
             {extras.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {extras.map((src) => {
-                  const text = src.label || sourceLabel(src.source) || src.source;
-                  const href = src.source_url;
-                  const badge = <SourceBadge key={`${src.source}-${src.source_id}`} source={src.source} label={`повтор · ${text}`} />;
-                  return href ? (
-                    <a key={`${src.source}-${src.source_id}`} href={href} target="_blank" rel="noreferrer">
-                      {badge}
-                    </a>
-                  ) : (
-                    badge
-                  );
-                })}
+                {extras.map((src) => (
+                  <SourceBadge
+                    key={`${src.source}-${src.source_id}`}
+                    source={src.source}
+                    href={src.source_url}
+                    label={`повтор · ${src.label || sourceLabel(src.source) || src.source}`}
+                  />
+                ))}
               </div>
             )}
           </div>
-          <button onClick={onClose} className="rounded-lg p-2 text-muted hover:bg-white/6 hover:text-white">
+          <button onClick={onClose} className="rounded-lg p-2 text-muted hover:bg-fill hover:text-ink">
             <X size={18} />
           </button>
         </header>
 
-        <nav className="flex shrink-0 items-center gap-5 border-b border-white/[0.06] px-7">
+        <nav className="flex shrink-0 items-center gap-5 border-b border-line px-7">
           {PANES.map((item) => {
             const mark =
               item.id === "hr" &&
@@ -439,8 +483,8 @@ export function VacancyDrawer({
                 onClick={() => setPane(item.id)}
                 className={`border-b pb-2.5 pt-3 text-[13px] ${
                   pane === item.id
-                    ? "border-accent text-white"
-                    : "border-transparent text-muted hover:text-white/80"
+                    ? "border-accent text-ink"
+                    : "border-transparent text-muted hover:text-ink"
                 }`}
               >
                 {item.label}
@@ -464,7 +508,7 @@ export function VacancyDrawer({
               {draft.description.trim() ? (
                 <button
                   type="button"
-                  className="text-[12px] text-muted hover:text-white"
+                  className="text-[12px] text-muted hover:text-ink"
                   onClick={() => setJdOpen((open) => !open)}
                 >
                   {jdOpen ? "свернуть" : "полностью"}
@@ -488,7 +532,7 @@ export function VacancyDrawer({
               </>
             ) : (
               <button type="button" className="w-full text-left" onClick={() => setJdOpen(true)}>
-                <p className="line-clamp-5 whitespace-pre-wrap text-[14px] leading-6 text-white/80">
+                <p className="line-clamp-5 whitespace-pre-wrap text-[14px] leading-6 text-ink">
                   {draft.description}
                 </p>
                 {draft.skillsText ? (
@@ -511,7 +555,7 @@ export function VacancyDrawer({
                   <button
                     type="button"
                     disabled={!left || busy === "stage"}
-                    className="flex items-center gap-1 rounded-xl bg-white/8 px-3 py-1.5 text-sm disabled:opacity-30"
+                    className="flex items-center gap-1 rounded-lg bg-fill-strong px-3 py-1.5 text-sm disabled:opacity-30"
                     onClick={() => left && void setStage(left)}
                   >
                     <ChevronLeft size={14} />
@@ -521,7 +565,7 @@ export function VacancyDrawer({
                     <span className="text-[13px] text-muted">{STAGE_LABEL[vacancy.pipeline_stage]}</span>
                     {dwellStage(vacancy.pipeline_stage) && vacancy.dwell_days != null && (
                       <span
-                        className={`text-[12px] tabular-nums ${vacancy.dwell_stale ? "text-amber-200" : "text-white/40"}`}
+                        className={`text-[12px] tabular-nums ${vacancy.dwell_stale ? "text-amber-200" : "text-muted"}`}
                       >
                         {dwellLong(vacancy.dwell_days)}
                       </span>
@@ -530,7 +574,7 @@ export function VacancyDrawer({
                   <button
                     type="button"
                     disabled={!right || busy === "stage"}
-                    className="flex items-center gap-1 rounded-xl bg-white/8 px-3 py-1.5 text-sm disabled:opacity-30"
+                    className="flex items-center gap-1 rounded-lg bg-fill-strong px-3 py-1.5 text-sm disabled:opacity-30"
                     onClick={() => right && void setStage(right)}
                   >
                     {right ? STAGE_LABEL[right] : "край"}
@@ -540,7 +584,7 @@ export function VacancyDrawer({
                     <button
                       type="button"
                       disabled={busy === "stage"}
-                      className="rounded-xl px-3 py-1.5 text-sm text-muted hover:text-white"
+                      className="rounded-lg px-3 py-1.5 text-sm text-muted hover:text-ink"
                       onClick={() => void setStage("inbox")}
                     >
                       В inbox
@@ -649,7 +693,7 @@ export function VacancyDrawer({
             {chatUrl ? (
               <TelegramChatLink
                 href={chatUrl}
-                className="flex w-full items-center rounded-[10px] border border-line bg-[#0e1015] px-3 py-2.5 text-[14px]"
+                className="flex w-full items-center rounded-[10px] border border-line bg-input px-3 py-2.5 text-[14px]"
               />
             ) : (
               <p className="rounded-[10px] border border-dashed border-line px-3 py-2.5 text-[14px] text-muted">
@@ -791,7 +835,7 @@ export function VacancyDrawer({
                   <button
                     type="button"
                     disabled={busy === "hh"}
-                    className="rounded-xl px-3 py-1.5 text-sm text-muted hover:text-white disabled:opacity-40"
+                    className="rounded-xl px-3 py-1.5 text-sm text-muted hover:text-ink disabled:opacity-40"
                     onClick={async () => {
                       setBusy("hh");
                       setError(null);
@@ -810,20 +854,166 @@ export function VacancyDrawer({
                   </button>
                 )}
                 {hhVacancyUrl(vacancy) && (
-                  <a
-                    href={hhVacancyUrl(vacancy) || ""}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-xl px-3 py-1.5 text-sm text-muted hover:text-white"
+                  <ExternalTextLink
+                    href={hhVacancyUrl(vacancy)}
+                    className="rounded-xl px-3 py-1.5 text-sm text-muted no-underline hover:text-ink"
                   >
                     открыть на hh
-                  </a>
+                  </ExternalTextLink>
                 )}
               </div>
             </section>
           )}
 
           {pane === "more" && (
+          <div className="space-y-8">
+          <GuideSpot id="card.adapt">
+          <section>
+            <div className="mb-3 flex items-center gap-1.5">
+              <h3 className="text-[12px] text-muted">буллеты под вакансию</h3>
+              <GuideHint id="card.adapt" />
+            </div>
+            {adaptJobs.length ? (
+              <div className="space-y-3">
+                {(vacancy.adaptation_advice?.missing_skills || []).length > 0 ? (
+                  <p className="text-[13px] text-muted">
+                    нет в резюме: {(vacancy.adaptation_advice?.missing_skills || []).join(", ")}
+                  </p>
+                ) : null}
+                {adaptJobs.map((job, index) => (
+                  <div key={`${job.company}-${index}`} className="rounded-2xl border border-line px-3 py-3">
+                    <p className="text-[11px] text-muted">
+                      {[job.company, job.title].filter(Boolean).join(" · ") || "опыт"}
+                    </p>
+                    <ul className="mt-2 space-y-2">
+                      {job.bullets.map((bullet, bIndex) =>
+                        bullet.text || bullet.children.length ? (
+                          <li key={bIndex} className="text-[14px] leading-5">
+                            {bullet.text}
+                            {bullet.children.length ? (
+                              <ul className="mt-1 space-y-1 pl-4 text-[13px] text-muted">
+                                {bullet.children.map((child) => (
+                                  <li key={child}>{child}</li>
+                                ))}
+                              </ul>
+                            ) : null}
+                          </li>
+                        ) : null,
+                      )}
+                    </ul>
+                    <button
+                      type="button"
+                      className="mt-2 text-[12px] text-accent"
+                      onClick={() =>
+                        void navigator.clipboard.writeText(
+                          job.bullets
+                            .flatMap((b) => [b.text, ...b.children.map((c) => `  ${c}`)])
+                            .filter(Boolean)
+                            .join("\n"),
+                        )
+                      }
+                    >
+                      копировать
+                    </button>
+                  </div>
+                ))}
+                {(vacancy.adaptation_advice?.do_not_invent || []).length > 0 ? (
+                  <p className="text-[12px] leading-5 text-amber-200/80">
+                    не выдумывать: {(vacancy.adaptation_advice?.do_not_invent || []).join("; ")}
+                  </p>
+                ) : null}
+              </div>
+            ) : adaptSuggestions.length ? (
+              <div className="space-y-3">
+                {(vacancy.adaptation_advice?.missing_skills || []).length > 0 ? (
+                  <p className="text-[13px] text-muted">
+                    нет в резюме: {(vacancy.adaptation_advice?.missing_skills || []).join(", ")}
+                  </p>
+                ) : null}
+                <ul className="space-y-3">
+                  {adaptSuggestions.map((item, index) => (
+                    <li key={`${item.section}-${index}`} className="rounded-2xl border border-line px-3 py-3">
+                      <p className="text-[11px] text-muted">{item.section}</p>
+                      <p className="mt-1 text-[14px] leading-5">{item.change}</p>
+                      {item.why ? <p className="mt-1 text-[12px] text-muted">{item.why}</p> : null}
+                      <button
+                        type="button"
+                        className="mt-2 text-[12px] text-accent"
+                        onClick={() => void navigator.clipboard.writeText(item.change)}
+                      >
+                        копировать
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {(vacancy.adaptation_advice?.do_not_invent || []).length > 0 ? (
+                  <p className="text-[12px] leading-5 text-amber-200/80">
+                    не выдумывать: {(vacancy.adaptation_advice?.do_not_invent || []).join("; ")}
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-[13px] leading-5 text-muted">
+                Формулировки из твоего{" "}
+                <Link href="/resume" className="text-accent hover:underline">
+                  резюме
+                </Link>
+                , без выдуманного опыта.
+              </p>
+            )}
+            <div className="mt-3 flex flex-wrap items-center gap-4">
+            <button
+              type="button"
+              disabled={busy === "adapt"}
+              className="text-[13px] text-accent disabled:opacity-40"
+              onClick={async () => {
+                setBusy("adapt");
+                setError(null);
+                setWroteAdapt(false);
+                try {
+                  const advice = await api.adapt(vacancy.id);
+                  const next = { ...vacancy, adaptation_advice: advice };
+                  setVacancy(next);
+                  onChanged(next);
+                } catch (e) {
+                  setError(e instanceof Error ? e.message : "Не собралось");
+                } finally {
+                  setBusy(null);
+                }
+              }}
+            >
+              {busy === "adapt" ? "думаю…" : vacancy.adaptation_advice ? "обновить" : "подобрать"}
+            </button>
+            {adaptJobs.length > 0 ? (
+              <button
+                type="button"
+                disabled={busy === "apply"}
+                className="text-[13px] text-accent disabled:opacity-40"
+                onClick={async () => {
+                  if (!adaptJobs.length) return;
+                  setBusy("apply");
+                  setError(null);
+                  try {
+                    const profile = await api.profile();
+                    const doc = normalizeResume(
+                      profile.resume_json || { summary: profile.resume_text || "", name: profile.display_name || "" },
+                    );
+                    doc.experience = adaptJobs;
+                    await api.saveProfile({ resume_json: doc });
+                    setWroteAdapt(true);
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "Не записалось");
+                  } finally {
+                    setBusy(null);
+                  }
+                }}
+              >
+                {busy === "apply" ? "пишу…" : wroteAdapt ? "в резюме" : "вписать в резюме"}
+              </button>
+            ) : null}
+            </div>
+          </section>
+          </GuideSpot>
           <section>
             <h3 className="mb-3 text-[12px] text-muted">ссылка на вакансию</h3>
             <input
@@ -834,7 +1024,7 @@ export function VacancyDrawer({
             {pageUrl && (
               <ExternalTextLink
                 href={pageUrl}
-                className="mt-2 flex w-full items-center rounded-[10px] border border-line bg-[#0e1015] px-3 py-2.5 text-[14px]"
+                className="mt-2 flex w-full items-center rounded-[10px] border border-line bg-input px-3 py-2.5 text-[14px]"
               />
             )}
             {extras.length > 0 && (
@@ -843,15 +1033,13 @@ export function VacancyDrawer({
                   const text = src.label || sourceLabel(src.source) || src.source;
                   if (src.source_url) {
                     return (
-                      <a
+                      <ExternalTextLink
                         key={`${src.source}-${src.source_id}`}
                         href={src.source_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="truncate rounded-[10px] border border-line bg-[#0e1015] px-3 py-2.5 text-[14px] text-accent hover:underline"
+                        className="truncate rounded-[10px] border border-line bg-input px-3 py-2.5 text-[14px]"
                       >
                         повтор · {text}
-                      </a>
+                      </ExternalTextLink>
                     );
                   }
                   return <SourceBadge key={`${src.source}-${src.source_id}`} source={src.source} label={`повтор · ${text}`} />;
@@ -859,7 +1047,7 @@ export function VacancyDrawer({
               </div>
             )}
             <p className="mt-6 text-[13px] text-muted">
-              Общие поля охоты
+              Общие поля карточки
               {activeHunt ? ` «${activeHunt.name}»` : ""} можно править в{" "}
               <Link href="/settings?tab=fields" className="text-accent hover:underline">
                 настройках
@@ -867,6 +1055,7 @@ export function VacancyDrawer({
               .
             </p>
           </section>
+          </div>
           )}
 
           {pane === "deal" && (
@@ -875,7 +1064,7 @@ export function VacancyDrawer({
             <section className="space-y-2">
               <GuideSpot id="card.hunts">
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-[12px] text-muted">охоты</h3>
+                  <h3 className="text-[12px] text-muted">направления</h3>
                   <GuideHint id="card.hunts" />
                 </div>
               </GuideSpot>
@@ -889,13 +1078,11 @@ export function VacancyDrawer({
                       type="button"
                       disabled={busy === "hunt" || ref?.matched}
                       onClick={() => void toggleHunt(hunt.id)}
-                      className={`border-b pb-0.5 text-[13px] ${
-                        on ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-                      } disabled:opacity-60`}
-                      title={ref?.matched ? "подошла по тезису этой охоты" : "показать карточку в этой охоте"}
+                      className={`chip${on ? " chip-on" : ""} disabled:opacity-60`}
+                      title={ref?.matched ? "входит в это направление" : "показать карточку в этом направлении"}
                     >
                       {hunt.name}
-                      {ref?.matched ? " · тезис" : ""}
+                      {ref?.matched ? " · подходит" : ""}
                     </button>
                   );
                 })}

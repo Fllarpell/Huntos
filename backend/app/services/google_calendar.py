@@ -517,7 +517,7 @@ async def ensure_hunt_calendar(profile: UserProfile) -> str | None:
             json={
                 "summary": HUNT_CALENDAR_SUMMARY,
                 "description": (
-                    "Скрины, собесы, дедлайн оффера и пинг волны. Не воронка. "
+                    "Скрины, собесы, дедлайн оффера и пинги. Не воронка. "
                     f"{HUNT_CALENDAR_MARKER}"
                 ),
                 "timeZone": settings.google_calendar_timezone,
@@ -878,8 +878,8 @@ async def delete_google_for_event(profile: UserProfile, event: VacancyEvent) -> 
 
 
 def ping_event_title(label: str, count: int) -> str:
-    name = (label or "").strip() or "без тезиса"
-    return f"пинг волны · {name}, {_ru_cards(count)}"
+    name = (label or "").strip() or "без направления"
+    return f"пинг · {name}, {_ru_cards(count)}"
 
 
 def _ru_cards(n: int) -> str:

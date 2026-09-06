@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useHunt } from "@/components/hunt-context";
 import type { CollisionItem, ScraperConfig, Vacancy } from "@/lib/types";
@@ -11,7 +12,8 @@ import { CompanyMark } from "./company-mark";
 import { SearchField } from "./search-field";
 import { ChoiceChips, FilterChips, OverflowFilterChips } from "./filter-chips";
 import { CompanyExcludeInput } from "./company-exclude-input";
-import { moneyLabel } from "@/lib/format";
+import { moneyLabel, normalizeHttpUrl } from "@/lib/format";
+import { onExternalClick } from "@/lib/open-url";
 import { SalaryCorridorBlock } from "./salary-corridor";
 import { RelativeTime } from "./relative-time";
 import { FORMATS, LEVELS } from "@/lib/hirehi-filters";
@@ -21,6 +23,8 @@ import { NextStepBadge } from "./next-step-badge";
 import { CollisionBanner } from "./collision-banner";
 import { CustomFieldChips } from "./custom-field-chips";
 import { HhPulseMark } from "./hh-pulse-mark";
+import Link from "next/link";
+import { PageHead } from "./page-head";
 
 const SORTS = [
   { value: "best", label: "условия" },
@@ -60,6 +64,30 @@ const SORT_HINT: Record<string, string> = {
 
 const NOISE_BITS = new Set(["весь it", "весь it по россии", "все специальности", "все форматы"]);
 
+function inboxSourceLabel(source?: string | null) {
+  return source === "manual" ? "вручную" : sourceLabel(source) || source || "";
+}
+
+function InboxSourceLink({ source, href }: { source?: string | null; href?: string | null }) {
+  const text = inboxSourceLabel(source);
+  if (!text) return null;
+  const link = normalizeHttpUrl(href);
+  if (!link) return <span className="chip">{text}</span>;
+  return (
+    <a
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => onExternalClick(link, e)}
+      title="открыть вакансию"
+      className="chip hover:text-ink"
+    >
+      {text}
+    </a>
+  );
+}
+
 function inboxSearchLabel(name: string, source?: string) {
   const bits = name
     .split(" · ")
@@ -78,18 +106,20 @@ function FilterRow({
   children: ReactNode;
 }) {
   return (
-    <GuideSpot id={id} className="grid grid-cols-[3.75rem_minmax(0,1fr)] items-start gap-x-3 gap-y-1">
-      <span className="inline-flex items-center gap-0.5 pt-0.5 text-[10px] tracking-[0.12em] text-muted uppercase">
+    <GuideSpot id={id} className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+      <span className="inline-flex shrink-0 items-center gap-0.5 text-[12px] text-muted">
         {label}
         <GuideHint id={id} />
       </span>
-      <div className="min-w-0">{children}</div>
+      <div className="min-w-0 flex-1">{children}</div>
     </GuideSpot>
   );
 }
 
 export function InboxBoard() {
-  const { activeHuntId } = useHunt();
+  const { activeHuntId, activeHunt } = useHunt();
+  const router = useRouter();
+  const clipOnce = useRef(false);
   const [items, setItems] = useState<Vacancy[]>([]);
   const [total, setTotal] = useState(0);
   const [focusId, setFocusId] = useState<number | null>(null);
@@ -109,7 +139,10 @@ export function InboxBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [upcoming, setUpcoming] = useState<CollisionItem[]>([]);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [view, setView] = useState<"cards" | "list">("cards");
+  const [clipUrl, setClipUrl] = useState("");
+  const [clipBusy, setClipBusy] = useState(false);
 
   useEffect(() => {
     const id = Number(new URLSearchParams(window.location.search).get("open"));
@@ -117,13 +150,13 @@ export function InboxBoard() {
   }, []);
 
   useEffect(() => {
-    if (!filtersOpen) return;
+    if (!moreOpen) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setFiltersOpen(false);
+      if (e.key === "Escape") setMoreOpen(false);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [filtersOpen]);
+  }, [moreOpen]);
 
   const load = useCallback(async (opts?: { quiet?: boolean }) => {
     try {
@@ -181,6 +214,28 @@ export function InboxBoard() {
   const allChecked = items.length > 0 && items.every((v) => checked.has(v.id));
   const checkedIds = useMemo(() => items.filter((v) => checked.has(v.id)).map((v) => v.id), [items, checked]);
 
+  useEffect(() => {
+    if (clipOnce.current) return;
+    const url = new URLSearchParams(window.location.search).get("clip")?.trim() || "";
+    if (!url) return;
+    clipOnce.current = true;
+    setClipBusy(true);
+    api
+      .clip(url, activeHuntId)
+      .then((out) => {
+        setItems((prev) => [out.vacancy, ...prev.filter((v) => v.id !== out.vacancy.id)]);
+        setTotal((n) => (out.created ? n + 1 : n));
+        setFocusId(out.vacancy.id);
+        setOpenId(out.vacancy.id);
+        setError(null);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : "Ссылка не собралась"))
+      .finally(() => {
+        setClipBusy(false);
+        router.replace("/");
+      });
+  }, [activeHuntId, router]);
+
   const move = useCallback(async (ids: number[], stage: "to_apply" | "trash") => {
     if (!ids.length) return;
     try {
@@ -196,6 +251,25 @@ export function InboxBoard() {
       void load();
     }
   }, [load, activeHuntId]);
+
+  async function addClip() {
+    const url = clipUrl.trim();
+    if (!url) return;
+    setClipBusy(true);
+    try {
+      const out = await api.clip(url, activeHuntId);
+      setClipUrl("");
+      setItems((prev) => [out.vacancy, ...prev.filter((v) => v.id !== out.vacancy.id)]);
+      setTotal((n) => (out.created ? n + 1 : n));
+      setFocusId(out.vacancy.id);
+      setOpenId(out.vacancy.id);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ссылка не собралась");
+    } finally {
+      setClipBusy(false);
+    }
+  }
 
   async function addManual() {
     try {
@@ -340,27 +414,44 @@ export function InboxBoard() {
     setExcludeCompanies([]);
   }
 
-  return (
-    <div className="relative flex h-screen flex-col overflow-hidden">
-      <header className="shrink-0 px-6 pt-4 pb-2">
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <GuideSpot id="inbox.header" className="min-w-0 shrink-0">
-            <div className="flex items-baseline gap-2">
-              <h1 className="text-[20px] font-semibold tracking-tight">Inbox</h1>
-              <GuideHint id="inbox.header" />
-              <p className="text-[12px] text-muted">{loading ? "…" : total}{q ? " по запросу" : ""}</p>
-            </div>
-          </GuideSpot>
+  const gradeCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const v of items) {
+      const g = (v.grade || "").toLowerCase();
+      if (g) map[g] = (map[g] || 0) + 1;
+    }
+    return map;
+  }, [items]);
+  const formatCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const v of items) {
+      const f = v.work_format || "";
+      if (f) map[f] = (map[f] || 0) + 1;
+    }
+    return map;
+  }, [items]);
+  const sourceCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const v of items) {
+      const s = v.source || "";
+      if (s) map[s] = (map[s] || 0) + 1;
+    }
+    return map;
+  }, [items]);
+
+  function renderFilterPanel() {
+    return (
+      <div className="space-y-5">
+        <div>
+          <span className="filter-k">сортировка</span>
           <GuideSpot id="inbox.sort">
-            <div className="flex items-center gap-4 text-[13px]">
+            <div className="flex flex-wrap items-center gap-1.5">
               {SORTS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => setSort(option.value)}
-                  className={`border-b pb-0.5 ${
-                    sort === option.value ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-                  }`}
+                  className={`chip${sort === option.value ? " chip-on" : ""}`}
                   title={SORT_HINT[option.value]}
                 >
                   {option.label}
@@ -369,266 +460,394 @@ export function InboxBoard() {
               <GuideHint id="inbox.sort" />
             </div>
           </GuideSpot>
-          <GuideSpot id="inbox.filters">
-            <span className="inline-flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setFiltersOpen((open) => !open)}
-                className={`text-[13px] ${filterCount || filtersOpen ? "text-accent" : "text-muted hover:text-white"}`}
-              >
-                {filtersOpen ? "закрыть" : "фильтры"}
-                {filterCount ? ` · ${filterCount}` : ""}
-              </button>
-              <GuideHint id="inbox.filters" />
-            </span>
-          </GuideSpot>
-          <GuideSpot id="inbox.search" className="ml-auto flex min-w-[180px] max-w-xs flex-1 items-center gap-1">
-            <SearchField
-              className="min-w-0 flex-1 !py-1"
-              value={q}
-              onChange={setQ}
-              placeholder="go, frontend, компания"
-            />
-            <GuideHint id="inbox.search" />
-          </GuideSpot>
-          <GuideSpot id="inbox.add">
-            <span className="inline-flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => void addManual()}
-                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] text-accent hover:bg-accent/10"
-              >
-                <Plus size={14} />
-                вакансия
-              </button>
-              <GuideHint id="inbox.add" />
-            </span>
-          </GuideSpot>
         </div>
-        {!loading ? (
-          <GuideSpot id="inbox.corridor" className="mt-2 max-w-xl">
-            <SalaryCorridorBlock huntId={activeHuntId} compact />
-          </GuideSpot>
-        ) : null}
-      </header>
-
-      {!filtersOpen && activeChips.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 px-6 pb-2">
-          {activeChips.map((chip) => (
-            <button
-              key={chip.key}
-              type="button"
-              onClick={chip.clear}
-              className="rounded-full border border-accent/40 bg-accent/12 px-2.5 py-0.5 text-[12px] text-accent hover:bg-accent/20"
-            >
-              {chip.label}
-              <span className="ml-1 text-accent/70">×</span>
-            </button>
-          ))}
-          <button type="button" onClick={clearFilters} className="px-1 text-[12px] text-muted hover:text-white">
+        <GuideSpot id="inbox.filters">
+          <div className="space-y-5">
+            <div>
+              <span className="filter-k">грейд</span>
+              <FilterChips options={LEVELS} value={grades} onChange={setGrades} variant="chip" counts={gradeCounts} />
+            </div>
+            <div>
+              <span className="filter-k">формат</span>
+              <FilterChips options={FORMATS} value={formats} onChange={setFormats} variant="chip" counts={formatCounts} />
+            </div>
+            <div>
+              <span className="filter-k">откуда</span>
+              <FilterChips options={SOURCES} value={sources} onChange={setSources} variant="chip" counts={sourceCounts} />
+            </div>
+            <div>
+              <span className="filter-k">компании</span>
+              <ChoiceChips options={NDA} value={nda} onChange={setNda} variant="chip" />
+            </div>
+            <div>
+              <span className="filter-k">зарплата</span>
+              <ChoiceChips options={SALARY} value={salary} onChange={setSalary} variant="chip" />
+            </div>
+            <GuideHint id="inbox.filters" />
+          </div>
+        </GuideSpot>
+        {searchOptions.length > 0 && (
+          <FilterRow id="inbox.searches" label="поиск">
+            <OverflowFilterChips
+              options={searchOptions}
+              value={searchIds}
+              onChange={setSearchIds}
+              preview={5}
+              searchPlaceholder="авиасейлс, hh…"
+            />
+          </FilterRow>
+        )}
+        <FilterRow id="inbox.except" label="кроме">
+          <div className="rounded-full border border-line bg-input px-3 py-1">
+            <CompanyExcludeInput value={excludeCompanies} onChange={setExcludeCompanies} />
+          </div>
+        </FilterRow>
+        {filterCount > 0 && (
+          <button type="button" onClick={clearFilters} className="text-[12px] text-muted hover:text-ink">
             сбросить
           </button>
-        </div>
-      )}
-
-      <CollisionBanner items={upcoming} onOpen={setOpenId} />
-
-      {error && (
-        <p className="mx-6 mb-2 rounded-xl border border-rose-400/20 bg-rose-400/8 px-4 py-2 text-sm text-rose-100">
-          {error}
-        </p>
-      )}
-
-      <div className="relative min-h-0 flex-1">
-        {filtersOpen && (
-          <button
-            type="button"
-            aria-label="закрыть фильтры"
-            onClick={() => setFiltersOpen(false)}
-            className="absolute inset-0 z-10 bg-black/25"
-          />
         )}
-        {filtersOpen && (
-          <section className="absolute inset-x-0 top-0 z-20 max-h-[min(42vh,320px)] space-y-2 overflow-y-auto border-b border-line bg-[#12141b] px-6 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
-            {filterCount > 0 ? (
-              <div className="flex justify-end">
-                <button type="button" onClick={clearFilters} className="text-[12px] text-muted hover:text-white">
-                  сбросить все
-                </button>
-              </div>
-            ) : null}
-            <FilterRow id="inbox.grade" label="Грейд">
-              <FilterChips options={LEVELS} value={grades} onChange={setGrades} variant="chip" />
-            </FilterRow>
-            <FilterRow id="inbox.format" label="Формат">
-              <FilterChips options={FORMATS} value={formats} onChange={setFormats} variant="chip" />
-            </FilterRow>
-            <GuideSpot id="inbox.more" className="space-y-2">
-              <div className="grid grid-cols-[3.75rem_minmax(0,1fr)] items-start gap-x-3">
-                <span className="inline-flex items-center gap-0.5 pt-0.5 text-[10px] tracking-[0.12em] text-muted uppercase">
-                  Компании
-                  <GuideHint id="inbox.more" />
-                </span>
-                <ChoiceChips options={NDA} value={nda} onChange={setNda} variant="chip" />
-              </div>
-              <div className="grid grid-cols-[3.75rem_minmax(0,1fr)] items-start gap-x-3">
-                <span className="pt-0.5 text-[10px] tracking-[0.12em] text-muted uppercase">Зарплата</span>
-                <ChoiceChips options={SALARY} value={salary} onChange={setSalary} variant="chip" />
-              </div>
-              <div className="grid grid-cols-[3.75rem_minmax(0,1fr)] items-start gap-x-3">
-                <span className="pt-0.5 text-[10px] tracking-[0.12em] text-muted uppercase">Откуда</span>
-                <FilterChips options={SOURCES} value={sources} onChange={setSources} variant="chip" />
-              </div>
-            </GuideSpot>
-            {searchOptions.length > 0 && (
-              <FilterRow id="inbox.searches" label="Поиск">
-                <OverflowFilterChips
-                  options={searchOptions}
-                  value={searchIds}
-                  onChange={setSearchIds}
-                  preview={6}
-                  searchPlaceholder="авиасейлс, hh…"
-                />
-              </FilterRow>
-            )}
-            <FilterRow id="inbox.stack" label="Стек">
-              <OverflowFilterChips options={SEARCH_STACK} value={stacks} onChange={setStacks} preview={8} />
-            </FilterRow>
-            <FilterRow id="inbox.except" label="Кроме">
-              <div className="max-w-md rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">
-                <CompanyExcludeInput value={excludeCompanies} onChange={setExcludeCompanies} />
-              </div>
-            </FilterRow>
-          </section>
+        {!loading && (
+          <GuideSpot id="inbox.corridor">
+            <SalaryCorridorBlock huntId={activeHuntId} compact />
+          </GuideSpot>
         )}
+      </div>
+    );
+  }
 
-      <div className="h-full overflow-y-auto border-t border-line pb-28">
-        <GuideSpot id="inbox.list" className="min-h-full">
-        {loading ? (
-          <p className="px-7 py-10 text-[13px] text-muted">Загрузка…</p>
-        ) : items.length === 0 ? (
-          <div className="px-7 py-16">
-            <p className="text-[22px] font-medium tracking-tight">
-              {total === 0 && filtersIdle ? "Пока пусто" : "Ничего не нашлось"}
-            </p>
-            <p className="mt-3 max-w-md text-[14px] leading-6 text-muted">
-              {total === 0 && filtersIdle
-                ? "Запусти поиск в Настройках — вакансии появятся сюда."
-                : "Сними часть фильтров или измени сортировку."}
-            </p>
-          </div>
-        ) : (
-          <div>
-            <div className="flex items-center gap-3 px-7 py-2 text-[11px] tracking-[0.08em] text-muted uppercase">
-              <input
-                type="checkbox"
-                checked={allChecked}
-                onChange={() => {
-                  if (allChecked) setChecked(new Set());
-                  else setChecked(new Set(items.map((v) => v.id)));
-                }}
-                className="h-4 w-4"
-              />
-              <span className="w-[200px]">Компания</span>
-              <span className="flex-1">Роль</span>
-              <span className="w-[132px] text-right">Условия</span>
-            </div>
-            {items.map((v) => {
-              const money = moneyLabel(v);
-              const focused = v.id === focusId;
-              const isChecked = checked.has(v.id);
-              const extras = extraSourcesLine(v);
-              const meta = [v.grade, v.work_format].filter(Boolean).join(" · ");
-              return (
-                <article
-                  key={v.id}
-                  onClick={() => {
-                    setFocusId(v.id);
-                    setOpenId(v.id);
+  return (
+    <div className="relative flex h-full flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="shrink-0 space-y-4 px-5 pt-5 pb-3 md:px-7">
+            <GuideSpot id="inbox.header">
+              <PageHead
+                title="inbox"
+                count={
+                  loading
+                    ? "…"
+                    : activeHunt
+                      ? `${total} · ${activeHunt.name}`
+                      : total
+                }
+                hint={<GuideHint id="inbox.header" />}
+              >
+                <GuideSpot id="inbox.add">
+                  <span className="inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => void addManual()}
+                      className="inline-flex items-center gap-1.5 text-[13px] text-accent hover:opacity-80"
+                    >
+                      <Plus size={14} />
+                      вакансия
+                    </button>
+                    <GuideHint id="inbox.add" />
+                  </span>
+                </GuideSpot>
+                <form
+                  className="flex min-w-0 max-w-[280px] items-center"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void addClip();
                   }}
-                  className={`group flex cursor-pointer items-center gap-3 border-l-2 px-7 py-3.5 ${
-                    focused ? "border-accent bg-white/[0.03]" : "border-transparent hover:bg-white/[0.02]"
-                  } ${isChecked ? "bg-accent/[0.04]" : ""}`}
                 >
                   <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => toggleCheck(v.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="h-4 w-4 shrink-0 opacity-40 group-hover:opacity-100 checked:opacity-100"
+                    value={clipUrl}
+                    onChange={(e) => setClipUrl(e.target.value)}
+                    placeholder="вставь ссылку"
+                    disabled={clipBusy}
+                    className="w-full bg-transparent py-1 text-[13px] text-ink outline-none placeholder:text-muted"
                   />
-                  <CompanyMark vacancy={v} size={32} />
-                  <div className="min-w-0 w-[200px] shrink-0">
-                    <p className="truncate text-[15px] font-medium">{v.company || "без компании"}</p>
-                    <p className="truncate text-[12px] text-muted">
-                      <RelativeTime iso={v.published_at} />
-                    </p>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <h2 className="truncate text-[15px] font-normal leading-5">{v.title}</h2>
-                      <NextStepBadge
-                        at={v.next_step_at}
-                        kind={v.next_step_kind}
-                        collide={(v.collision_peers ?? 0) > 1}
-                        hint={v.collision_hint}
+                </form>
+                {activeHuntId ? (
+                  <Link href="/thesis?write=1" className="text-[13px] text-accent hover:opacity-80">
+                    написать сегодня
+                  </Link>
+                ) : (
+                  <Link href="/thesis" className="text-[13px] text-muted hover:text-ink">
+                    направления
+                  </Link>
+                )}
+              </PageHead>
+            </GuideSpot>
+            <div className="flex flex-wrap items-center gap-2">
+              <GuideSpot id="inbox.search" className="min-w-[200px] max-w-xl flex-1">
+                <SearchField
+                  className="w-full !py-2"
+                  value={q}
+                  onChange={setQ}
+                  placeholder="роль, компания, стек"
+                />
+                <GuideHint id="inbox.search" />
+              </GuideSpot>
+              <button type="button" onClick={() => setView("cards")} className={`chip${view === "cards" ? " chip-on" : ""}`}>
+                плитка
+              </button>
+              <button type="button" onClick={() => setView("list")} className={`chip${view === "list" ? " chip-on" : ""}`}>
+                список
+              </button>
+              <button
+                type="button"
+                onClick={() => setMoreOpen((open) => !open)}
+                className={`chip lg:hidden${moreOpen || filterCount ? " chip-on" : ""}`}
+              >
+                фильтры
+                {filterCount ? <span className="chip-count">{filterCount}</span> : null}
+              </button>
+            </div>
+            <FilterRow id="inbox.stack" label="стек">
+              <OverflowFilterChips options={SEARCH_STACK} value={stacks} onChange={setStacks} preview={10} />
+            </FilterRow>
+            {moreOpen && (
+              <section className="lg:hidden">
+                {renderFilterPanel()}
+              </section>
+            )}
+            {!moreOpen && activeChips.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                {activeChips.map((chip) => (
+                  <button key={chip.key} type="button" onClick={chip.clear} className="chip chip-on">
+                    {chip.label}
+                    <span className="opacity-60">×</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </header>
+
+          <CollisionBanner items={upcoming} onOpen={setOpenId} />
+
+          {error && (
+            <p className="mx-5 mb-2 rounded-lg border border-rose-400/20 bg-rose-400/8 px-4 py-2 text-sm text-rose-100 md:mx-7">
+              {error}
+            </p>
+          )}
+
+          <div className="min-h-0 flex-1 overflow-y-auto pb-28">
+            <GuideSpot id="inbox.list" className="min-h-full">
+              {loading ? (
+                <p className="px-5 py-10 text-[13px] text-muted md:px-7">Загрузка…</p>
+              ) : items.length === 0 ? (
+                <div className="px-5 py-16 md:px-7">
+                  <p className="page-title text-[24px]">
+                    {total === 0 && filtersIdle ? "пока пусто" : "ничего не нашлось"}
+                  </p>
+                  <p className="mt-2 max-w-md text-[14px] leading-6 text-muted">
+                    {total === 0 && filtersIdle ? (
+                      <>
+                        Запусти поиск в{" "}
+                        <a href="/settings" className="text-accent hover:opacity-80">
+                          настройках
+                        </a>{" "}
+                        — вакансии появятся сюда.
+                      </>
+                    ) : (
+                      "Сними часть фильтров или измени сортировку."
+                    )}
+                  </p>
+                </div>
+              ) : view === "cards" ? (
+                <div className="grid grid-cols-1 gap-3 px-5 pb-6 md:px-7 xl:grid-cols-2">
+                  {items.map((v) => {
+                    const money = moneyLabel(v);
+                    const focused = v.id === focusId;
+                    const isChecked = checked.has(v.id);
+                    return (
+                      <article
+                        key={v.id}
+                        onClick={() => {
+                          setFocusId(v.id);
+                          setOpenId(v.id);
+                        }}
+                        data-active={focused ? "true" : undefined}
+                        className={`vac-card group cursor-pointer ${isChecked ? "border-accent/40" : ""}`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <CompanyMark vacancy={v} size={28} />
+                          <p className="min-w-0 flex-1 truncate text-[13px] text-muted">{v.company || "без компании"}</p>
+                          <span className="shrink-0 text-[12px] text-muted">
+                            <RelativeTime iso={v.published_at} />
+                          </span>
+                        </div>
+                        <div className="mt-2.5 flex items-start gap-2">
+                          <h2 className="min-w-0 flex-1 text-[16px] font-semibold leading-5 tracking-tight">
+                            {v.title}
+                          </h2>
+                          <NextStepBadge
+                            at={v.next_step_at}
+                            kind={v.next_step_kind}
+                            collide={(v.collision_peers ?? 0) > 1}
+                            hint={v.collision_hint}
+                          />
+                          <HhPulseMark pulse={v.hh_pulse} className="text-[11px]" />
+                        </div>
+                        <p className={`mt-1.5 tabular-nums text-[13px] ${money.known ? "text-ink" : "text-muted"}`}>
+                          {money.text}
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                          {v.grade ? <span className="chip">{v.grade}</span> : null}
+                          {v.work_format ? <span className="chip">{v.work_format}</span> : null}
+                          {v.source ? <InboxSourceLink source={v.source} href={v.source_url} /> : null}
+                        </div>
+                        <CustomFieldChips bits={v.custom_bits} className="mt-2" />
+                        <div className="mt-3 flex gap-3 opacity-0 transition group-hover:opacity-100">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void move([v.id], "to_apply");
+                            }}
+                            className="text-[12px] text-accent"
+                          >
+                            воронка
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void move([v.id], "trash");
+                            }}
+                            className="text-[12px] text-muted hover:text-ink"
+                          >
+                            мусор
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div>
+                  {checkedIds.length > 0 && (
+                    <div className="flex items-center gap-3 px-5 py-2 text-[12px] text-muted md:px-7">
+                      <input
+                        type="checkbox"
+                        checked={allChecked}
+                        onChange={() => {
+                          if (allChecked) setChecked(new Set());
+                          else setChecked(new Set(items.map((v) => v.id)));
+                        }}
+                        className="h-4 w-4"
                       />
-                      <HhPulseMark pulse={v.hh_pulse} className="text-[11px]" />
+                      <span>{checkedIds.length} выбрано</span>
                     </div>
-                    <p className="mt-0.5 truncate text-[12px] text-muted">
-                      {meta || "без грейда"}
-                      {v.source ? ` · ${v.source === "manual" ? "вручную" : sourceLabel(v.source) || v.source}` : ""}
-                      {v.searches?.length
-                        ? ` · ${v.searches.map((item) => item.name).filter(Boolean).slice(0, 2).join(" · ")}`
-                        : ""}
-                      {extras ? ` · ${extras}` : ""}
-                    </p>
-                    <CustomFieldChips bits={v.custom_bits} className="mt-1" />
-                  </div>
-                  <div className="w-[132px] shrink-0 text-right">
-                    <p className={`tabular-nums text-[14px] ${money.known ? "text-white/90" : "text-muted"}`}>
-                      {money.text}
-                    </p>
-                    <div className="mt-1.5 flex justify-end gap-3 opacity-0 transition group-hover:opacity-100">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void move([v.id], "to_apply");
+                  )}
+                  {items.map((v) => {
+                    const money = moneyLabel(v);
+                    const focused = v.id === focusId;
+                    const isChecked = checked.has(v.id);
+                    const extras = extraSourcesLine(v);
+                    const meta = [v.company || "без компании", v.grade, v.work_format].filter(Boolean).join(" · ");
+                    const showCheck = isChecked || checkedIds.length > 0;
+                    return (
+                      <article
+                        key={v.id}
+                        onClick={() => {
+                          setFocusId(v.id);
+                          setOpenId(v.id);
                         }}
-                        className="text-[12px] text-accent"
+                        data-active={focused ? "true" : undefined}
+                        className={`row group flex cursor-pointer items-center gap-3 px-5 py-2.5 md:px-7 ${
+                          isChecked ? "bg-accent/[0.05]" : ""
+                        }`}
                       >
-                        воронка
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void move([v.id], "trash");
-                        }}
-                        className="text-[12px] text-muted hover:text-white"
-                      >
-                        мусор
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleCheck(v.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`h-4 w-4 shrink-0 ${showCheck ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                        />
+                        <CompanyMark vacancy={v} size={28} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <h2 className="truncate text-[15px] font-medium leading-5">{v.title}</h2>
+                            <NextStepBadge
+                              at={v.next_step_at}
+                              kind={v.next_step_kind}
+                              collide={(v.collision_peers ?? 0) > 1}
+                              hint={v.collision_hint}
+                            />
+                            <HhPulseMark pulse={v.hh_pulse} className="text-[11px]" />
+                          </div>
+                          <p className="mt-0.5 truncate text-[12px] text-muted">
+                            {meta}
+                            {v.source ? (
+                              <>
+                                {" · "}
+                                {normalizeHttpUrl(v.source_url) ? (
+                                  <a
+                                    href={normalizeHttpUrl(v.source_url) || ""}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => onExternalClick(normalizeHttpUrl(v.source_url) || "", e)}
+                                    className="text-accent hover:underline"
+                                  >
+                                    {inboxSourceLabel(v.source)}
+                                  </a>
+                                ) : (
+                                  inboxSourceLabel(v.source)
+                                )}
+                              </>
+                            ) : null}
+                            {v.searches?.length
+                              ? ` · ${v.searches.map((item) => item.name).filter(Boolean).slice(0, 2).join(" · ")}`
+                              : ""}
+                            {extras ? ` · ${extras}` : ""}
+                            {" · "}
+                            <RelativeTime iso={v.published_at} />
+                          </p>
+                          <CustomFieldChips bits={v.custom_bits} className="mt-1" />
+                        </div>
+                        <div className="w-[120px] shrink-0 text-right">
+                          <p className={`tabular-nums text-[14px] ${money.known ? "text-ink" : "text-muted"}`}>
+                            {money.text}
+                          </p>
+                          <div className="mt-1 flex justify-end gap-3 opacity-0 transition group-hover:opacity-100">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void move([v.id], "to_apply");
+                              }}
+                              className="text-[12px] text-accent"
+                            >
+                              воронка
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void move([v.id], "trash");
+                              }}
+                              className="text-[12px] text-muted hover:text-ink"
+                            >
+                              мусор
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </GuideSpot>
           </div>
-        )}
-        </GuideSpot>
-      </div>
+        </div>
+        <aside className="filter-rail hidden shrink-0 overflow-y-auto border-l border-line px-4 py-5 lg:block">
+          {renderFilterPanel()}
+        </aside>
       </div>
 
       {checkedIds.length > 0 && (
-        <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-4 rounded-full border border-line bg-bg-soft/95 px-5 py-2.5 text-[13px] shadow-2xl backdrop-blur">
+        <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-4 rounded-full border border-line bg-card/95 px-5 py-2.5 text-[13px] shadow-2xl backdrop-blur">
           <span className="text-muted">{checkedIds.length} выбрано</span>
           <button onClick={() => void move(checkedIds, "to_apply")} className="text-accent">
             В воронку
           </button>
-          <button onClick={() => void move(checkedIds, "trash")} className="text-muted hover:text-white">
+          <button onClick={() => void move(checkedIds, "trash")} className="text-muted hover:text-ink">
             Мусор
           </button>
-          <button onClick={() => setChecked(new Set())} className="text-muted hover:text-white">
+          <button onClick={() => setChecked(new Set())} className="text-muted hover:text-ink">
             Снять
           </button>
         </div>

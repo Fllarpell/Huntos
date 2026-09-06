@@ -63,6 +63,20 @@ export type Vacancy = {
     missing_skills?: string[];
     suggestions?: { section: string; change: string; why: string }[];
     do_not_invent?: string[];
+    experience?: {
+      company: string;
+      title: string;
+      period: string;
+      context: string;
+      bullets: { text: string; children: string[] }[];
+    }[];
+    previous_experience?: {
+      company: string;
+      title: string;
+      period: string;
+      context: string;
+      bullets: { text: string; children: string[] }[];
+    }[];
   } | null;
   cover_letter: string | null;
   notes: string | null;
@@ -233,6 +247,9 @@ export type Profile = {
   display_name: string | null;
   resume_text: string | null;
   resume_filename: string | null;
+  resume_json?: Record<string, unknown> | null;
+  resume_public?: boolean;
+  resume_share_id?: string | null;
   llm_provider: string;
   llm_model: string;
   openai_api_key_set: boolean;

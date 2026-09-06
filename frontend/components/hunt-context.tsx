@@ -44,7 +44,7 @@ export function HuntProvider({ children }: { children: React.ReactNode }) {
 
   const createHunt = useCallback(
     async (name: string) => {
-      const saved = await api.saveThesis({ name: name.trim() || "Охота", enabled: true });
+      const saved = await api.saveThesis({ name: name.trim() || "Направление", enabled: true });
       await api.setActiveHunt(saved.id);
       await refresh();
       return {

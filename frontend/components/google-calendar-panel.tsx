@@ -113,7 +113,7 @@ export function GoogleCalendarPanel() {
           {isHost && (
             <button
               disabled={busy || (!clientId.trim() && !clientSecret.trim())}
-              className="text-muted hover:text-white disabled:opacity-40"
+              className="text-muted hover:text-ink disabled:opacity-40"
               onClick={() =>
                 void wrap(async () => {
                   const saved = await api.saveProfile(
@@ -153,7 +153,7 @@ export function GoogleCalendarPanel() {
                   </button>
                   <button
                     disabled={busy}
-                    className="text-muted hover:text-white"
+                    className="text-muted hover:text-ink"
                     onClick={() =>
                       void wrap(async () => {
                         const { url } = await api.googleConnect();

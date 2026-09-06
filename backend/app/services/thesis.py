@@ -71,9 +71,9 @@ def evaluate(thesis: HuntThesis, rows: list[Vacancy]) -> dict:
 
     if sample == 0:
         verdict, reason = (
-            ("dead", "Выборка пустая — в inbox и воронке нет вакансий сегмента")
+            ("dead", "В inbox и воронке нет вакансий по этому направлению")
             if age_days >= min(window, 5)
-            else ("weak", "Пока нет вакансий в inbox, рано хоронить тезис")
+            else ("weak", "Пока нет вакансий в inbox — рано судить")
         )
     elif sample < min_sample:
         verdict, reason = (
@@ -82,21 +82,21 @@ def evaluate(thesis: HuntThesis, rows: list[Vacancy]) -> dict:
             else ("weak", f"Пока {sample} вакансий из {min_sample}, в inbox {inbox_n}. Окно ещё идёт.")
         )
     elif median is not None and median < bar:
-        verdict, reason = "dead", f"Медианный match {median} ниже порога {bar} — сегмент не твой"
+        verdict, reason = "dead", f"Типичное совпадение с резюме {median} ниже порога {bar} — направление, скорее, не твоё"
     elif outreach >= 5 and replies == 0 and inbox_alive:
         verdict, reason = (
             "weak",
-            f"{outreach} касаний без ответа, но в inbox ещё {inbox_n} — рынок живой, молчит канал",
+            f"{outreach} писем без ответа, но в inbox ещё {inbox_n} — вакансии есть, молчат люди",
         )
     elif outreach >= 5 and replies == 0:
-        verdict, reason = "dead", f"{outreach} касаний без ответа, inbox пуст. Канал или тезис не работают"
+        verdict, reason = "dead", f"{outreach} писем без ответа, inbox пуст. Направление или канал не работают"
     elif outreach >= 2 and replies == 0:
         extra = f", в inbox {inbox_n}" if inbox_n else ""
-        verdict, reason = "weak", f"{outreach} касаний, ответов нет{extra}. Ещё рано, но сигнал плохой"
+        verdict, reason = "weak", f"{outreach} писем, ответов нет{extra}. Ещё рано, но сигнал плохой"
     elif inbox_n and outreach == 0:
-        verdict, reason = "alive", f"Сегмент живой: в inbox {inbox_n} вакансий, match не просел"
+        verdict, reason = "alive", f"Есть вакансии: в inbox {inbox_n}, совпадение с резюме в норме"
     else:
-        verdict, reason = "alive", f"Сегмент живой: inbox {inbox_n}, воронка {outreach}, match не просел"
+        verdict, reason = "alive", f"Есть вакансии: inbox {inbox_n}, в воронке {outreach}, совпадение в норме"
 
     return {
         "verdict": verdict,

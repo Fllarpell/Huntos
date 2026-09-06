@@ -52,7 +52,7 @@ async def ensure_ping_slots(session: AsyncSession, user: User, groups: list[dict
         scope = ping_scope(thesis_id)
         seen.add(scope)
         items: list[Vacancy] = group["items"]
-        label = (group.get("thesis_name") or "").strip() or "без тезиса"
+        label = (group.get("thesis_name") or "").strip() or "без направления"
         row = by_scope.get(scope)
         if row is None:
             row = PingSlot(

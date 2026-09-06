@@ -384,14 +384,14 @@ function GuideOverlay({
             </span>
           ) : null}
           {total > 1 && step > 1 ? (
-            <button type="button" className="text-[13px] text-muted hover:text-white" onClick={onPrev}>
+            <button type="button" className="text-[13px] text-muted hover:text-ink" onClick={onPrev}>
               Назад
             </button>
           ) : null}
           <button type="button" className="text-[13px] text-accent" onClick={onNext}>
             {last ? "Понятно" : "Дальше"}
           </button>
-          <button type="button" className="ml-auto text-[12px] text-muted hover:text-white" onClick={onClose}>
+          <button type="button" className="ml-auto text-[12px] text-muted hover:text-ink" onClick={onClose}>
             Закрыть
           </button>
         </div>

@@ -163,8 +163,17 @@ def migrate_schema(sync_conn) -> None:  # noqa: ANN001
         _add_column(sync_conn, "user_profiles", "google_pulled_at DATETIME")
         _add_column(sync_conn, "user_profiles", "custom_fields JSON")
         _add_column(sync_conn, "user_profiles", "active_hunt_id INTEGER")
+        _add_column(sync_conn, "user_profiles", "resume_json JSON")
+        _add_column(sync_conn, "user_profiles", "resume_public BOOLEAN NOT NULL DEFAULT 0")
+        _add_column(sync_conn, "user_profiles", "resume_share_id VARCHAR(32)")
         sync_conn.execute(
             text("CREATE UNIQUE INDEX IF NOT EXISTS uq_user_profiles_user_id ON user_profiles (user_id)")
+        )
+        sync_conn.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS uq_user_profiles_resume_share_id "
+                "ON user_profiles (resume_share_id)"
+            )
         )
 
     inspector = inspect(sync_conn)

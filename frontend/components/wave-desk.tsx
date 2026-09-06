@@ -101,13 +101,13 @@ export function WaveDesk({
     <section className="rounded-2xl border border-accent/25 bg-accent/5 p-5 space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[12px] tracking-[0.14em] text-accent uppercase">Волна</p>
+          <p className="text-[12px] text-accent">Написать сегодня</p>
           <h2 className="mt-1 text-[18px] font-medium">{thesis.name}</h2>
           <p className="mt-1 text-sm leading-5 text-muted">
-            Пачка из Inbox. Скопируй черновик и напиши сам. «Написал» сдвинет карточки в «жду ответа». В одной волне до {packMax}.
+            Выбери вакансии из inbox, скопируй черновик, напиши сам. «Написал» унесёт их в «жду ответа». За раз до {packMax}.
           </p>
         </div>
-        <button type="button" className="text-sm text-muted hover:text-white" onClick={onClose}>
+        <button type="button" className="text-sm text-muted hover:text-ink" onClick={onClose}>
           Закрыть
         </button>
       </div>
@@ -116,11 +116,11 @@ export function WaveDesk({
       {!pack ? (
         <p className="text-sm text-muted">Собираю inbox…</p>
       ) : pack.inbox_total === 0 ? (
-        <p className="text-sm text-muted">В Inbox нет вакансий под этот тезис.</p>
+        <p className="text-sm text-muted">В inbox нет вакансий под это направление.</p>
       ) : (
         <>
           <p className="text-sm text-muted">
-            в inbox {pack.inbox_total} · в пачке {selected.length} из {packMax}
+            в inbox {pack.inbox_total} · выбрано {selected.length} из {packMax}
             {pack.items.length < pack.inbox_total ? ` · на экране ${pack.items.length}` : ""}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -135,7 +135,7 @@ export function WaveDesk({
             <button
               type="button"
               disabled={Boolean(busy) || !selected.length}
-              className="rounded-xl bg-white/8 px-4 py-2 text-sm disabled:opacity-40"
+              className="rounded-xl bg-fill-strong px-4 py-2 text-sm disabled:opacity-40"
               onClick={() => void wroteSelected()}
             >
               {busy === "wrote" ? "Отмечаю…" : `Написал выбранные · ${selected.length}`}
@@ -166,7 +166,7 @@ export function WaveDesk({
                             <p className="truncate text-[15px] font-medium">{v.company || "без компании"}</p>
                             <MatchBadge score={v.match_score} status={v.scoring_status} size="sm" />
                           </div>
-                          <p className="truncate text-[13px] text-white/80">{v.title}</p>
+                          <p className="truncate text-[13px] text-ink">{v.title}</p>
                         </button>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px]">
                         {chat ? (
@@ -188,7 +188,7 @@ export function WaveDesk({
                       {v.telegram_message && (
                         <button
                           type="button"
-                          className="rounded-lg bg-white/8 px-2 py-1 text-[11px]"
+                          className="rounded-lg bg-fill-strong px-2 py-1 text-[11px]"
                           onClick={() => void navigator.clipboard.writeText(v.telegram_message || "")}
                         >
                           Копировать
@@ -197,7 +197,7 @@ export function WaveDesk({
                       {v.telegram_message && (
                         <button
                           type="button"
-                          className="rounded-lg px-2 py-1 text-[11px] text-muted hover:text-white"
+                          className="rounded-lg px-2 py-1 text-[11px] text-muted hover:text-ink"
                           onClick={() => setOpenId(expanded ? null : v.id)}
                         >
                           {expanded ? "скрыть" : "текст"}
@@ -206,7 +206,7 @@ export function WaveDesk({
                     </div>
                   </div>
                   {expanded && v.telegram_message && (
-                    <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-black/20 px-3 py-2 font-sans text-[13px] leading-6 text-white/85">
+                    <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-black/20 px-3 py-2 font-sans text-[13px] leading-6 text-ink">
                       {v.telegram_message}
                     </pre>
                   )}

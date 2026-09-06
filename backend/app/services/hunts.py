@@ -112,7 +112,7 @@ def vacancy_matches(thesis: HuntThesis, vacancy: Vacancy, *, window: bool = Fals
 async def hunt_for_user(session: AsyncSession, user: User, hunt_id: int) -> HuntThesis:
     row = await session.get(HuntThesis, hunt_id)
     if row is None or row.user_id != user.id:
-        raise HTTPException(404, "Охота не найдена")
+        raise HTTPException(404, "Направление не найдено")
     return row
 
 

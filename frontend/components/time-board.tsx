@@ -10,6 +10,7 @@ import type { CalendarBoard } from "@/lib/types";
 import { VacancyDrawer } from "./vacancy-drawer";
 import { TimedGrid, type GridBlock } from "./timed-grid";
 import { clockMinutes, defaultMinutes, hmRange, pad2, PING_MINUTES } from "@/lib/schedule";
+import { PageHead } from "./page-head";
 
 const DOW = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"];
 const MONTHS = [
@@ -89,7 +90,7 @@ function chipClass(chip: Chip) {
   if (chip.kind === "offer_deadline" || chip.kind === "assignment") {
     return "border-accent/25 bg-accent/12 text-accent";
   }
-  return "border-line bg-white/6 text-ink hover:bg-white/8";
+  return "border-line bg-fill-strong text-ink hover:bg-fill-strong";
 }
 
 export function TimeBoard() {
@@ -149,7 +150,7 @@ export function TimeBoard() {
         startMin: start,
         endMin: start + PING_MINUTES,
         range: hmRange(slot.ping_at || "", endIso(slot.ping_at || "", PING_MINUTES)),
-        title: `пинг волны · ${slot.label}`,
+        title: `пинг · ${slot.label}`,
         sub: `${slot.card_count} карточек`,
         kind: "ping",
         collision: false,
@@ -201,17 +202,13 @@ export function TimeBoard() {
   const inMonth = startOfMonth(cursor).slice(0, 7);
 
   return (
-    <div className="flex h-screen min-h-0 flex-col overflow-hidden">
-      <header className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-3 px-7 pt-6 pb-3">
-        <GuideSpot id="time.header" className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h1 className="text-[22px] font-semibold tracking-tight">Время</h1>
-            <GuideHint id="time.header" />
-          </div>
-          <p className="mt-0.5 text-[12px] capitalize text-muted">{heading}</p>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <header className="flex shrink-0 flex-wrap items-end gap-x-6 gap-y-3 px-7 pt-5 pb-3">
+        <GuideSpot id="time.header" className="min-w-0 flex-1">
+          <PageHead title="время" count={heading} hint={<GuideHint id="time.header" />} />
         </GuideSpot>
         <GuideSpot id="time.range">
-          <div className="flex items-center gap-5 text-[13px]">
+          <div className="flex items-center gap-1.5">
             {(
               [
                 ["day", "день"],
@@ -222,9 +219,7 @@ export function TimeBoard() {
               <button
                 key={id}
                 type="button"
-                className={`border-b pb-0.5 ${
-                  range === id ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-                }`}
+                className={`chip${range === id ? " chip-on" : ""}`}
                 onClick={() => setRange(id)}
               >
                 {label}
@@ -235,15 +230,15 @@ export function TimeBoard() {
         </GuideSpot>
         <div className="ml-auto flex items-center gap-1">
           <GuideHint id="time.grid" />
-          <button type="button" className="rounded-full p-1.5 text-muted hover:bg-white/6 hover:text-white" onClick={() => shift(-1)}>
+          <button type="button" className="rounded-full p-1.5 text-muted hover:bg-fill hover:text-ink" onClick={() => shift(-1)}>
             <ChevronLeft size={16} />
           </button>
-          <button type="button" className="rounded-full p-1.5 text-muted hover:bg-white/6 hover:text-white" onClick={() => shift(1)}>
+          <button type="button" className="rounded-full p-1.5 text-muted hover:bg-fill hover:text-ink" onClick={() => shift(1)}>
             <ChevronRight size={16} />
           </button>
           <button
             type="button"
-            className="ml-1 rounded-full px-3 py-1.5 text-[13px] text-muted hover:text-white"
+            className="ml-1 rounded-full px-3 py-1.5 text-[13px] text-muted hover:text-ink"
             onClick={() => setCursor(today)}
           >
             сегодня
@@ -301,7 +296,7 @@ export function TimeBoard() {
                           <button
                             type="button"
                             aria-label="Удалить шаг"
-                            className="absolute right-0.5 top-0.5 rounded p-1 text-muted hover:bg-white/10 hover:text-white"
+                            className="absolute right-0.5 top-0.5 rounded p-1 text-muted hover:bg-fill-strong hover:text-ink"
                             onClick={() => {
                               void api
                                 .deleteEvent(chip.eventId as number)

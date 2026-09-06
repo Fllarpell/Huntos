@@ -1,3 +1,5 @@
+import { onExternalClick } from "@/lib/open-url";
+
 const LABELS: Record<string, string> = {
   hirehi: "HireHi",
   hh: "hh.ru",
@@ -67,15 +69,31 @@ export function extraSourcesLine(v: {
 export function SourceBadge({
   source,
   label,
+  href,
 }: {
   source: string | null | undefined;
   label?: string;
+  href?: string | null;
 }) {
   const text = label || sourceLabel(source);
   if (!text) return null;
-  return (
-    <span className="inline-flex shrink-0 items-center rounded-md bg-white/6 px-1.5 py-0.5 text-[10px] tracking-[0.04em] text-muted uppercase">
+  const mark = (
+    <span className="inline-flex shrink-0 items-center rounded-md bg-fill-strong px-1.5 py-0.5 text-[10px] tracking-[0.04em] text-muted uppercase">
       {text}
     </span>
+  );
+  if (!href) return mark;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => onExternalClick(href, e)}
+      title="открыть вакансию"
+      className="hover:opacity-80"
+    >
+      {mark}
+    </a>
   );
 }

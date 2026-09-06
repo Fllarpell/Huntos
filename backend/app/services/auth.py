@@ -19,6 +19,7 @@ from app.models.user_profile import UserProfile
 from app.models.vacancy import Vacancy
 
 COOKIE_NAME = "hunt_session"
+SESSION_HEADER = "X-Hunt-Session"
 SESSION_DAYS = 30
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -96,7 +97,7 @@ async def create_session(session: AsyncSession, user_id: int) -> str:
 
 
 async def user_from_request(session: AsyncSession, request: Request) -> User | None:
-    token = request.cookies.get(COOKIE_NAME)
+    token = (request.cookies.get(COOKIE_NAME) or request.headers.get(SESSION_HEADER) or "").strip()
     if not token:
         return None
     row = (

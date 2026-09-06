@@ -337,6 +337,22 @@ export const api = {
   deleteEvent: (eventId: number) => request<Vacancy>(`/api/events/${eventId}`, { method: "DELETE" }),
   createVacancy: (payload: VacancyDraft = {}) =>
     request<Vacancy>("/api/vacancies", { method: "POST", body: JSON.stringify(payload) }),
+  clip: (url: string, huntId?: number | null) =>
+    request<{ created: boolean; merged: boolean; vacancy: Vacancy }>("/api/vacancies/clip", {
+      method: "POST",
+      body: JSON.stringify({ url, hunt_id: huntId ?? undefined }),
+    }),
+  onboardingStatus: () =>
+    request<{ has_resume: boolean; inbox_count: number; needed: boolean }>("/api/onboarding/status"),
+  onboardingSeed: () =>
+    request<{
+      has_resume: boolean;
+      seeded: number;
+      inbox_count: number;
+      hunt_id: number | null;
+      stacks: string[];
+      needed: boolean;
+    }>("/api/onboarding/seed", { method: "POST" }),
   patchVacancy: (id: number, payload: VacancyDraft) =>
     request<Vacancy>(`/api/vacancies/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   setStage: (id: number, stage: PipelineStage, position?: number, huntId?: number | null) =>
@@ -358,6 +374,12 @@ export const api = {
   adapt: (id: number) => request<NonNullable<Vacancy["adaptation_advice"]>>(`/api/vacancies/${id}/adapt`, { method: "POST" }),
   coverLetter: (id: number) =>
     request<{ cover_letter: string }>(`/api/vacancies/${id}/cover-letter`, { method: "POST" }),
+  publicCv: (shareId: string, target?: number | null) =>
+    request<{ resume: Record<string, unknown>; adapted: boolean }>(
+      `/api/public/cv/${encodeURIComponent(shareId)}${target ? `?target=${target}` : ""}`,
+      undefined,
+      { authRedirect: false },
+    ),
   bulkStage: (ids: number[], stage: PipelineStage, huntId?: number | null) =>
     request<{ ok: boolean; moved: number }>("/api/vacancies/bulk-stage", {
       method: "POST",
@@ -378,6 +400,7 @@ export const api = {
     payload: Partial<Profile> & {
       openai_api_key?: string;
       resume_text?: string;
+      resume_json?: Record<string, unknown> | null;
       google_client_id?: string;
       google_client_secret?: string;
     },

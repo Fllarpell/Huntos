@@ -11,6 +11,7 @@ import { GuideHint, GuideSpot } from "./guide";
 import { SearchField } from "./search-field";
 import { VacancyDrawer } from "./vacancy-drawer";
 import { useWorkspace } from "@/components/workspace-context";
+import { PageHead } from "./page-head";
 
 const EMPTY = { company: "", company_inn: "", telegram_alias: "", contact_email: "", contact_phone: "" };
 
@@ -94,7 +95,7 @@ function CopyBtn({ value, copied, onCopy }: { value: string; copied: boolean; on
       type="button"
       title="Копировать"
       onClick={() => onCopy(value)}
-      className="rounded-md p-1.5 text-muted opacity-0 transition group-hover/row:opacity-100 hover:bg-white/8 hover:text-white"
+      className="rounded-md p-1.5 text-muted opacity-0 transition group-hover/row:opacity-100 hover:bg-fill-strong hover:text-ink"
     >
       {copied ? <Check size={13} /> : <Copy size={13} />}
     </button>
@@ -119,7 +120,7 @@ function FieldRow({
   const body = (
     <>
       <span className="w-24 shrink-0 text-[12px] text-muted">{label}</span>
-      <span className="min-w-0 flex-1 truncate text-[14px] text-white/90">{value}</span>
+      <span className="min-w-0 flex-1 truncate text-[14px] text-ink">{value}</span>
     </>
   );
   return (
@@ -195,7 +196,7 @@ function PersonDetail({
         </button>
       )}
 
-      <div className="mt-8 divide-y divide-white/[0.06] border-y border-white/[0.06]">
+      <div className="mt-8 divide-y divide-white/[0.06] border-y border-line">
         {handle && (
           <FieldRow
             icon={Send}
@@ -230,7 +231,7 @@ function PersonDetail({
 
       {companies.length > 0 && !org && (
         <section className="mt-10">
-          <p className="text-[11px] tracking-[0.16em] text-muted uppercase">Компания</p>
+          <p className="text-[12px] text-muted">Компания</p>
           <ul className="mt-4 space-y-4">
             {companies.map((company) => (
               <li
@@ -239,7 +240,7 @@ function PersonDetail({
               >
                 <CompanyMark company={company.name} icon={company.company_icon} size={28} />
                 <div className="min-w-0">
-                  <p className={`text-[16px] leading-5 ${isNdaName(company.name) ? "text-white/70" : ""}`}>
+                  <p className={`text-[16px] leading-5 ${isNdaName(company.name) ? "text-muted" : ""}`}>
                     {companyLine(company)}
                   </p>
                   {normalizeInn(company.inn) ? (
@@ -256,10 +257,10 @@ function PersonDetail({
 
       {cards.length > 0 && (
         <section className="mt-10">
-          <p className="text-[11px] tracking-[0.16em] text-muted uppercase">Карточки</p>
+          <p className="text-[12px] text-muted">Карточки</p>
           <ul className="mt-3">
             {cards.map((card) => (
-              <li key={card.id} className="border-b border-white/[0.06] last:border-0">
+              <li key={card.id} className="border-b border-line last:border-0">
                 {allPool ? (
                   <div className="flex w-full items-baseline justify-between gap-4 py-3">
                     <span className="min-w-0 truncate text-[14px]">{card.title}</span>
@@ -396,20 +397,17 @@ export function ContactsBoard() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <header className="flex shrink-0 items-center gap-6 px-7 pt-6 pb-4">
-        <GuideSpot id="contacts.header" className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h1 className="text-[22px] font-semibold tracking-tight">Контакты</h1>
-            <GuideHint id="contacts.header" />
-          </div>
-          <p className="mt-0.5 text-[12px] text-muted">
-            {loaded ? ruCount(items.length, "человек", "человека", "человек") : "…"}
-            {q ? " по запросу" : ""}
-          </p>
+    <div className="flex h-full flex-col overflow-hidden">
+      <header className="flex shrink-0 items-end gap-6 px-7 pt-5 pb-4">
+        <GuideSpot id="contacts.header" className="min-w-0 flex-1">
+          <PageHead
+            title="контакты"
+            count={loaded ? ruCount(items.length, "человек", "человека", "человек") + (q ? " по запросу" : "") : "…"}
+            hint={<GuideHint id="contacts.header" />}
+          />
         </GuideSpot>
         <GuideSpot id="contacts.view">
-          <div className="flex items-center gap-5 text-[13px]">
+          <div className="flex items-center gap-1.5">
             {(
               [
                 ["people", "люди"],
@@ -423,11 +421,7 @@ export function ContactsBoard() {
                   setView(value);
                   setComposer(false);
                 }}
-                className={`border-b pb-0.5 ${
-                  view === value && !composer
-                    ? "border-accent text-white"
-                    : "border-transparent text-muted hover:text-white/80"
-                }`}
+                className={`chip${view === value && !composer ? " chip-on" : ""}`}
               >
                 {label}
               </button>
@@ -439,9 +433,7 @@ export function ContactsBoard() {
                   setPool((prev) => (prev === "all" ? "mine" : "all"));
                   setComposer(false);
                 }}
-                className={`border-b pb-0.5 ${
-                  allPool ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-                }`}
+                className={`chip${allPool ? " chip-on" : ""}`}
               >
                 все
               </button>
@@ -456,9 +448,7 @@ export function ContactsBoard() {
               setComposer((open) => !open);
               setError(null);
             }}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] ${
-              composer ? "bg-white/10 text-white" : "text-accent hover:bg-accent/10"
-            }`}
+            className={`chip${composer ? " chip-on" : ""}`}
           >
             {composer ? <X size={14} /> : <Plus size={14} />}
             {composer ? "Закрыть" : "HR"}
@@ -496,9 +486,8 @@ export function ContactsBoard() {
                       setComposer(false);
                       setSelectedId(row.id);
                     }}
-                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left ${
-                      active ? "bg-white/[0.05]" : "hover:bg-white/[0.03]"
-                    }`}
+                    data-active={active ? "true" : undefined}
+                    className="row flex w-full items-center gap-3 px-4 py-2.5 text-left"
                   >
                     <span
                       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-medium ${markTone(personTitle(row))}`}
@@ -525,9 +514,8 @@ export function ContactsBoard() {
                       setComposer(false);
                       setSelectedOrg(key);
                     }}
-                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left ${
-                      active ? "bg-white/[0.05]" : "hover:bg-white/[0.03]"
-                    }`}
+                    data-active={active ? "true" : undefined}
+                    className="row flex w-full items-center gap-3 px-4 py-2.5 text-left"
                   >
                     <CompanyMark company={org.name} icon={org.company_icon} size={32} />
                     <span className="min-w-0 flex-1">
@@ -558,7 +546,7 @@ export function ContactsBoard() {
               </p>
               <div className="mt-8 space-y-6">
                 <label className="block">
-                  <span className="mb-2 block text-[11px] tracking-[0.16em] text-muted uppercase">Человек</span>
+                  <span className="mb-2 block text-[12px] text-muted">Человек</span>
                   <input
                     value={form.telegram_alias}
                     onChange={(e) => setForm((p) => ({ ...p, telegram_alias: e.target.value }))}
@@ -585,7 +573,7 @@ export function ContactsBoard() {
                   </div>
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-[11px] tracking-[0.16em] text-muted uppercase">Компания</span>
+                  <span className="mb-2 block text-[12px] text-muted">Компания</span>
                   <input
                     value={form.company}
                     onChange={(e) => setForm((p) => ({ ...p, company: e.target.value }))}
@@ -636,7 +624,7 @@ export function ContactsBoard() {
               <div className="flex items-start gap-4">
                 <CompanyMark company={group.org.name} icon={group.org.company_icon} size={52} />
                 <div className="min-w-0">
-                  <p className="text-[11px] tracking-[0.16em] text-muted uppercase">Компания</p>
+                  <p className="text-[12px] text-muted">Компания</p>
                   <h2 className="mt-2 text-[26px] font-semibold tracking-tight">{companyLine(group.org)}</h2>
                   {normalizeInn(group.org.inn) ? (
                     <p className="mt-2 text-[13px] tabular-nums text-muted">ИНН {normalizeInn(group.org.inn)}</p>

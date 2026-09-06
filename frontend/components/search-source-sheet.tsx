@@ -50,12 +50,12 @@ export function SearchSourceSheet({
             <p className="text-[12px] tracking-[0.12em] text-muted uppercase">Площадка</p>
             <h2 className="mt-1 text-[20px] font-semibold tracking-tight">{title}</h2>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-2 text-muted hover:bg-white/6 hover:text-white">
+          <button type="button" onClick={onClose} className="rounded-lg p-2 text-muted hover:bg-fill hover:text-ink">
             <X size={18} />
           </button>
         </header>
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
-          <div className="rounded-xl bg-white/4 px-3 py-3">
+          <div className="rounded-xl bg-fill px-3 py-3">
             <p className="text-[12px] tracking-[0.12em] text-muted uppercase">Из общего поиска уйдёт</p>
             <p className="mt-1 text-[14px] leading-5">{applied}</p>
           </div>
@@ -139,7 +139,7 @@ export function SearchSourceSheet({
                   </select>
                 </label>
               </div>
-              <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] py-3">
+              <div className="flex items-center justify-between gap-4 border-b border-line py-3">
                 <div>
                   <p className="text-[15px] font-medium">Показать Chrome</p>
                   <p className="mt-0.5 text-[13px] text-muted">Нужно, если hh покажет капчу</p>

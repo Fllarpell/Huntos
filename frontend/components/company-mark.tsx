@@ -35,7 +35,7 @@ export function CompanyMark({
         alt=""
         width={size}
         height={size}
-        className="rounded-lg bg-white/8 object-contain"
+        className="rounded-lg bg-fill-strong object-contain"
         style={{ width: px, height: px }}
         referrerPolicy="no-referrer"
         onError={() => setBroken(true)}
@@ -44,7 +44,7 @@ export function CompanyMark({
   }
   return (
     <div
-      className="flex shrink-0 items-center justify-center rounded-lg bg-white/8 text-[13px] font-medium text-white/80"
+      className="flex shrink-0 items-center justify-center rounded-lg bg-fill-strong text-[13px] font-medium text-ink"
       style={{ width: px, height: px }}
     >
       {companyInitial(name)}

@@ -180,8 +180,8 @@ export function downloadPingIcs(input: { id: number; title: string; ping_at: str
 }
 
 export function pingEventTitle(label: string, count: number): string {
-  const name = (label || "").trim() || "без тезиса";
-  return `пинг волны · ${name}, ${ruCards(count)}`;
+  const name = (label || "").trim() || "без направления";
+  return `пинг · ${name}, ${ruCards(count)}`;
 }
 
 function ruCards(n: number): string {

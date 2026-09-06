@@ -75,26 +75,22 @@ export function LoginForm() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-5 py-16">
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-[46%] h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/[0.08] blur-[110px]" />
-      </div>
-
-      <div className="relative w-full max-w-[380px]">
+    <div className="flex min-h-screen items-center justify-center bg-bg px-5 py-16">
+      <div className="w-full max-w-[380px]">
         <div className="mb-7 px-1">
-          <p className="text-[12px] tracking-[0.2em] text-muted uppercase">Job CRM</p>
-          <h1 className="mt-1.5 text-[28px] font-semibold tracking-tight">HuntOS</h1>
+          <h1 className="text-[26px] font-semibold tracking-[-0.03em]">HuntOS</h1>
+          <p className="mt-1 text-[13px] text-muted">Воронка поиска работы</p>
         </div>
 
-        <div className="rounded-2xl border border-line bg-card p-6">
-          {error && <p className="mb-5 rounded-xl bg-rose-400/10 px-3.5 py-2.5 text-sm text-rose-100">{error}</p>}
+        <div className="rounded-xl border border-line bg-card p-6">
+          {error && <p className="mb-5 rounded-lg bg-rose-400/10 px-3.5 py-2.5 text-sm text-rose-100">{error}</p>}
 
           {googleOn && (
             <button
               type="button"
               disabled={busy}
               onClick={() => void onGoogle()}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-white/[0.07] px-4 py-3 text-[14px] text-white hover:bg-white/[0.1] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2.5 rounded-lg bg-fill-strong px-4 py-3 text-[14px] text-ink hover:bg-fill disabled:opacity-50"
             >
               <GoogleMark />
               Продолжить с Google
@@ -110,12 +106,12 @@ export function LoginForm() {
           )}
 
           <form onSubmit={(e) => void onSubmit(e)} className="space-y-4" autoComplete="off">
-            <div className="grid grid-cols-2 rounded-xl bg-white/[0.04] p-1">
+            <div className="grid grid-cols-2 rounded-lg bg-fill p-1">
               <button
                 type="button"
                 onClick={() => setMode("login")}
-                className={`rounded-lg py-2 text-[13px] outline-none ${
-                  mode === "login" ? "bg-white/[0.09] text-white" : "text-muted hover:text-white"
+                className={`rounded-md py-2 text-[13px] outline-none ${
+                  mode === "login" ? "bg-fill-strong text-ink" : "text-muted hover:text-ink"
                 }`}
               >
                 Войти
@@ -123,8 +119,8 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setMode("register")}
-                className={`rounded-lg py-2 text-[13px] outline-none ${
-                  mode === "register" ? "bg-white/[0.09] text-white" : "text-muted hover:text-white"
+                className={`rounded-md py-2 text-[13px] outline-none ${
+                  mode === "register" ? "bg-fill-strong text-ink" : "text-muted hover:text-ink"
                 }`}
               >
                 Регистрация
@@ -169,7 +165,7 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={busy}
-              className="w-full rounded-xl bg-accent py-3 text-[14px] font-medium text-[#0b0c0e] hover:bg-[#8fe0d4] disabled:opacity-50"
+              className="w-full rounded-lg bg-accent py-3 text-[14px] font-medium text-bg hover:opacity-90 disabled:opacity-50"
             >
               {busy ? "…" : mode === "register" ? "Создать аккаунт" : "Войти"}
             </button>

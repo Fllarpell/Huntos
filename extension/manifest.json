@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "HuntOS клиппер",
+  "version": "0.3.0",
+  "description": "Страница вакансии → inbox. На HH.ru — письмо в форму отклика, без авто-отправки.",
+  "permissions": ["activeTab", "cookies", "storage", "scripting"],
+  "host_permissions": [
+    "https://127.0.0.1:8443/*",
+    "https://localhost:8443/*",
+    "https://hh.ru/*",
+    "https://*.hh.ru/*",
+    "https://rabota.by/*",
+    "https://hh.kz/*"
+  ],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "В inbox HuntOS",
+    "default_popup": "popup.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://hh.ru/*",
+        "https://*.hh.ru/*",
+        "https://rabota.by/*",
+        "https://hh.kz/*"
+      ],
+      "js": ["hh.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

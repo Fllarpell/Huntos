@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
@@ -23,6 +23,9 @@ class UserProfile(TimestampMixin, Base):
     display_name: Mapped[str | None] = mapped_column(String(128))
     resume_text: Mapped[str | None] = mapped_column(Text)
     resume_filename: Mapped[str | None] = mapped_column(String(255))
+    resume_json: Mapped[dict | None] = mapped_column(JSON)
+    resume_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    resume_share_id: Mapped[str | None] = mapped_column(String(32), unique=True)
 
     llm_provider: Mapped[str] = mapped_column(String(32), default="openai", nullable=False)
     llm_model: Mapped[str] = mapped_column(String(64), default="gpt-4o-mini", nullable=False)

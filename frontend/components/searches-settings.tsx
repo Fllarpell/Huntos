@@ -106,14 +106,14 @@ function BoardPickList({
           const covered = editingId == null && alreadyHas(key);
           const on = picked.includes(key);
           return (
-            <div key={key} className="flex items-center gap-3 border-b border-white/[0.08] py-2">
+            <div key={key} className="flex items-center gap-3 border-b border-line py-2">
               {board.logo_url ? (
                 <img
                   src={board.logo_url}
                   alt=""
                   width={22}
                   height={22}
-                  className="h-[22px] w-[22px] shrink-0 rounded-md bg-white/8 object-contain"
+                  className="h-[22px] w-[22px] shrink-0 rounded-md bg-fill-strong object-contain"
                 />
               ) : (
                 <span
@@ -460,7 +460,7 @@ export function SearchesSettings({
                   runningIds.has(c.id) || c.last_run?.status === "running" || c.last_run?.status === "queued";
                 const line = configRunLine(c, busy);
                 return (
-                  <div key={c.id} className="border-b border-white/[0.06] py-3.5">
+                  <div key={c.id} className="border-b border-line py-3.5">
                     <div className="flex items-start gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
@@ -494,7 +494,7 @@ export function SearchesSettings({
                       >
                         {busy ? (c.last_run?.status === "queued" ? "В очереди" : "Парсит") : "Обновить"}
                       </button>
-                      <button type="button" onClick={() => editConfig(c)} className="text-muted hover:text-white">
+                      <button type="button" onClick={() => editConfig(c)} className="text-muted hover:text-ink">
                         Изменить
                       </button>
                       <button
@@ -516,7 +516,7 @@ export function SearchesSettings({
             <button
               type="button"
               onClick={() => setView("pool")}
-              className="mt-8 text-left text-[14px] text-muted hover:text-white"
+              className="mt-8 text-left text-[14px] text-muted hover:text-ink"
             >
               Общий пул · {crawls.length}
               {poolPending.length ? ` · ${poolPending.length} можно взять` : ""}
@@ -527,7 +527,7 @@ export function SearchesSettings({
 
       {view === "pool" && isHost ? (
         <section>
-          <button type="button" onClick={() => setView("list")} className="text-[13px] text-muted hover:text-white">
+          <button type="button" onClick={() => setView("list")} className="text-[13px] text-muted hover:text-ink">
             ← К поискам
           </button>
           <h2 className="mt-4 text-[26px] font-semibold tracking-tight">Общий пул</h2>
@@ -536,7 +536,7 @@ export function SearchesSettings({
               const waiting = row.queue_status === "pending" || row.queue_status === "running";
               const stale = !row.last_fetched_at;
               return (
-                <div key={row.query_key} className="flex items-start gap-3 border-b border-white/[0.06] py-3">
+                <div key={row.query_key} className="flex items-start gap-3 border-b border-line py-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <SourceBadge source={row.source} label={pickLabel(pickKeyFromConfig(row), boards)} />
@@ -574,7 +574,7 @@ export function SearchesSettings({
 
       {view === "compose" ? (
         <section className="pb-8">
-          <button type="button" onClick={goList} className="text-[13px] text-muted hover:text-white">
+          <button type="button" onClick={goList} className="text-[13px] text-muted hover:text-ink">
             ← К поискам
           </button>
           <h2 className="mt-4 text-[26px] font-semibold tracking-tight">
@@ -593,7 +593,7 @@ export function SearchesSettings({
               <GuideHint id="searches.platforms" />
             </div>
             {editingId == null && (
-              <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] py-3">
+              <div className="flex items-center justify-between gap-4 border-b border-line py-3">
                 <p className="text-[15px] font-medium">Все агрегаторы</p>
                 <Switch
                   on={allOn}
@@ -624,7 +624,7 @@ export function SearchesSettings({
               );
             })}
             {editingId == null ? (
-              <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] py-3">
+              <div className="flex items-center justify-between gap-4 border-b border-line py-3">
                 <button type="button" onClick={() => setBoardsOpen((open) => !open)} className="min-w-0 text-left">
                   <p className="text-[15px] font-medium">Сайты компаний</p>
                   <p className="mt-0.5 text-[13px] text-muted">
@@ -649,7 +649,7 @@ export function SearchesSettings({
               <button
                 type="button"
                 onClick={() => setBoardsOpen((open) => !open)}
-                className="flex w-full items-center justify-between border-b border-white/[0.08] py-3.5 text-left"
+                className="flex w-full items-center justify-between border-b border-line py-3.5 text-left"
               >
                 <span className="text-[15px] font-medium">Сайты компаний</span>
                 <span className="text-[13px] text-muted">
@@ -729,7 +729,7 @@ export function SearchesSettings({
                 onChange={(cities) => setDraft((prev) => ({ ...prev, cities }))}
               />
             </fieldset>
-            <GuideSpot id="searches.paid" className="flex items-center justify-between gap-4 border-b border-white/[0.08] py-3">
+            <GuideSpot id="searches.paid" className="flex items-center justify-between gap-4 border-b border-line py-3">
               <span className="inline-flex items-center gap-1.5">
                 <p className="text-[15px] font-medium">Только с зарплатой</p>
                 <GuideHint id="searches.paid" />
@@ -779,7 +779,7 @@ export function SearchesSettings({
             </label>
           </div>
 
-          <div className="sticky bottom-0 z-10 mt-8 border-t border-white/[0.06] bg-bg py-4">
+          <div className="sticky bottom-0 z-10 mt-8 border-t border-line bg-bg py-4">
             <button
               onClick={() => void saveSearch()}
               disabled={!picked.length}

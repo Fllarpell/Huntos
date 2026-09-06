@@ -8,11 +8,12 @@ import { CompanyMark } from "./company-mark";
 import { GuideSpot } from "./guide";
 import { RelativeTime } from "./relative-time";
 import { SearchField } from "./search-field";
+import { PageHead } from "./page-head";
 
 const CATALOG_STATUS: Record<InternshipCatalogStatus, { label: string; tone: string }> = {
   open: { label: "Открыта", tone: "bg-emerald-400/14 text-emerald-100" },
   waiting: { label: "Ждём набор", tone: "bg-sky-400/14 text-sky-100" },
-  closed: { label: "Закрыта", tone: "bg-white/8 text-muted" },
+  closed: { label: "Закрыта", tone: "bg-fill-strong text-muted" },
   monitor: { label: "Мониторим", tone: "bg-amber-400/14 text-amber-100" },
 };
 
@@ -103,17 +104,10 @@ export function InternshipsBoard() {
   return (
     <div className="mx-auto max-w-5xl px-8 py-8">
       <GuideSpot id="internships.header">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-[13px] tracking-[0.18em] text-muted uppercase">Карьера</p>
-            <h1 className="mt-1 text-[28px] font-semibold tracking-tight">Стажировки</h1>
-          </div>
-          <div className="flex flex-wrap gap-2 text-[12px] text-muted">
-            <span className="rounded-full bg-white/6 px-3 py-1">всего {stats.total}</span>
-            <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-emerald-100">открыто {stats.open}</span>
-            <span className="rounded-full bg-accent/10 px-3 py-1 text-accent">мои {stats.mine}</span>
-          </div>
-        </div>
+        <PageHead
+          title="стажировки"
+          count={`всего ${stats.total} · открыто ${stats.open} · мои ${stats.mine}`}
+        />
       </GuideSpot>
 
       <GuideSpot id="internships.tabs" className="mt-6 flex flex-wrap gap-2">
@@ -127,9 +121,7 @@ export function InternshipsBoard() {
             key={value}
             type="button"
             onClick={() => setKind(value)}
-            className={`rounded-full px-3 py-1.5 text-[13px] ${
-              kind === value ? "bg-accent/18 text-accent" : "bg-white/5 text-muted hover:text-white"
-            }`}
+            className={`chip${kind === value ? " chip-on" : ""}`}
           >
             {label}
           </button>
@@ -149,9 +141,7 @@ export function InternshipsBoard() {
             key={value}
             type="button"
             onClick={() => setFilter(value)}
-            className={`rounded-full px-3 py-1 text-[12px] ${
-              filter === value ? "bg-white/10 text-white" : "text-muted hover:text-white"
-            }`}
+            className={`chip${filter === value ? " chip-on" : ""}`}
           >
             {label}
           </button>
@@ -160,8 +150,8 @@ export function InternshipsBoard() {
 
       {error ? <p className="mt-4 rounded-xl bg-rose-400/10 px-4 py-3 text-sm text-rose-100">{error}</p> : null}
 
-      <GuideSpot id="internships.list" className="mt-6 overflow-hidden rounded-2xl border border-line">
-        <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.9fr)_minmax(0,1.2fr)] gap-3 border-b border-line bg-white/3 px-4 py-3 text-[11px] tracking-[0.12em] text-muted uppercase">
+      <GuideSpot id="internships.list" className="mt-6 overflow-hidden rounded-xl border border-line">
+        <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.9fr)_minmax(0,1.2fr)] gap-3 border-b border-line bg-fill px-4 py-2.5 text-[12px] text-muted">
           <span>Программа</span>
           <span>Набор</span>
           <span>Мой статус</span>
@@ -175,7 +165,7 @@ export function InternshipsBoard() {
             return (
               <div
                 key={row.slug}
-                className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.9fr)_minmax(0,1.2fr)] gap-3 px-4 py-3 text-[14px] hover:bg-white/2"
+                className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.9fr)_minmax(0,1.2fr)] gap-3 px-4 py-3 text-[14px] hover:bg-fill"
               >
                 <div className="flex min-w-0 items-start gap-3">
                   <CompanyMark company={row.company} icon={row.logo_url} size={32} />
@@ -185,7 +175,7 @@ export function InternshipsBoard() {
                         href={row.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="group inline-flex min-w-0 items-center gap-1.5 font-medium text-white hover:text-accent"
+                        className="group inline-flex min-w-0 items-center gap-1.5 font-medium text-ink hover:text-accent"
                       >
                         <span className="truncate">{row.name}</span>
                         <ExternalLink size={13} className="shrink-0 opacity-50 group-hover:opacity-100" />

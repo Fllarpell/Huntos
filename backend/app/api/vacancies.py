@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import Select, case, func, or_, select
 from sqlalchemy.sql import ColumnElement
@@ -70,7 +70,13 @@ from app.services.vacancy_events import (
 from app.services.vacancy_write import apply_hh_pulse, apply_pinged, apply_vacancy_write, apply_wrote
 from app.services.clipper import clip_vacancy
 from app.services.scoring.llm import LLMError
-from app.services.scoring.scorer import adapt_resume, generate_cover_letter, generate_telegram_draft, score_vacancy
+from app.services.scoring.scorer import (
+    adapt_resume,
+    generate_cover_letter,
+    generate_hh_letter,
+    generate_telegram_draft,
+    score_vacancy,
+)
 from app.services.vacancy_query import apply_vacancy_query
 from app.services.wip import annotate_dwell, enter_stage, touch
 
@@ -396,6 +402,10 @@ async def clip_job(
             company=payload.company,
             description=payload.description,
             salary_raw=payload.salary_raw,
+            html=payload.html,
+            location=payload.location,
+            skills=payload.skills,
+            force=payload.force,
         )
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
@@ -591,6 +601,42 @@ async def cover_letter(
     except LLMError as exc:
         raise HTTPException(400, str(exc)) from exc
     return {"cover_letter": text}
+
+
+class HhLetterIn(BaseModel):
+    origin: str | None = None
+
+
+def _letter_origin(raw: str | None, request: Request) -> str:
+    from urllib.parse import urlparse
+
+    from app.services.google_calendar import origin_from_headers, public_origin
+
+    parsed = urlparse((raw or "").strip())
+    if parsed.scheme in {"http", "https"} and parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+    return (origin_from_headers(request.headers) or public_origin()).rstrip("/")
+
+
+@router.post("/vacancies/{vacancy_id}/hh-letter")
+async def hh_letter(
+    vacancy_id: int,
+    request: Request,
+    payload: HhLetterIn = Body(default_factory=HhLetterIn),
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(get_scope_user),
+) -> dict:
+    vacancy = await vacancy_for_user(session, user, vacancy_id)
+    profile = await ensure_profile(session, user)
+    origin = _letter_origin(payload.origin, request)
+    profile_url = ""
+    if profile.resume_public and profile.resume_share_id:
+        profile_url = f"{origin}/p/{profile.resume_share_id}?target={vacancy.id}"
+    try:
+        text = await generate_hh_letter(session, vacancy, profile_url=profile_url)
+    except LLMError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    return {"letter": text, "profile_url": profile_url}
 
 
 @router.post("/vacancies/{vacancy_id}/telegram-draft")

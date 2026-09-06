@@ -24,7 +24,7 @@ PAGE_LABEL = {
     "/contacts": "Контакты",
     "/internships": "Стажировки",
     "/hackathons": "Хакатоны",
-    "/thesis": "Тезис",
+    "/thesis": "Направления",
     "/settings": "Настройки",
 }
 

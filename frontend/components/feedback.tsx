@@ -21,25 +21,32 @@ const COPY: Record<Kind, { title: string; hint: string; placeholder: string }> =
 };
 
 
-export function FeedbackButtons() {
+export function FeedbackButtons({ itemClassName }: { itemClassName?: string }) {
   const [kind, setKind] = useState<Kind | null>(null);
+  const item = itemClassName ?? "block w-full text-left text-[13px] leading-5 text-muted hover:text-ink";
 
   return (
     <>
-      <div className="space-y-2">
-        <button
-          type="button"
-          onClick={() => setKind("bug")}
-          className="block w-full text-left text-[13px] leading-5 text-muted hover:text-white"
-        >
-          Сообщить об ошибке
+      <div className={itemClassName ? "" : "space-y-2"}>
+        <button type="button" onClick={() => setKind("bug")} className={item}>
+          {itemClassName ? (
+            <>
+              <span className="mega-k">ошибка</span>
+              <span className="mega-d">что сломалось на экране</span>
+            </>
+          ) : (
+            "Сообщить об ошибке"
+          )}
         </button>
-        <button
-          type="button"
-          onClick={() => setKind("idea")}
-          className="block w-full text-left text-[13px] leading-5 text-muted hover:text-white"
-        >
-          Предложения и пожелания
+        <button type="button" onClick={() => setKind("idea")} className={item}>
+          {itemClassName ? (
+            <>
+              <span className="mega-k">идея</span>
+              <span className="mega-d">что добавить или поменять</span>
+            </>
+          ) : (
+            "Предложения и пожелания"
+          )}
         </button>
       </div>
       {kind && <FeedbackSheet kind={kind} onClose={() => setKind(null)} />}
@@ -95,7 +102,7 @@ function FeedbackSheet({ kind, onClose }: { kind: Kind; onClose: () => void }) {
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={onClose}>
       <div
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-line bg-[#16181f] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.72)]"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-line bg-card p-5 shadow-[0_24px_80px_rgba(0,0,0,0.72)]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -145,7 +152,7 @@ function FeedbackSheet({ kind, onClose }: { kind: Kind; onClose: () => void }) {
             </label>
             {error && <p className="mt-3 text-sm text-rose-200">{error}</p>}
             <div className="mt-4 flex items-center justify-end gap-4">
-              <button type="button" className="text-[14px] text-muted hover:text-white" onClick={onClose}>
+              <button type="button" className="text-[14px] text-muted hover:text-ink" onClick={onClose}>
                 Закрыть
               </button>
               <button
@@ -160,7 +167,7 @@ function FeedbackSheet({ kind, onClose }: { kind: Kind; onClose: () => void }) {
           </>
         )}
         {done && (
-          <button type="button" className="mt-4 text-[14px] text-muted hover:text-white" onClick={onClose}>
+          <button type="button" className="mt-4 text-[14px] text-muted hover:text-ink" onClick={onClose}>
             Закрыть
           </button>
         )}

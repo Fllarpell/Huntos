@@ -83,7 +83,7 @@ function EventRow({
     : [];
 
   return (
-    <div className="rounded-2xl border border-line bg-white/4 p-4">
+    <div className="rounded-2xl border border-line bg-fill p-4">
       <div className="mb-3 flex items-start justify-between gap-3">
         <p className="text-[14px] font-medium">{event.display_label}</p>
         {busy && <p className="text-[12px] text-muted">сохраняю…</p>}
@@ -116,7 +116,7 @@ function EventRow({
                 key={item}
                 type="button"
                 className={`rounded-full px-2.5 py-1 text-[12px] ${
-                  minutes === item ? "bg-accent/18 text-accent ring-1 ring-accent/35" : "bg-white/5 text-muted hover:text-white"
+                  minutes === item ? "bg-accent/18 text-accent ring-1 ring-accent/35" : "bg-fill text-muted hover:text-ink"
                 }`}
                 onClick={() => setMinutes(item)}
               >
@@ -163,7 +163,7 @@ function EventRow({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          className="rounded-xl bg-white/8 px-3 py-1.5 text-sm"
+          className="rounded-xl bg-fill-strong px-3 py-1.5 text-sm"
           onClick={() => downloadVacancyIcs(eventIcs(vacancy, event))}
         >
           Скачать .ics
@@ -204,7 +204,7 @@ export function VacancySteps({
 
   return (
     <section>
-      <h3 className="mb-3 text-[12px] tracking-[0.14em] text-muted uppercase">Шаги</h3>
+      <h3 className="mb-3 text-[12px] text-muted">Шаги</h3>
       <div className="space-y-3">
         {events.map((event) => (
           <EventRow
@@ -234,7 +234,7 @@ export function VacancySteps({
             key={kind}
             type="button"
             disabled={busy}
-            className="rounded-xl bg-white/8 px-3 py-1.5 text-sm disabled:opacity-40"
+            className="rounded-xl bg-fill-strong px-3 py-1.5 text-sm disabled:opacity-40"
             onClick={() => {
               setBusy(true);
               const start = kind === "assignment" ? `${todayYmd()}T18:00:00` : `${todayYmd()}T15:00:00`;

@@ -17,6 +17,8 @@ from app.api.scraper import router as scraper_router
 from app.api.settings import router as settings_router
 from app.api.telegram import router as telegram_router
 from app.api.vacancies import router as vacancies_router
+from app.api.onboarding import router as onboarding_router
+from app.api.public import router as public_router
 from app.api.salary_market import router as salary_market_router
 from app.db import SessionLocal, engine
 from app.config import settings
@@ -117,6 +119,8 @@ app.include_router(auth_router)
 app.include_router(feedback_router)
 app.include_router(chat_router)
 app.include_router(vacancies_router)
+app.include_router(onboarding_router)
+app.include_router(public_router)
 app.include_router(settings_router)
 app.include_router(google_router)
 app.include_router(scraper_router)

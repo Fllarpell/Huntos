@@ -13,7 +13,7 @@ function split(value: string) {
 
 function chip(on: boolean) {
   return `rounded-full px-2.5 py-1 text-[12px] transition ${
-    on ? "bg-accent/18 text-accent ring-1 ring-accent/35" : "bg-white/5 text-muted hover:bg-white/8 hover:text-white"
+    on ? "bg-accent/18 text-accent ring-1 ring-accent/35" : "bg-fill text-muted hover:bg-fill-strong hover:text-ink"
   }`;
 }
 

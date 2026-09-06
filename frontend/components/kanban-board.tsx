@@ -18,12 +18,16 @@ import { MatchBadge } from "./match-badge";
 import { VacancyDrawer } from "./vacancy-drawer";
 import { CompanyMark } from "./company-mark";
 import { SearchField } from "./search-field";
-import { dwellShort, dwellStage, moneyLabel, notePreview, telegramHandle, vacancyTelegramUrl } from "@/lib/format";
+import { dwellShort, dwellStage, moneyLabel, notePreview, telegramHandle, vacancyTelegramUrl, normalizeHttpUrl } from "@/lib/format";
 import { NextStepBadge } from "./next-step-badge";
 import { CollisionBanner } from "./collision-banner";
 import { CustomFieldChips } from "./custom-field-chips";
 import { NudgeQueue } from "./nudge-queue";
 import { HhPulseMark } from "./hh-pulse-mark";
+import { onExternalClick } from "@/lib/open-url";
+import { sourceLabel } from "@/components/source-badge";
+import Link from "next/link";
+import { PageHead } from "./page-head";
 
 function matchesQuery(v: Vacancy, q: string): boolean {
   if (!q) return true;
@@ -54,32 +58,6 @@ function matchesQuery(v: Vacancy, q: string): boolean {
     .split(/\s+/)
     .filter(Boolean)
     .every((token) => hay.includes(token.replace(/^@/, "")) || hay.includes(token));
-}
-
-function HuntMass({ columns }: { columns: Record<PipelineStage, Vacancy[]> }) {
-  const parts = KANBAN.map((col) => ({
-    ...col,
-    n: columns[col.stage].length,
-    due: col.stage === "waiting" ? columns[col.stage].filter((v) => v.ping_due).length : 0,
-  }));
-  const max = Math.max(1, ...parts.map((p) => p.n));
-  return (
-    <div className="flex items-end gap-1 px-7 pb-1">
-      {parts.map((p) => (
-        <div key={p.stage} className="min-w-0 flex-1">
-          <p className="mb-1 text-right text-[11px] tabular-nums text-muted">{p.n || ""}</p>
-          <div
-            className={`w-full rounded-sm ${
-              p.due ? "bg-amber-400/55" : p.n ? "bg-accent/45" : "bg-white/8"
-            }`}
-            style={{ height: `${Math.max(p.n ? 8 : 3, (p.n / max) * 48)}px` }}
-            title={`${p.label}: ${p.n}${p.due ? ` · ${p.due} пинг` : ""}`}
-          />
-        </div>
-      ))}
-      <GuideHint id="pipeline.mass" className="mb-0.5" />
-    </div>
-  );
 }
 
 function PipelineCard({
@@ -122,30 +100,31 @@ function PipelineCard({
         if (dragged.current) return;
         onOpen();
       }}
-      className={`group cursor-grab border-l-2 px-3 py-2.5 active:cursor-grabbing ${
+      data-active={active ? "true" : undefined}
+      className={`row group cursor-grab px-3 py-2.5 active:cursor-grabbing ${
         v.hh_pulse === "discarded"
-          ? "border-rose-400/80"
+          ? "!border-l-rose-400/80"
           : v.hh_pulse === "invited"
-            ? "border-emerald-400/70"
+            ? "!border-l-emerald-400/70"
             : v.ping_due
-              ? "border-amber-400/80"
-              : active
-                ? "border-accent bg-white/[0.04]"
-                : "border-transparent hover:bg-white/[0.03]"
+              ? "!border-l-amber-400/80"
+              : ""
       }`}
     >
       <div className="flex items-start gap-2.5">
         <CompanyMark vacancy={v} size={28} />
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
-            <p className="truncate text-[14px] font-medium leading-4">{v.company || "без компании"}</p>
+            <p className="truncate text-[14px] font-medium leading-4">{v.title}</p>
             <MatchBadge score={v.match_score} status={v.scoring_status} size="sm" />
           </div>
-          <p className="mt-0.5 truncate text-[13px] text-white/70">{v.title}</p>
-          <p className="mt-1 truncate text-[12px] text-muted">
-            {lane ? `${lane} · ` : ""}
-            <span className={money.known ? "text-white/80" : ""}>{money.text}</span>
+          <p className="mt-0.5 truncate text-[12px] text-muted">
+            {v.company || "без компании"}
+            {lane ? ` · ${lane}` : ""}
             {v.grade ? ` · ${v.grade}` : ""}
+          </p>
+          <p className={`mt-0.5 truncate text-[12px] tabular-nums ${money.known ? "text-ink" : "text-muted"}`}>
+            {money.text}
           </p>
           {(v.ping_due || v.next_step_at || dwell || v.hh_pulse) && (
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
@@ -168,7 +147,7 @@ function PipelineCard({
               )}
             </div>
           )}
-          {note ? <p className="mt-1 line-clamp-1 text-[12px] text-white/40">{note}</p> : null}
+          {note ? <p className="mt-1 line-clamp-1 text-[12px] text-muted">{note}</p> : null}
           <CustomFieldChips bits={v.custom_bits} className="mt-1" />
         </div>
       </div>
@@ -181,7 +160,7 @@ function PipelineCard({
             e.stopPropagation();
             if (left) onMove(left);
           }}
-          className="flex h-6 w-6 items-center justify-center text-muted hover:text-white disabled:opacity-20"
+          className="flex h-6 w-6 items-center justify-center text-muted hover:text-ink disabled:opacity-20"
         >
           <ChevronLeft size={14} />
         </button>
@@ -193,17 +172,29 @@ function PipelineCard({
             e.stopPropagation();
             if (right) onMove(right);
           }}
-          className="flex h-6 w-6 items-center justify-center text-muted hover:text-white disabled:opacity-20"
+          className="flex h-6 w-6 items-center justify-center text-muted hover:text-ink disabled:opacity-20"
         >
           <ChevronRight size={14} />
         </button>
+        {normalizeHttpUrl(v.source_url) ? (
+          <a
+            href={normalizeHttpUrl(v.source_url) || ""}
+            target="_blank"
+            rel="noopener noreferrer"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => onExternalClick(normalizeHttpUrl(v.source_url) || "", e)}
+            className="text-[11px] text-accent hover:underline"
+          >
+            {sourceLabel(v.source) || "источник"}
+          </a>
+        ) : null}
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onMove("inbox");
           }}
-          className="ml-auto text-[11px] text-muted hover:text-white"
+          className="ml-auto text-[11px] text-muted hover:text-ink"
         >
           inbox
         </button>
@@ -378,22 +369,22 @@ export function KanbanBoard() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <header className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-3 px-7 pt-6 pb-3">
-        <GuideSpot id="pipeline.header" className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h1 className="text-[22px] font-semibold tracking-tight">Воронка</h1>
-            <GuideHint id="pipeline.header" />
-          </div>
-          <p className="mt-0.5 text-[12px] text-muted">
-            {live} в охоте
-            <span className="text-white/20"> · </span>
-            <span className="kbd">/</span> поиск
-          </p>
+    <div className="flex h-full flex-col overflow-hidden">
+      <header className="flex shrink-0 flex-wrap items-end gap-x-4 gap-y-3 px-5 pt-5 pb-3 md:px-7">
+        <GuideSpot id="pipeline.header" className="min-w-0 flex-1">
+          <PageHead
+            title="воронка"
+            count={
+              <>
+                {live} {activeHuntId ? "в направлении" : "в работе"} · <span className="kbd">/</span>
+              </>
+            }
+            hint={<GuideHint id="pipeline.header" />}
+          />
         </GuideSpot>
-        <GuideSpot id="pipeline.search" className="ml-auto flex min-w-[200px] max-w-xs flex-1 items-center gap-1">
+        <GuideSpot id="pipeline.search" className="min-w-[200px] max-w-md flex-1">
           <SearchField
-            className="min-w-0 flex-1"
+            className="w-full !py-1.5"
             inputRef={searchRef}
             value={q}
             onChange={setQ}
@@ -401,21 +392,21 @@ export function KanbanBoard() {
           />
           <GuideHint id="pipeline.search" />
         </GuideSpot>
+        {activeHuntId ? (
+          <Link href="/thesis?write=1" className="text-[13px] text-accent hover:opacity-80">
+            написать сегодня
+          </Link>
+        ) : null}
         <button
           type="button"
           onClick={() => void addManual()}
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] text-accent hover:bg-accent/10"
+          className="inline-flex items-center gap-1.5 text-[13px] text-accent hover:opacity-80"
         >
           <Plus size={14} />
           вакансия
         </button>
       </header>
 
-      {!searching && (
-        <GuideSpot id="pipeline.mass">
-          <HuntMass columns={columns} />
-        </GuideSpot>
-      )}
 
       {error && <p className="px-7 pb-2 text-sm text-rose-200">{error}</p>}
       <CollisionBanner items={upcoming} onOpen={setOpenId} />
@@ -494,7 +485,7 @@ export function KanbanBoard() {
                 } ${dropStage === col.stage ? "bg-accent/[0.06]" : ""}`}
               >
                 <div className="px-4 py-3">
-                  <p className="text-[11px] tracking-[0.14em] text-muted uppercase">{col.label}</p>
+                  <p className="text-[12px] text-muted">{col.label}</p>
                   <p className="mt-1 text-[15px] tabular-nums">
                     {visible.length}
                     {dueCount > 0 && <span className="ml-2 text-[12px] text-amber-200">{dueCount} пинг</span>}

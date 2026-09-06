@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import re
-from html import unescape
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from uuid import uuid4
 
@@ -12,9 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.donor_cache import DonorListing
 from app.models.vacancy import PipelineStage, ScoringStatus, Vacancy
+from app.services.clip_page import extract_html, judge_page, noisy_title
 from app.services.company_icon import hydrate_company_icon, normalize_company_icon
 from app.services.scraper.engine import upsert_donor_listing, upsert_vacancy
-from app.services.scraper.jsonld import extract_job_posting
 from app.services.scraper.salary import parse_salary
 
 TRACKING = {
@@ -30,6 +29,7 @@ TRACKING = {
 }
 
 _HH = re.compile(r"(?:hh\.ru|rabota\.by|hh\.kz|hh1\.az)/vacancy/(\d+)", re.I)
+_HH_QID = re.compile(r"[?&]vacancyId=(\d+)", re.I)
 _HIREHI = re.compile(r"hirehi\.ru/[^/?#]+/.+-(\d+)/?(?:$|[?#])", re.I)
 _HABR = re.compile(r"career\.habr\.com/vacancies/(\d+)", re.I)
 _GETMATCH = re.compile(r"getmatch\.ru/vacancies/(\d+)", re.I)
@@ -61,15 +61,6 @@ _TBANK = re.compile(
     r"(?:tbank|tinkoff)\.ru/career/it/vacancy/[^/]+/([^/]+)/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
     re.I,
 )
-_TITLE = re.compile(r"<title[^>]*>([^<]+)", re.I)
-_OG_TITLE = re.compile(
-    r'<meta[^>]+(?:property|name)=["\']og:title["\'][^>]+content=["\']([^"\']+)',
-    re.I,
-)
-_OG_TITLE_REV = re.compile(
-    r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\']og:title["\']',
-    re.I,
-)
 
 KNOWN_BOARDS = {"hh", "hirehi", "habr", "getmatch", "geekjob", "career"}
 
@@ -99,6 +90,10 @@ def detect_source(url: str | None) -> tuple[str, str]:
     hh = _HH.search(text)
     if hh:
         return "hh", hh.group(1)
+    if re.search(r"hh\.ru|rabota\.by|hh\.kz|hh1\.az", text, re.I):
+        hh_q = _HH_QID.search(text)
+        if hh_q:
+            return "hh", hh_q.group(1)
     hirehi = _HIREHI.search(text)
     if hirehi:
         return "hirehi", hirehi.group(1)
@@ -186,19 +181,27 @@ def detect_source(url: str | None) -> tuple[str, str]:
     return "clip", hashlib.sha256(b"empty").hexdigest()[:16]
 
 
-def extract_html(html: str, *, page_url: str | None = None) -> dict[str, str]:
-    out = extract_job_posting(html, page_url=page_url)
-    if "title" not in out:
-        og = _OG_TITLE.search(html or "") or _OG_TITLE_REV.search(html or "")
-        title_tag = _TITLE.search(html or "")
-        picked = (og.group(1) if og else "") or (title_tag.group(1) if title_tag else "")
-        picked = unescape(re.sub(r"\s+", " ", picked)).strip()
-        if picked:
-            out["title"] = picked[:512]
-    return out
+def _merge_extracted(incoming: dict[str, str], fetched: dict[str, str]) -> None:
+    for key, value in fetched.items():
+        text = (value or "").strip()
+        if not text:
+            continue
+        current = (incoming.get(key) or "").strip()
+        if not current:
+            incoming[key] = text
+            continue
+        if key == "title" and noisy_title(current) and not noisy_title(text):
+            incoming[key] = text
+        elif key == "description" and len(text) > len(current) + 40:
+            incoming[key] = text
 
 
 async def fetch_page(url: str) -> dict[str, str]:
+    _html, extracted = await fetch_html(url)
+    return extracted
+
+
+async def fetch_html(url: str) -> tuple[str, dict[str, str]]:
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -208,15 +211,24 @@ async def fetch_page(url: str) -> dict[str, str]:
         "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
     }
     try:
-        async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             response = await client.get(url, headers=headers)
             response.raise_for_status()
             ctype = (response.headers.get("content-type") or "").lower()
             if "html" not in ctype and "text" not in ctype:
-                return {}
-            return extract_html(response.text[:400_000], page_url=str(response.url))
+                return "", {}
+            html = response.text[:400_000]
+            return html, extract_html(html, page_url=str(response.url))
     except httpx.HTTPError:
-        return {}
+        return "", {}
+
+
+def _skills_list(raw: object) -> list[str]:
+    if isinstance(raw, list):
+        return [str(item).strip() for item in raw if str(item).strip()][:24]
+    if isinstance(raw, str):
+        return [part.strip() for part in raw.split(",") if part.strip()][:24]
+    return []
 
 
 def _apply_salary(payload: dict, raw: str | None) -> None:
@@ -236,7 +248,11 @@ def _apply_salary(payload: dict, raw: str | None) -> None:
 def _fill_vacancy(vacancy: Vacancy, incoming: dict) -> bool:
     changed = False
     title = (incoming.get("title") or "").strip()
-    if title and (not (vacancy.title or "").strip() or vacancy.title == "Новая вакансия"):
+    if title and (
+        not (vacancy.title or "").strip()
+        or vacancy.title == "Новая вакансия"
+        or (noisy_title(vacancy.title) and not noisy_title(title))
+    ):
         vacancy.title = title[:512]
         changed = True
     desc = (incoming.get("description") or "").strip()
@@ -247,6 +263,30 @@ def _fill_vacancy(vacancy: Vacancy, incoming: dict) -> bool:
     company = (incoming.get("company") or "").strip()
     if company and not (vacancy.company or "").strip():
         vacancy.company = company[:255]
+        changed = True
+    location = (incoming.get("location") or "").strip()
+    if location and not (vacancy.location or "").strip():
+        vacancy.location = location[:128]
+        changed = True
+    skills = _skills_list(incoming.get("skills"))
+    if skills and not (vacancy.skills or []):
+        vacancy.skills = skills[:24]
+        changed = True
+    work_format = (incoming.get("work_format") or "").strip()
+    if work_format and not (vacancy.work_format or "").strip():
+        vacancy.work_format = work_format[:64]
+        changed = True
+    grade = (incoming.get("grade") or "").strip()
+    if grade and not (vacancy.grade or "").strip():
+        vacancy.grade = grade[:32]
+        changed = True
+    language = (incoming.get("language") or "").strip()
+    if language and not (vacancy.language or "").strip():
+        vacancy.language = language[:64]
+        changed = True
+    inn = re.sub(r"\D", "", incoming.get("company_inn") or "")
+    if len(inn) in {10, 12} and not (vacancy.company_inn or "").strip():
+        vacancy.company_inn = inn
         changed = True
     if incoming.get("salary_raw") and not vacancy.salary_raw:
         _apply_salary({"salary_raw": incoming["salary_raw"]}, incoming["salary_raw"])
@@ -275,14 +315,26 @@ async def clip_vacancy(
     company: str | None,
     description: str | None,
     salary_raw: str | None,
+    html: str | None = None,
+    location: str | None = None,
+    skills: list[str] | None = None,
+    force: bool = False,
 ) -> tuple[Vacancy, str]:
     page_url = canonical_url(url)
-    source, source_id = detect_source(page_url)
+    source, source_id = detect_source(page_url or url)
+    if source == "hh" and source_id:
+        page_url = f"https://hh.ru/vacancy/{source_id}"
     incoming = {
         "title": (title or "").strip(),
         "company": (company or "").strip(),
         "description": (description or "").strip(),
         "salary_raw": (salary_raw or "").strip(),
+        "location": (location or "").strip(),
+        "skills": ", ".join(skills or []) if skills else "",
+        "work_format": "",
+        "grade": "",
+        "language": "",
+        "company_inn": "",
         "company_icon": "",
     }
     cached = None
@@ -307,14 +359,27 @@ async def clip_vacancy(
                 await hydrate_company_icon(session, vacancy)
             return vacancy, action
 
-    if page_url and (not incoming["title"] or not incoming["description"]):
-        fetched = await fetch_page(page_url)
-        for key, value in fetched.items():
-            if not incoming.get(key):
-                incoming[key] = value
+    page_html = (html or "").strip()
+    if page_html:
+        _merge_extracted(incoming, extract_html(page_html[:400_000], page_url=page_url))
+    if page_url and (not incoming["title"] or not incoming["description"] or noisy_title(incoming["title"])):
+        fetched_html, fetched = await fetch_html(page_url)
+        if fetched_html and not page_html:
+            page_html = fetched_html
+        _merge_extracted(incoming, fetched)
 
     if not incoming["title"] and not incoming["description"] and not page_url:
         raise ValueError("Нужен URL или текст вакансии")
+
+    judgement = judge_page(
+        url=page_url or url,
+        html=page_html,
+        text=incoming.get("description"),
+        source=source,
+        extracted=incoming,
+    )
+    if not force and not judgement.allow:
+        raise ValueError(judgement.message)
 
     if source == "clip" and not page_url:
         source_id = uuid4().hex[:16]
@@ -326,7 +391,12 @@ async def clip_vacancy(
         "title": incoming["title"] or "Без названия",
         "company": incoming["company"] or None,
         "description": incoming["description"] or None,
-        "skills": [],
+        "location": incoming.get("location") or None,
+        "skills": _skills_list(incoming.get("skills")),
+        "work_format": incoming.get("work_format") or None,
+        "grade": incoming.get("grade") or None,
+        "language": incoming.get("language") or None,
+        "company_inn": incoming.get("company_inn") or None,
         "tags": [source],
     }
     _apply_salary(payload, incoming.get("salary_raw"))

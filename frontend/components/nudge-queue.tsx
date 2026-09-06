@@ -73,7 +73,7 @@ export function NudgeQueue({
     <section className="border-b border-amber-400/20 bg-amber-400/[0.07] px-7 py-4 space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[12px] tracking-[0.12em] text-amber-200/80 uppercase">Пингануть</p>
+          <p className="text-[12px] text-amber-200/80">Пингануть</p>
           <p className="mt-1 text-[14px] leading-5 text-amber-50">
             {items.length} молчат от {afterDays} дней. Это напоминание написать ещё раз — карточки остаются в «жду ответа». В календарь ставится один слот на всю пачку, не встреча на каждую.
           </p>
@@ -91,7 +91,7 @@ export function NudgeQueue({
       {groups.map((group) => (
         <div key={group.thesis_id ?? "none"} className="space-y-1">
           <p className="text-[12px] text-amber-200/70">
-            {group.thesis_name || "без тезиса"} · {group.items.length}
+            {group.thesis_name || "без направления"} · {group.items.length}
           </p>
           {group.slot && (
             <PingSlotCard
@@ -124,7 +124,7 @@ export function NudgeQueue({
                 {v.telegram_message && (
                   <button
                     type="button"
-                    className="shrink-0 rounded-lg bg-white/8 px-2 py-1 text-[11px]"
+                    className="shrink-0 rounded-lg bg-fill-strong px-2 py-1 text-[11px]"
                     onClick={() => void navigator.clipboard.writeText(v.telegram_message || "")}
                   >
                     Копировать
@@ -165,7 +165,7 @@ function PingSlotCard({
   }, [initial]);
 
   const when = toDatetimeLocalValue(slot.ping_at);
-  const title = pingEventTitle(slot.label || group.thesis_name || "без тезиса", slot.card_count);
+  const title = pingEventTitle(slot.label || group.thesis_name || "без направления", slot.card_count);
   const badge = formatNextStepBadge(slot.ping_at);
 
   async function save(pingAt: string) {
@@ -211,7 +211,7 @@ function PingSlotCard({
       {slot.ping_at && (
         <button
           type="button"
-          className="rounded-xl bg-white/8 px-3 py-1.5 text-sm"
+          className="rounded-xl bg-fill-strong px-3 py-1.5 text-sm"
           onClick={() =>
             downloadPingIcs({
               id: slot.id,

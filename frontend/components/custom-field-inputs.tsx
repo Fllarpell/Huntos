@@ -82,7 +82,7 @@ export function CustomFieldInputs({
               {field.scope === "card" && onRemoveCard ? (
                 <button
                   type="button"
-                  className="ml-auto text-[12px] text-muted hover:text-white"
+                  className="ml-auto text-[12px] text-muted hover:text-ink"
                   onClick={() => onRemoveCard(field.id)}
                 >
                   убрать
@@ -97,7 +97,7 @@ export function CustomFieldInputs({
               <span className="mb-1.5 flex items-center justify-between gap-2 text-[12px] text-muted">
                 {field.name}
                 {field.scope === "card" && onRemoveCard ? (
-                  <button type="button" className="text-muted hover:text-white" onClick={() => onRemoveCard(field.id)}>
+                  <button type="button" className="text-muted hover:text-ink" onClick={() => onRemoveCard(field.id)}>
                     убрать
                   </button>
                 ) : null}
@@ -119,7 +119,7 @@ export function CustomFieldInputs({
             <span className="mb-1.5 flex items-center justify-between gap-2 text-[12px] text-muted">
               {field.name}
               {field.scope === "card" && onRemoveCard ? (
-                <button type="button" className="text-muted hover:text-white" onClick={() => onRemoveCard(field.id)}>
+                <button type="button" className="text-muted hover:text-ink" onClick={() => onRemoveCard(field.id)}>
                   убрать
                 </button>
               ) : null}
@@ -139,7 +139,7 @@ export function CustomFieldInputs({
           добавить поле
         </button>
       ) : (
-        <div className="space-y-3 border-t border-white/[0.06] pt-4">
+        <div className="space-y-3 border-t border-line pt-4">
           <p className="text-[12px] text-muted">Готовые поля: нажми — имя и тип подставятся</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1.5">
             {FIELD_EXAMPLES.map((example) => (
@@ -147,7 +147,7 @@ export function CustomFieldInputs({
                 key={example.name}
                 type="button"
                 title={example.hint}
-                className="text-[13px] text-muted hover:text-white"
+                className="text-[13px] text-muted hover:text-ink"
                 onClick={() => applyExample(example)}
               >
                 {example.name}
@@ -160,9 +160,7 @@ export function CustomFieldInputs({
               <button
                 key={item.value}
                 type="button"
-                className={`border-b pb-0.5 ${
-                  kind === item.value ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-                }`}
+                className={`chip${kind === item.value ? " chip-on" : ""}`}
                 onClick={() => setKind(item.value)}
               >
                 {item.label}
@@ -179,21 +177,17 @@ export function CustomFieldInputs({
           <div className="flex flex-wrap gap-4 text-[13px]">
             <button
               type="button"
-              className={`border-b pb-0.5 ${
-                scope === "card" ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-              }`}
+              className={`chip${scope === "card" ? " chip-on" : ""}`}
               onClick={() => setScope("card")}
             >
               только эта карточка
             </button>
             <button
               type="button"
-              className={`border-b pb-0.5 ${
-                scope === "hunt" ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-              }`}
+              className={`chip${scope === "hunt" ? " chip-on" : ""}`}
               onClick={() => setScope("hunt")}
             >
-              вся охота
+              всё направление
             </button>
           </div>
           {error && <p className="text-[13px] text-rose-200">{error}</p>}

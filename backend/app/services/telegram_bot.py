@@ -7,6 +7,7 @@ across Hunt accounts.
 from __future__ import annotations
 
 import logging
+import re
 import secrets
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -507,6 +508,18 @@ async def _bind_from_start(session: AsyncSession, code: str, telegram_user_id: i
     return "Готово. Письма только про твои вакансии, без лишнего шума. /stop — пауза."
 
 
+_HTTP_URL = re.compile(r"https?://[^\s<>\"']+", re.I)
+
+
+def urls_in_text(text: str) -> list[str]:
+    found: list[str] = []
+    for raw in _HTTP_URL.findall(text or ""):
+        url = raw.rstrip(").,;]»\"'")
+        if url and url not in found:
+            found.append(url)
+    return found
+
+
 async def handle_message(session: AsyncSession, payload: dict) -> str | None:
     text = str(payload.get("text") or "").strip()
     chat = payload.get("chat") or {}
@@ -543,7 +556,35 @@ async def handle_message(session: AsyncSession, payload: dict) -> str | None:
         await session.commit()
         return "Снова пишу, только когда есть повод."
     if low == "/help":
-        return "Раз в сутки — новые вакансии, стажировки, хакатоны, пинг HR. Перед собесом — коротко. /stop — пауза."
+        return (
+            "Кинь ссылку на вакансию — положу в inbox. "
+            "Раз в сутки — новые карточки, стажировки, хакатоны, пинг HR. /stop — пауза."
+        )
+    links = urls_in_text(text)
+    if links:
+        from app.services.clipper import clip_vacancy
+
+        lines: list[str] = []
+        for url in links[:5]:
+            try:
+                vacancy, action = await clip_vacancy(
+                    session,
+                    bind.user_id,
+                    url=url,
+                    title=None,
+                    company=None,
+                    description=None,
+                    salary_raw=None,
+                )
+                verb = "новая" if action == "new" else "уже была"
+                title = (vacancy.title or "вакансия").strip()
+                company = (vacancy.company or "").strip()
+                bit = f"{title}" + (f" · {company}" if company else "")
+                lines.append(f"{verb}: {bit}")
+            except ValueError as exc:
+                lines.append(f"не вышло: {exc}")
+        await session.commit()
+        return "В inbox.\n" + "\n".join(lines)
     return None
 
 

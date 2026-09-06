@@ -15,14 +15,12 @@ from app.metrics import (
     scraper_run_seconds,
     scraper_runs_total,
     telegram_parse_total,
-    vacancies_scored_total,
 )
 from app.models.host_telegram import HostTelegram
 from app.models.scrape_queue import ScrapeQueueItem
 from app.models.user import User
 from app.models.user_profile import UserProfile
 from app.services.scraper.queue import drain_queue, enqueue_due_queries, fail_open_queue
-from app.services.scoring.scorer import score_pending
 from app.services.telegram_bot import poll_updates, tick as telegram_bot_tick
 from app.services.telegram_parse import parse_all_channels
 from app.services.google_calendar import mark_pulled, pull_hunt_events
@@ -69,12 +67,6 @@ async def _scrape_tick() -> None:
                 results = await drain_queue(session)
             for result in results:
                 scraper_runs_total.labels(status=result.status or "unknown").inc()
-                for uid in dict.fromkeys(result.user_ids):
-                    try:
-                        scored = await score_pending(session, user_id=uid, limit=15)
-                        vacancies_scored_total.inc(len(scored))
-                    except Exception:
-                        await session.rollback()
         except Exception:
             scraper_runs_total.labels(status="error").inc()
 
@@ -89,14 +81,6 @@ async def _telegram_job() -> None:
             telegram_parse_total.labels(status=run.status or "unknown").inc()
         except Exception:
             telegram_parse_total.labels(status="error").inc()
-            return
-        users = (await session.execute(select(User.id))).scalars().all()
-        for uid in users:
-            try:
-                scored = await score_pending(session, user_id=uid, limit=8)
-                vacancies_scored_total.inc(len(scored))
-            except Exception:
-                await session.rollback()
 
 
 async def _google_pull_job() -> None:

@@ -7,21 +7,9 @@ type Option = { value: string; label: string };
 type Variant = "text" | "pill" | "chip";
 
 const chipClass = (on: boolean, variant: Variant = "text") => {
-  if (variant === "pill") {
-    return `rounded-xl border px-3.5 py-2 text-[13px] leading-5 transition ${
-      on
-        ? "border-accent/45 bg-accent/15 text-accent"
-        : "border-white/10 bg-white/[0.04] text-muted hover:border-white/20 hover:bg-white/[0.07] hover:text-white"
-    }`;
-  }
-  if (variant === "chip") {
-    return `rounded-full border px-2.5 py-1 text-[12px] leading-4 transition ${
-      on
-        ? "border-accent/50 bg-accent/15 text-accent"
-        : "border-white/10 text-muted hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
-    }`;
-  }
-  return `text-[13px] leading-6 transition ${on ? "text-accent" : "text-muted hover:text-white"}`;
+  if (variant === "pill") return `chip chip-pill${on ? " chip-on" : ""}`;
+  if (variant === "chip") return `chip${on ? " chip-on" : ""}`;
+  return `text-[13px] leading-6 transition ${on ? "text-accent" : "text-muted hover:text-ink"}`;
 };
 
 function chipGap(variant: Variant) {
@@ -33,16 +21,19 @@ export function FilterChips({
   value,
   onChange,
   variant = "text",
+  counts,
 }: {
   options: readonly Option[];
   value: string[];
   onChange: (next: string[]) => void;
   variant?: Variant;
+  counts?: Record<string, number>;
 }) {
   return (
     <div className={`flex flex-wrap items-center ${chipGap(variant)}`}>
       {options.map((option) => {
         const on = value.includes(option.value);
+        const n = counts?.[option.value];
         return (
           <button
             key={option.value}
@@ -53,6 +44,7 @@ export function FilterChips({
             className={chipClass(on, variant)}
           >
             {option.label}
+            {n != null ? <span className="chip-count">{n}</span> : null}
           </button>
         );
       })}
@@ -117,7 +109,7 @@ export function OverflowFilterChips({
       <FilterChips options={[...selected, ...visibleRest]} value={value} onChange={onChange} variant="chip" />
       {hidden > 0 || open ? (
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={() => setOpen((cur) => !cur)} className="text-[12px] text-muted hover:text-white">
+          <button type="button" onClick={() => setOpen((cur) => !cur)} className="text-[12px] text-muted hover:text-ink">
             {open ? "свернуть" : `ещё ${hidden}`}
           </button>
           {open && searchPlaceholder && rest.length > preview ? (
@@ -200,7 +192,7 @@ export function CityPicker({
   return (
     <div className="space-y-2">
       <FilterChips options={shown} value={value} onChange={setCities} variant={variant} />
-      <button type="button" onClick={() => setMore((open) => !open)} className="text-[13px] text-muted hover:text-white">
+      <button type="button" onClick={() => setMore((open) => !open)} className="text-[13px] text-muted hover:text-ink">
         {more ? "свернуть города" : `ещё ${hiddenCount} городов`}
       </button>
       {more ? (

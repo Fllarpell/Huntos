@@ -232,7 +232,11 @@ class ClipIn(BaseModel):
     company: str | None = None
     description: str | None = None
     salary_raw: str | None = None
+    location: str | None = None
+    skills: list[str] | None = None
+    html: str | None = Field(default=None, max_length=400_000)
     hunt_id: int | None = None
+    force: bool = False
 
 
 class ClipOut(BaseModel):
@@ -383,6 +387,9 @@ class ProfileOut(BaseModel):
     display_name: str | None
     resume_text: str | None
     resume_filename: str | None
+    resume_json: dict | None = None
+    resume_public: bool = False
+    resume_share_id: str | None = None
     llm_provider: str
     llm_model: str
     openai_api_key_set: bool = False
@@ -408,6 +415,8 @@ class ProfileOut(BaseModel):
 class ProfileUpdate(BaseModel):
     display_name: str | None = None
     resume_text: str | None = None
+    resume_json: dict | None = None
+    resume_public: bool | None = None
     llm_provider: str | None = None
     llm_model: str | None = None
     openai_api_key: str | None = None

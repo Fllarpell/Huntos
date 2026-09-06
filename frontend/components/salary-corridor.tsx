@@ -75,13 +75,13 @@ function CorridorStrip({
       <p className={compact ? "text-[12px]" : "text-[13px]"}>
         {tip ? (
           <>
-            <span className="tabular-nums text-white">{formatCorridorK(tip.pay)}</span>
+            <span className="tabular-nums text-ink">{formatCorridorK(tip.pay)}</span>
             <span className="text-muted"> · {tip.label}</span>
           </>
         ) : (
           <>
             <span className="text-muted">рынок </span>
-            <span className="tabular-nums text-white">{corridorLabel(corridor)}</span>
+            <span className="tabular-nums text-ink">{corridorLabel(corridor)}</span>
             {busy ? <span className="text-muted"> · …</span> : null}
           </>
         )}
@@ -91,7 +91,7 @@ function CorridorStrip({
         onPointerMove={(e) => read(e.clientX)}
         onPointerLeave={() => setTip(null)}
       >
-        <div ref={track} className={`relative rounded-full bg-white/8 ${compact ? "h-1.5" : "h-2"}`}>
+        <div ref={track} className={`relative rounded-full bg-fill-strong ${compact ? "h-1.5" : "h-2"}`}>
           <div
             className={`absolute top-0 rounded-full bg-emerald-400/40 ${compact ? "h-1.5" : "h-2"}`}
             style={{ left: `${bandLeft}%`, width: `${bandWidth}%` }}
@@ -108,7 +108,7 @@ function CorridorStrip({
           ) : null}
           {tip ? (
             <div
-              className="pointer-events-none absolute top-1/2 h-3.5 w-px -translate-x-1/2 -translate-y-1/2 bg-white/70"
+              className="pointer-events-none absolute top-1/2 h-3.5 w-px -translate-x-1/2 -translate-y-1/2 bg-ink/70"
               style={{ left: `${tip.x}%` }}
             />
           ) : null}
@@ -225,7 +225,7 @@ function DonorHint({
       <span className="min-w-0 truncate text-muted underline decoration-white/25 underline-offset-2 group-hover:text-accent group-hover:decoration-accent/50">
         {name}
       </span>
-      <span className="shrink-0 tabular-nums text-white/80">{range}</span>
+      <span className="shrink-0 tabular-nums text-ink">{range}</span>
     </a>
   );
 }
@@ -252,7 +252,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`max-w-[11rem] truncate border-white/12 bg-[#0e1015] py-1 pl-2 text-white/90 ${
+        className={`max-w-[11rem] truncate border-line bg-input py-1 pl-2 text-ink ${
           compact ? "text-[11px]" : "text-[12px]"
         }`}
       >
@@ -364,7 +364,7 @@ export function SalaryCorridorBlock({
           <button
             type="button"
             onClick={() => setSourcesOpen((open) => !open)}
-            className="shrink-0 pb-1 text-[12px] text-muted hover:text-white"
+            className="shrink-0 pb-1 text-[12px] text-muted hover:text-ink"
           >
             {sourcesOpen ? "свернуть" : "источники"}
           </button>
@@ -378,7 +378,7 @@ export function SalaryCorridorBlock({
         <div
           className={
             compact
-              ? "absolute left-0 top-full z-30 mt-1 w-[min(100%,28rem)] rounded-xl border border-line bg-[#12141b] px-3 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
+              ? "absolute left-0 top-full z-30 mt-1 w-[min(100%,28rem)] rounded-xl border border-line bg-bg-soft px-3 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
               : undefined
           }
         >
@@ -401,7 +401,7 @@ export function SalaryCorridorBlock({
             </div>
           )}
 
-          <div className={`${compact ? "mt-3" : "mt-4"} divide-y divide-white/[0.06] border-y border-white/[0.06]`}>
+          <div className={`${compact ? "mt-3" : "mt-4"} divide-y divide-white/[0.06] border-y border-line`}>
             <AggregatorHints
               items={
                 market?.aggregators?.length

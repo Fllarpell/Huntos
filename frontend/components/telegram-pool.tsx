@@ -213,7 +213,7 @@ export function TelegramPoolPanel({ user }: { user: AuthUser | null }) {
       <div className="space-y-2">
         {(pool?.channels ?? []).length === 0 && <p className="text-sm text-muted">Пока нет каналов — добавь @channel выше</p>}
         {(pool?.channels ?? []).map((c) => (
-          <div key={c.id} className="flex items-start justify-between gap-3 border-b border-white/[0.06] py-3 last:border-0">
+          <div key={c.id} className="flex items-start justify-between gap-3 border-b border-line py-3 last:border-0">
             <div className="min-w-0">
               <p className="truncate font-medium">{c.title || c.username}</p>
               <p className="text-[13px] text-muted">

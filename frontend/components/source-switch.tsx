@@ -25,7 +25,7 @@ export function Switch({
         onChange(!on);
       }}
       className={`relative h-8 w-[52px] shrink-0 rounded-full border transition ${
-        on ? "border-accent/40 bg-accent" : "border-white/10 bg-white/12"
+        on ? "border-accent/40 bg-accent" : "border-line bg-fill-strong"
       } ${disabled ? "cursor-not-allowed opacity-40" : "hover:brightness-110"}`}
     >
       <span
@@ -59,14 +59,14 @@ export function SourceSwitchRow({
   const [broken, setBroken] = useState(false);
   const showLogo = Boolean(logo && !broken);
   return (
-    <div className="flex items-center gap-3 border-b border-white/[0.08] py-3.5">
+    <div className="flex items-center gap-3 border-b border-line py-3.5">
       {showLogo ? (
         <img
           src={logo}
           alt=""
           width={28}
           height={28}
-          className="h-7 w-7 shrink-0 rounded-lg bg-white/8 object-contain"
+          className="h-7 w-7 shrink-0 rounded-lg bg-fill-strong object-contain"
           onError={() => setBroken(true)}
         />
       ) : (
@@ -74,7 +74,7 @@ export function SourceSwitchRow({
       )}
       <button
         type="button"
-        className="min-w-0 flex-1 rounded-lg text-left hover:text-white"
+        className="min-w-0 flex-1 rounded-lg text-left hover:text-ink"
         onClick={() => onOpen?.()}
         disabled={!onOpen}
       >
@@ -85,7 +85,7 @@ export function SourceSwitchRow({
         <button
           type="button"
           onClick={onOpen}
-          className="shrink-0 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[13px] text-muted hover:border-white/20 hover:text-white"
+          className="shrink-0 rounded-xl border border-line bg-fill px-3 py-1.5 text-[13px] text-muted hover:border-white/20 hover:text-ink"
         >
           ещё
         </button>

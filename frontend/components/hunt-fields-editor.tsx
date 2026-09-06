@@ -42,10 +42,10 @@ export function HuntFieldsEditor({
     <div className="mx-auto w-full max-w-[480px] space-y-8 pt-4">
       <section className="space-y-2">
         <div className="flex items-center gap-1.5">
-          <h2 className="text-[26px] font-semibold tracking-tight">Поля охоты</h2>
+          <h2 className="text-[26px] font-semibold tracking-tight">Поля карточки</h2>
           <GuideHint id="settings.fields" />
         </div>
-        <p className="text-[13px] leading-5 text-muted">До восьми полей на карточках охоты.</p>
+        <p className="text-[13px] leading-5 text-muted">До восьми полей на карточках этого направления.</p>
       </section>
       {hunts && hunts.length > 1 && onHuntId && (
         <div className="flex flex-wrap gap-x-4 gap-y-1.5">
@@ -53,9 +53,7 @@ export function HuntFieldsEditor({
             <button
               key={hunt.id}
               type="button"
-              className={`border-b pb-0.5 text-[13px] ${
-                hunt.id === huntId ? "border-accent text-white" : "border-transparent text-muted hover:text-white/80"
-              }`}
+              className={`chip${hunt.id === huntId ? " chip-on" : ""}`}
               onClick={() => onHuntId(hunt.id)}
             >
               {hunt.name}
@@ -69,7 +67,7 @@ export function HuntFieldsEditor({
             key={example.name}
             type="button"
             title={example.hint}
-            className="text-[13px] text-muted hover:text-white"
+            className="text-[13px] text-muted hover:text-ink"
             onClick={() => add(example)}
           >
             {example.name}
@@ -77,7 +75,7 @@ export function HuntFieldsEditor({
         ))}
       </div>
       {fields.map((field, index) => (
-        <section key={field.id} className="space-y-3 border-t border-white/[0.06] pt-6">
+        <section key={field.id} className="space-y-3 border-t border-line pt-6">
           <div className="flex items-center gap-3">
             <input
               value={field.name}
@@ -98,11 +96,7 @@ export function HuntFieldsEditor({
               <button
                 key={kind.value}
                 type="button"
-                className={`border-b pb-0.5 ${
-                  field.kind === kind.value
-                    ? "border-accent text-white"
-                    : "border-transparent text-muted hover:text-white/80"
-                }`}
+                className={`chip${field.kind === kind.value ? " chip-on" : ""}`}
                 onClick={() => patch(index, { kind: kind.value })}
               >
                 {kind.label}
@@ -134,7 +128,7 @@ export function HuntFieldsEditor({
         >
           {fields.length >= 8 ? "уже восемь" : "добавить поле"}
         </button>
-        <button type="button" className="text-[14px] text-white" onClick={onSave}>
+        <button type="button" className="text-[14px] text-accent" onClick={onSave}>
           Сохранить
         </button>
       </div>

@@ -141,7 +141,7 @@ export function TimedGrid({
                       <button
                         type="button"
                         aria-label="Удалить шаг"
-                        className="absolute right-0 top-0 rounded p-1 text-muted hover:bg-black/20 hover:text-white"
+                        className="absolute right-0 top-0 rounded p-1 text-muted hover:bg-black/20 hover:text-ink"
                         onClick={() => onDelete(block.eventId as number)}
                       >
                         <X size={11} />

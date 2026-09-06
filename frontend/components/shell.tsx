@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, GraduationCap, Inbox, Kanban, Settings, Target, Trophy, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { GuideSpot, useGuide } from "@/components/guide";
@@ -11,19 +10,27 @@ import { HuntSwitcher } from "@/components/hunt-switcher";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import { FeedbackButtons } from "@/components/feedback";
 import { ChatEntry } from "@/components/chat-panel";
+import { HoverMenu } from "@/components/hover-menu";
 import { useHunt } from "@/components/hunt-context";
 import { useWorkspace } from "@/components/workspace-context";
 
-const NAV = [
-  { href: "/", label: "Inbox", icon: Inbox },
-  { href: "/pipeline", label: "Воронка", icon: Kanban },
-  { href: "/time", label: "Время", icon: CalendarDays },
-  { href: "/contacts", label: "Контакты", icon: Users },
-  { href: "/internships", label: "Стажировки", icon: GraduationCap },
-  { href: "/hackathons", label: "Хакатоны", icon: Trophy },
-  { href: "/thesis", label: "Тезис", icon: Target },
-  { href: "/settings", label: "Настройки", icon: Settings },
-];
+const LINKS = [
+  { href: "/", label: "inbox" },
+  { href: "/pipeline", label: "воронка" },
+] as const;
+
+const CABINET = [
+  { href: "/resume", label: "резюме", detail: "ATS-вид, PDF, Fit по вакансиям" },
+  { href: "/time", label: "время", detail: "собесы, дедлайны, пинги" },
+  { href: "/contacts", label: "контакты", detail: "HR и компании с карточек" },
+  { href: "/thesis", label: "направления", detail: "какие вакансии смотришь" },
+  { href: "/internships", label: "стажировки", detail: "программы и школы" },
+  { href: "/hackathons", label: "хакатоны", detail: "ивенты в одном списке" },
+] as const;
+
+function pathIn(pathname: string, href: string) {
+  return pathname === href;
+}
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -45,80 +52,89 @@ export function Shell({ children }: { children: React.ReactNode }) {
       .catch(() => setNudgeCount(null));
   }, [pathname, me, activeHuntId]);
 
+  const cabinetOn = CABINET.some((item) => pathIn(pathname, item.href));
+  const accountLabel = me?.email?.split("@")[0] || "аккаунт";
+
   return (
-    <div className="flex min-h-screen">
-      <aside className="sticky top-0 flex h-screen w-[220px] shrink-0 flex-col border-r border-line bg-bg-soft px-4 py-6">
-        <div className="mb-10 px-2">
-          <div className="text-[13px] tracking-[0.18em] text-muted uppercase">Job CRM</div>
-          <div className="mt-1 text-xl font-semibold tracking-tight">HuntOS</div>
-          <GuideSpot id="shell.hunt">
-            <HuntSwitcher />
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-50 border-b border-line bg-bg print:hidden">
+        <div className="flex h-14 items-stretch gap-5 px-4 md:px-6">
+          <Link href="/" className="flex items-center text-[15px] font-semibold tracking-tight">
+            HuntOS
+          </Link>
+          <GuideSpot id="shell.nav" className="flex min-w-0 flex-1 items-stretch gap-4 overflow-x-auto md:overflow-visible">
+            {LINKS.map((item) => {
+              const on = pathIn(pathname, item.href);
+              return (
+                <Link key={item.href} href={item.href} className={`top-link${on ? " top-link-on" : ""}`}>
+                  {item.label}
+                  {item.href === "/" && inboxCount != null ? (
+                    <span className="text-[11px] tabular-nums text-muted">{inboxCount}</span>
+                  ) : null}
+                  {item.href === "/pipeline" && nudgeCount != null && nudgeCount > 0 ? (
+                    <span className="text-[11px] tabular-nums text-amber-200">{nudgeCount}</span>
+                  ) : null}
+                </Link>
+              );
+            })}
+            <HoverMenu label="кабинет" active={cabinetOn}>
+              {CABINET.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  data-on={pathIn(pathname, item.href) ? "true" : undefined}
+                  className="mega-item"
+                >
+                  <span className="mega-k">{item.label}</span>
+                  <span className="mega-d">{item.detail}</span>
+                </Link>
+              ))}
+            </HoverMenu>
+            <Link
+              href="/settings"
+              className={`top-link${pathIn(pathname, "/settings") ? " top-link-on" : ""}`}
+            >
+              настройки
+            </Link>
           </GuideSpot>
-          <WorkspaceSwitcher />
-        </div>
-        <GuideSpot id="shell.nav" className="flex min-h-0 flex-1 flex-col">
-        <nav className="flex flex-1 flex-col gap-1">
-          {NAV.map((item) => {
-            const active = pathname === item.href;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] transition ${
-                  active ? "bg-white/6 text-white" : "text-muted hover:bg-white/4 hover:text-white"
-                }`}
-              >
-                <Icon size={18} strokeWidth={1.7} />
-                <span className="flex-1">{item.label}</span>
-                {item.href === "/" && inboxCount != null && (
-                  <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11px] text-muted">
-                    {inboxCount}
-                  </span>
-                )}
-                {item.href === "/pipeline" && nudgeCount != null && nudgeCount > 0 && (
-                  <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] text-amber-100">
-                    {nudgeCount}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-        </GuideSpot>
-        <div className="mt-4 border-t border-line px-2 pt-4">
-          <div className="space-y-2">
-            <ChatEntry />
-            <FeedbackButtons />
-            <GuideSpot id="shell.guide">
-              <button
-                type="button"
-                onClick={() => guide.startPage()}
-                className="block w-full text-left text-[13px] leading-5 text-muted hover:text-white"
-              >
-                Обучение
-                <span className="mt-0.5 block text-[12px] text-accent/80">{pageTourTitle(pathname)}</span>
-              </button>
+          <div className="ml-auto hidden items-stretch md:flex">
+            <GuideSpot id="shell.hunt">
+              <HuntSwitcher variant="bar" />
             </GuideSpot>
           </div>
-          {me && (
-            <div className="mt-4 border-t border-white/[0.06] pt-4">
-              <p className="truncate text-[12px] leading-5 text-muted">{me.email}</p>
-              <button
-                type="button"
-                onClick={async () => {
-                  await api.logout();
-                  window.location.href = "/login";
-                }}
-                className="mt-2 text-[13px] text-muted hover:text-white"
-              >
-                Выйти
-              </button>
-            </div>
-          )}
+          <ChatEntry className="top-link" label="чат" />
+          <HoverMenu label={accountLabel} align="right" active={false}>
+              {me ? (
+                <p className="px-3 pt-1.5 pb-2 text-[12px] text-muted">{me.email}</p>
+              ) : null}
+              <div className="md:hidden border-b border-line pb-1 mb-1">
+                <p className="px-3 pb-1 text-[11px] text-muted">направление</p>
+                <HuntSwitcher variant="block" />
+              </div>
+              <WorkspaceSwitcher variant="menu" />
+              <GuideSpot id="shell.guide">
+                <button type="button" onClick={() => guide.startPage()} className="mega-item">
+                  <span className="mega-k">обучение</span>
+                  <span className="mega-d">{pageTourTitle(pathname)}</span>
+                </button>
+              </GuideSpot>
+              <FeedbackButtons itemClassName="mega-item" />
+              {me ? (
+                <button
+                  type="button"
+                  className="mega-item"
+                  onClick={async () => {
+                    await api.logout();
+                    window.location.href = "/login";
+                  }}
+                >
+                  <span className="mega-k">выйти</span>
+                </button>
+              ) : null}
+            </HoverMenu>
         </div>
-      </aside>
-      <main className="min-w-0 flex-1">{children}</main>
+      </header>
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-bg">{children}</main>
     </div>
   );
 }

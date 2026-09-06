@@ -14,9 +14,11 @@ import { NudgeQueue } from "@/components/nudge-queue";
 import { VacancyDrawer } from "@/components/vacancy-drawer";
 import { SalaryCorridorBlock } from "@/components/salary-corridor";
 import { relativeTime } from "@/lib/format";
+import { PageHead } from "./page-head";
+import { marketDot, marketLabel, marketTone } from "@/lib/hunt-copy";
 
 const EMPTY: Omit<Thesis, "id" | "last_verdict" | "last_reason" | "last_evaluated_at" | "stats" | "enabled"> = {
-  name: "Текущий поиск",
+  name: "",
   role_query: "",
   grades: [],
   formats: [],
@@ -29,22 +31,15 @@ const EMPTY: Omit<Thesis, "id" | "last_verdict" | "last_reason" | "last_evaluate
 };
 
 function verdictTone(verdict: string | null | undefined) {
-  if (verdict === "alive") return "text-emerald-200";
-  if (verdict === "dead") return "text-rose-200";
-  return "text-amber-200";
+  return marketTone(verdict);
 }
 
 function verdictDot(verdict: string | null | undefined) {
-  if (verdict === "alive") return "bg-emerald-300";
-  if (verdict === "dead") return "bg-rose-300";
-  return "bg-amber-300";
+  return marketDot(verdict);
 }
 
 function verdictLabel(verdict: string | null | undefined) {
-  if (verdict === "alive") return "жив";
-  if (verdict === "dead") return "мёртв";
-  if (verdict === "weak") return "слабо";
-  return "нет вердикта";
+  return marketLabel(verdict);
 }
 
 export function ThesisPanel() {
@@ -59,6 +54,7 @@ export function ThesisPanel() {
   const [openId, setOpenId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [advanced, setAdvanced] = useState(false);
 
   async function load() {
     const [data, ping] = await Promise.all([api.theses(), api.nudge()]);
@@ -69,6 +65,11 @@ export function ThesisPanel() {
   useEffect(() => {
     load().catch((e) => setError(e instanceof Error ? e.message : "Ошибка"));
   }, []);
+
+  useEffect(() => {
+    const write = new URLSearchParams(window.location.search).get("write");
+    if (write && activeHuntId) setWaveId(activeHuntId);
+  }, [activeHuntId]);
 
   const selected = items.find((item) => item.id === selectedId) ?? items[0] ?? null;
 
@@ -114,8 +115,11 @@ export function ThesisPanel() {
   async function save() {
     setError(null);
     try {
-      const saved = await api.saveThesis({ ...form, enabled: true, name: form.name }, editingId ?? undefined);
-      setStatus(editingId ? "Тезис обновлён" : "Тезис поставлен");
+      const saved = await api.saveThesis(
+        { ...form, enabled: true, name: form.name.trim() || "Направление" },
+        editingId ?? undefined,
+      );
+      setStatus(editingId ? "Сохранил направление" : "Направление добавлено");
       setEditingId(null);
       setForm(EMPTY);
       setComposer(false);
@@ -134,16 +138,14 @@ export function ThesisPanel() {
     : 0;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <header className="flex shrink-0 items-center gap-6 px-7 pt-6 pb-4">
-        <GuideSpot id="thesis.header" className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h1 className="text-[22px] font-semibold tracking-tight">Тезис</h1>
-            <GuideHint id="thesis.header" />
-          </div>
-          <p className="mt-0.5 text-[12px] text-muted">
-            {items.length ? `${items.length} · гипотеза про сегмент` : "гипотеза: этот сегмент ещё жив"}
-          </p>
+    <div className="flex h-full flex-col overflow-hidden">
+      <header className="flex shrink-0 items-end gap-6 px-7 pt-5 pb-4">
+        <GuideSpot id="thesis.header" className="min-w-0 flex-1">
+          <PageHead
+            title="направления"
+            count={items.length ? `${items.length} · какие вакансии смотришь` : "какие вакансии смотришь"}
+            hint={<GuideHint id="thesis.header" />}
+          />
         </GuideSpot>
         <button
           type="button"
@@ -154,12 +156,10 @@ export function ThesisPanel() {
               setForm(EMPTY);
             } else startCreate();
           }}
-          className={`ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] ${
-            composer ? "bg-white/10 text-white" : "text-accent hover:bg-accent/10"
-          }`}
+          className={`chip ml-auto${composer ? " chip-on" : ""}`}
         >
           {composer ? <X size={14} /> : <Plus size={14} />}
-          {composer ? "Закрыть" : "тезис"}
+          {composer ? "Закрыть" : "направление"}
         </button>
       </header>
 
@@ -186,7 +186,7 @@ export function ThesisPanel() {
             <GuideHint id="thesis.list" />
           </div>
           {items.length === 0 ? (
-            <p className="px-5 py-6 text-[13px] text-muted">Пока нет тезиса</p>
+            <p className="px-5 py-6 text-[13px] text-muted">Пока нет направлений</p>
           ) : (
             items.map((thesis) => {
               const active = selected?.id === thesis.id && !composer && !waveThesis;
@@ -201,9 +201,8 @@ export function ThesisPanel() {
                     setWaveId(null);
                     void setActiveHuntId(thesis.id);
                   }}
-                  className={`flex w-full items-start gap-3 px-4 py-3 text-left ${
-                    active ? "bg-white/[0.05]" : "hover:bg-white/[0.03]"
-                  }`}
+                  data-active={active ? "true" : undefined}
+                  className="row flex w-full items-start gap-3 px-4 py-3 text-left"
                 >
                   <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${verdictDot(verdict)}`} />
                   <span className="min-w-0 flex-1">
@@ -228,97 +227,62 @@ export function ThesisPanel() {
               }}
             >
               <h2 className="text-[26px] font-semibold tracking-tight">
-                {editingId ? "Изменить тезис" : "Новый тезис"}
+                {editingId ? "Изменить направление" : "Новое направление"}
               </h2>
               <p className="mt-2 text-[13px] leading-5 text-muted">
-                Опиши сегмент, который проверяешь. Через пару недель HuntOS скажет, есть ли там живые ответы. Волна — пачка вакансий из Inbox, которым пишешь разом.
+                Например «Python senior удалёнка». Inbox и воронка покажут только эти вакансии. В шапке можно переключаться между направлениями.
               </p>
               <div className="mt-8 space-y-6">
                 <label className="block">
-                  <GuideLabel id="thesis.name" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                  <GuideLabel id="thesis.name" className="mb-2 text-[12px] text-muted">
                     Название
                   </GuideLabel>
                   <input
                     className="field-line"
                     value={form.name}
                     onChange={(e) => patch("name", e.target.value)}
-                    placeholder="Staff frontend remote 400k+"
+                    placeholder="Python senior remote"
                     autoFocus
                   />
                 </label>
                 <label className="block">
-                  <GuideLabel id="thesis.query" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                  <GuideLabel id="thesis.query" className="mb-2 text-[12px] text-muted">
                     Запрос
                   </GuideLabel>
                   <input
                     className="field-line"
                     value={form.role_query}
                     onChange={(e) => patch("role_query", e.target.value)}
-                    placeholder="go, frontend или слова из роли, компании, описания"
+                    placeholder="python, senior — слова из роли или компании"
                   />
                 </label>
                 <fieldset>
-                  <GuideLabel id="thesis.grades" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                  <GuideLabel id="thesis.grades" className="mb-2 text-[12px] text-muted">
                     Грейд
                   </GuideLabel>
                   <FilterChips options={LEVELS} value={form.grades} onChange={(grades) => patch("grades", grades)} />
                 </fieldset>
                 <fieldset>
-                  <GuideLabel id="thesis.formats" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                  <GuideLabel id="thesis.formats" className="mb-2 text-[12px] text-muted">
                     Формат
                   </GuideLabel>
                   <FilterChips options={FORMATS} value={form.formats} onChange={(formats) => patch("formats", formats)} />
                 </fieldset>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-5">
-                  <label>
-                    <GuideLabel id="thesis.salary" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
-                      Мин. зп
-                    </GuideLabel>
-                    <input
-                      className="field-line"
-                      type="number"
-                      value={form.salary_min ?? ""}
-                      onChange={(e) => patch("salary_min", e.target.value ? Number(e.target.value) : null)}
-                      placeholder="350000"
-                    />
-                  </label>
-                  <label>
-                    <GuideLabel id="thesis.days" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
-                      Ждать, дни
-                    </GuideLabel>
-                    <input
-                      className="field-line"
-                      type="number"
-                      value={form.days}
-                      onChange={(e) => patch("days", Number(e.target.value) || 14)}
-                    />
-                  </label>
-                  <label>
-                    <GuideLabel id="thesis.min_sample" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
-                      Мин. вакансий
-                    </GuideLabel>
-                    <input
-                      className="field-line"
-                      type="number"
-                      value={form.min_sample}
-                      onChange={(e) => patch("min_sample", Number(e.target.value) || 8)}
-                    />
-                  </label>
-                  <label>
-                    <GuideLabel id="thesis.match" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
-                      Мин. совпадение
-                    </GuideLabel>
-                    <input
-                      className="field-line"
-                      type="number"
-                      value={form.min_median_match}
-                      onChange={(e) => patch("min_median_match", Number(e.target.value) || 55)}
-                    />
-                  </label>
-                </div>
+                <label>
+                  <GuideLabel id="thesis.salary" className="mb-2 text-[12px] text-muted">
+                    Мин. зп
+                  </GuideLabel>
+                  <input
+                    className="field-line"
+                    type="number"
+                    value={form.salary_min ?? ""}
+                    onChange={(e) => patch("salary_min", e.target.value ? Number(e.target.value) : null)}
+                    placeholder="350000"
+                  />
+                </label>
                 <ToggleChip label="без NDA" on={form.no_nda} onChange={(no_nda) => patch("no_nda", no_nda)} />
                 <label className="block">
-                  <GuideLabel id="thesis.exclude" className="mb-2 text-[11px] tracking-[0.16em] text-muted uppercase">
+                  <GuideLabel id="thesis.exclude" className="mb-2 text-[12px] text-muted">
                     Кроме компаний
                   </GuideLabel>
                   <div className="field-line">
@@ -331,10 +295,54 @@ export function ThesisPanel() {
                     Яндекс, Yandex и «Яндекс.Такси» — одно имя. Enter или запятая.
                   </span>
                 </label>
+                <button
+                  type="button"
+                  onClick={() => setAdvanced((open) => !open)}
+                  className="text-[12px] text-muted hover:text-ink"
+                >
+                  {advanced ? "скрыть как считаем рынок" : "как считаем рынок"}
+                </button>
+                {advanced && (
+                <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+                  <label>
+                    <GuideLabel id="thesis.days" className="mb-2 text-[12px] text-muted">
+                      Смотреть, дни
+                    </GuideLabel>
+                    <input
+                      className="field-line"
+                      type="number"
+                      value={form.days}
+                      onChange={(e) => patch("days", Number(e.target.value) || 14)}
+                    />
+                  </label>
+                  <label>
+                    <GuideLabel id="thesis.min_sample" className="mb-2 text-[12px] text-muted">
+                      Мин. вакансий
+                    </GuideLabel>
+                    <input
+                      className="field-line"
+                      type="number"
+                      value={form.min_sample}
+                      onChange={(e) => patch("min_sample", Number(e.target.value) || 8)}
+                    />
+                  </label>
+                  <label>
+                    <GuideLabel id="thesis.match" className="mb-2 text-[12px] text-muted">
+                      Мин. совпадение с резюме
+                    </GuideLabel>
+                    <input
+                      className="field-line"
+                      type="number"
+                      value={form.min_median_match}
+                      onChange={(e) => patch("min_median_match", Number(e.target.value) || 55)}
+                    />
+                  </label>
+                </div>
+                )}
               </div>
               <div className="mt-8 flex items-center gap-5">
                 <button type="submit" className="text-[14px] text-accent">
-                  {editingId ? "Сохранить" : "Поставить"}
+                  {editingId ? "Сохранить" : "Добавить"}
                 </button>
                 {editingId != null && (
                   <button
@@ -344,7 +352,7 @@ export function ThesisPanel() {
                       setEditingId(null);
                       setForm(EMPTY);
                     }}
-                    className="text-[14px] text-muted hover:text-white"
+                    className="text-[14px] text-muted hover:text-ink"
                   >
                     Отмена
                   </button>
@@ -363,12 +371,15 @@ export function ThesisPanel() {
                 <GuideHint id="thesis.verdict" className="ml-1 inline-flex align-middle" />
               </p>
               <h2 className="mt-2 text-[26px] font-semibold tracking-tight">{selected.name}</h2>
+              <p className="mt-2 text-[13px] leading-5 text-muted">
+                Фильтр inbox и воронки. В шапке справа можно переключиться на другое направление или показать все карточки.
+              </p>
               <p className="mt-3 text-[14px] leading-6 text-muted">
-                {selected.stats?.reason || selected.last_reason || "Пока рано судить — копим ответы."}
+                {selected.stats?.reason || selected.last_reason || "Пока рано: мало вакансий в ленте, чтобы понять рынок."}
               </p>
               {selected.last_wave?.sent_at && (
                 <p className="mt-2 text-[13px] text-muted">
-                  последняя волна: написал {selected.last_wave.wrote_count}
+                  последняя пачка: написал {selected.last_wave.wrote_count}
                   {relativeTime(selected.last_wave.sent_at) ? ` · ${relativeTime(selected.last_wave.sent_at)}` : ""}
                 </p>
               )}
@@ -388,7 +399,7 @@ export function ThesisPanel() {
                         {selected.stats.age_days} / {selected.stats.window_days} дн.
                       </span>
                     </div>
-                    <div className="h-px bg-white/10">
+                    <div className="h-px bg-fill-strong">
                       <div
                         className="h-px bg-accent"
                         style={{
@@ -397,7 +408,7 @@ export function ThesisPanel() {
                       />
                     </div>
                   </div>
-                  <dl className="mt-6 divide-y divide-white/[0.06] border-y border-white/[0.06]">
+                  <dl className="mt-6 divide-y divide-white/[0.06] border-y border-line">
                     {[
                       ["вакансий", String(selected.stats.sample)],
                       ["в inbox", String(selected.stats.inbox ?? 0)],
@@ -421,11 +432,11 @@ export function ThesisPanel() {
               <div className="mt-8 flex flex-wrap gap-5 text-[14px]">
                 <GuideSpot id="thesis.wave" className="inline-flex items-center gap-1">
                 <button type="button" className="text-accent" onClick={() => setWaveId(selected.id)}>
-                  Волна
+                  Написать сегодня
                 </button>
                 <GuideHint id="thesis.wave" />
                 </GuideSpot>
-                <button type="button" className="text-muted hover:text-white" onClick={() => startEdit(selected)}>
+                <button type="button" className="text-muted hover:text-ink" onClick={() => startEdit(selected)}>
                   Изменить
                 </button>
                 <button
@@ -445,9 +456,9 @@ export function ThesisPanel() {
             </div>
           ) : (
             <div className="mx-auto max-w-[440px] pt-16">
-              <p className="text-[22px] font-medium tracking-tight">Пока нет тезиса</p>
+              <p className="text-[22px] font-medium tracking-tight">Пока нет направлений</p>
               <p className="mt-3 text-[14px] leading-6 text-muted">
-                Поставь гипотезу: какой сегмент проверяешь. Через пару недель станет ясно, стоит ли туда идти.
+                Добавь, какие вакансии смотришь — например «Python senior удалёнка». Потом в шапке переключаешься между ними, а Inbox и воронка показывают только это.
               </p>
             </div>
           )}

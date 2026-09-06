@@ -20,6 +20,15 @@ from app.services.google_calendar import (
     resolved_client_credentials,
 )
 from app.services.hunts import hunt_field_defs, list_hunts, maybe_hunt, save_hunt_fields
+from app.services.resume import (
+    fill_resume_from_text,
+    flatten_resume,
+    hydrate_from_text,
+    issue_share_id,
+    normalize_resume,
+    resume_is_empty,
+)
+from app.services.scoring.llm import config_from_profile
 from app.services.scheduler import sync_jobs
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
@@ -94,6 +103,11 @@ async def update_profile(
                 flag_modified(profile, "custom_fields")
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
+    if "resume_json" in data:
+        doc = normalize_resume(data.pop("resume_json"))
+        profile.resume_json = doc
+        flag_modified(profile, "resume_json")
+        data["resume_text"] = flatten_resume(doc)
     if not actor.is_host:
         data.pop("google_client_id", None)
         data.pop("google_client_secret", None)
@@ -103,6 +117,11 @@ async def update_profile(
         if key in {"openai_api_key", "google_client_secret"} and isinstance(value, str):
             value = seal(value)
         setattr(profile, key, value)
+    if profile.resume_public and not profile.resume_share_id:
+        profile.resume_share_id = issue_share_id()
+    if resume_is_empty(profile.resume_json) and (profile.resume_text or "").strip():
+        profile.resume_json = hydrate_from_text(profile.resume_text or "", profile.display_name)
+        flag_modified(profile, "resume_json")
     await session.commit()
     await session.refresh(profile)
     await sync_jobs()
@@ -133,6 +152,12 @@ async def upload_resume(
         raise HTTPException(400, "Файл пустой или текст не извлечён")
     profile.resume_text = text
     profile.resume_filename = name
+    profile.resume_json = await fill_resume_from_text(
+        text,
+        profile.display_name,
+        cfg=config_from_profile(profile),
+    )
+    flag_modified(profile, "resume_json")
     await session.commit()
     await session.refresh(profile)
     return await _to_out(session, profile, await _profile_fields(session, user, profile), request.headers)

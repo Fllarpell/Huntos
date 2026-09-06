@@ -90,7 +90,7 @@ async def _apply_fields(session: AsyncSession, row: HuntThesis, payload: ThesisI
 async def _thesis_for_user(session: AsyncSession, user: User, thesis_id: int) -> HuntThesis:
     row = await session.get(HuntThesis, thesis_id)
     if row is None or row.user_id != user.id:
-        raise HTTPException(404, "Тезис не найден")
+        raise HTTPException(404, "Направление не найдено")
     return row
 
 
@@ -425,7 +425,7 @@ async def patch_nudge_slot(
     scope = ping_scope(payload.thesis_id)
     row = next((item for item in slots if item.scope == scope), None)
     if row is None:
-        raise HTTPException(404, "Очередь пинга по этому тезису ещё не созрела")
+        raise HTTPException(404, "Очередь пинга по этому направлению ещё не созрела")
     row.ping_at = payload.ping_at
     if payload.ping_at is None:
         row.synced_ping_at = None

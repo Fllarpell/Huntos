@@ -34,8 +34,8 @@ export function FeedbackInbox() {
   return (
     <div className="space-y-6">
       {rows.map((row) => (
-        <article key={row.id} className="border-b border-white/[0.06] pb-5">
-          <p className="text-[13px] text-white/85">
+        <article key={row.id} className="border-b border-line pb-5">
+          <p className="text-[13px] text-ink">
             {row.kind === "bug" ? "ошибка" : "пожелание"}
             {" · "}
             {pageLabel(row.page) || "экран не указан"}

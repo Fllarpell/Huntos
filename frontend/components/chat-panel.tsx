@@ -26,19 +26,25 @@ function initials(name: string) {
 function PeerMark({ name, online }: { name: string; online: boolean }) {
   return (
     <span className="relative shrink-0">
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.07] text-[11px] font-medium tracking-wide text-white/85">
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-fill-strong text-[11px] font-medium tracking-wide text-ink">
         {initials(name)}
       </span>
       <span
-        className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#12141b] ${
-          online ? "bg-emerald-400" : "bg-white/25"
+        className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-bg-soft ${
+          online ? "bg-emerald-400" : "bg-fill5"
         }`}
       />
     </span>
   );
 }
 
-export function ChatEntry() {
+export function ChatEntry({
+  className = "block w-full text-left text-[13px] leading-5 text-muted hover:text-ink",
+  label = "чат",
+}: {
+  className?: string;
+  label?: string;
+}) {
   const { me } = useWorkspace();
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -49,12 +55,8 @@ export function ChatEntry() {
     <>
       <GuideSpot id="shell.chat">
         <span className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="block w-full text-left text-[13px] leading-5 text-muted hover:text-white"
-          >
-            Диалоги
+          <button type="button" onClick={() => setOpen(true)} className={className}>
+            {label}
             {unread > 0 ? <span className="ml-1 text-accent">· {unread}</span> : null}
           </button>
           <GuideHint id="shell.chat" />
@@ -158,21 +160,21 @@ function ChatSheet({
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 px-4 backdrop-blur-[2px]" onClick={onClose}>
       <div
-        className="flex h-[min(78vh,640px)] w-full max-w-[760px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#101218] shadow-[0_28px_90px_rgba(0,0,0,0.78)]"
+        className="flex h-[min(78vh,640px)] w-full max-w-[760px] overflow-hidden rounded-2xl border border-line bg-[#101218] shadow-[0_28px_90px_rgba(0,0,0,0.78)]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="chat-title"
       >
-        <aside className="flex w-[248px] shrink-0 flex-col border-r border-white/[0.06] bg-[#0c0e13]">
-          <div className="border-b border-white/[0.06] px-4 py-3.5">
+        <aside className="flex w-[248px] shrink-0 flex-col border-r border-line bg-[#0c0e13]">
+          <div className="border-b border-line px-4 py-3.5">
             <h2 id="chat-title" className="text-[15px] font-semibold tracking-tight">
               Диалоги
             </h2>
             <p className="mt-0.5 text-[12px] text-muted">{host ? "люди на HuntOS" : "связь с админом"}</p>
             {host && threads.length > 6 ? (
               <input
-                className="mt-2.5 !rounded-lg !border-white/10 !bg-white/[0.04] !py-1.5 text-[13px]"
+                className="mt-2.5 !rounded-lg !border-line !bg-fill !py-1.5 text-[13px]"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="найти"
@@ -191,13 +193,13 @@ function ChatSheet({
                   type="button"
                   onClick={() => setActiveId(row.id)}
                   className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition ${
-                    on ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"
+                    on ? "bg-fill-strong" : "hover:bg-fill"
                   }`}
                 >
                   <PeerMark name={row.peer_name} online={row.online} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
-                      <span className={`truncate text-[13px] ${on ? "text-white" : "text-white/90"}`}>
+                      <span className="truncate text-[13px] text-ink">
                         {row.peer_name}
                       </span>
                       {row.unread > 0 ? (
@@ -216,8 +218,8 @@ function ChatSheet({
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col bg-[#12141b]">
-          <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
+        <div className="flex min-w-0 flex-1 flex-col bg-bg-soft">
+          <div className="flex items-center gap-3 border-b border-line px-4 py-3">
             {active ? <PeerMark name={active.peer_name} online={active.online} /> : null}
             <div className="min-w-0 flex-1">
               <p className="truncate text-[15px] font-semibold tracking-tight">
@@ -230,7 +232,7 @@ function ChatSheet({
             <button
               type="button"
               aria-label="Закрыть"
-              className="rounded-lg p-1.5 text-muted hover:bg-white/[0.05] hover:text-white"
+              className="rounded-lg p-1.5 text-muted hover:bg-fill-strong hover:text-ink"
               onClick={onClose}
             >
               <X size={16} strokeWidth={1.75} />
@@ -332,7 +334,7 @@ function ThreadView({ thread, onSent }: { thread: ChatThread; onSent: () => void
                 className={`max-w-[78%] px-3.5 py-2 text-[14px] leading-5 ${
                   row.mine
                     ? "rounded-[18px] rounded-br-md bg-accent/18 text-white"
-                    : "rounded-[18px] rounded-bl-md bg-white/[0.06] text-white/90"
+                    : "rounded-[18px] rounded-bl-md bg-fill-strong text-ink"
                 }`}
               >
                 <p className="whitespace-pre-wrap">{row.body}</p>
@@ -347,13 +349,13 @@ function ThreadView({ thread, onSent }: { thread: ChatThread; onSent: () => void
       </div>
       {error ? <p className="px-4 pb-1 text-sm text-rose-200">{error}</p> : null}
       <form
-        className="border-t border-white/[0.06] bg-[#0e1015] px-3 py-3"
+        className="border-t border-line bg-input px-3 py-3"
         onSubmit={(e) => {
           e.preventDefault();
           void send();
         }}
       >
-        <div className="flex items-end gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 focus-within:border-accent/40">
+        <div className="flex items-end gap-2 rounded-xl border border-line bg-fill px-3 py-2 focus-within:border-accent/40">
           <textarea
             rows={1}
             value={draft}

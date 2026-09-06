@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useHunt } from "@/components/hunt-context";
 
-export function HuntSwitcher() {
+export function HuntSwitcher({ variant = "block" }: { variant?: "block" | "bar" }) {
   const { hunts, activeHuntId, activeHunt, setActiveHuntId, createHunt } = useHunt();
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const bar = variant === "bar";
 
   const label = activeHunt?.name || "все карточки";
 
@@ -39,22 +41,25 @@ export function HuntSwitcher() {
   }
 
   return (
-    <div className="relative mt-3">
+    <div className={`relative ${bar ? "" : "mt-3"}`}>
       <button
         type="button"
         disabled={busy}
         onClick={() => setOpen((v) => !v)}
-        className="w-full truncate text-left text-[13px] text-muted hover:text-white"
+        title="направление — какие вакансии в inbox"
+        className={bar ? `top-link max-w-[160px] truncate${open ? " top-link-on" : ""}` : "w-full truncate text-left text-[13px] text-muted hover:text-ink"}
       >
         {label}
       </button>
       {open && (
-        <div className="absolute left-0 right-0 z-20 mt-2 space-y-1 rounded-xl border border-line bg-bg-soft p-2">
+        <div className={`absolute z-30 mt-1 space-y-1 rounded-xl border border-line bg-bg-soft p-2 ${bar ? "right-0 w-[240px]" : "left-0 right-0"}`}
+        >
+          <p className="px-2 pt-0.5 pb-1 text-[11px] leading-4 text-muted">направление — какие вакансии в inbox</p>
           <button
             type="button"
             onClick={() => void pick(null)}
             className={`block w-full truncate rounded-lg px-2 py-1.5 text-left text-[13px] ${
-              activeHuntId == null ? "text-white" : "text-muted hover:text-white"
+              activeHuntId == null ? "bg-fill-strong text-ink" : "text-muted hover:bg-fill hover:text-ink"
             }`}
           >
             все карточки
@@ -65,14 +70,14 @@ export function HuntSwitcher() {
               type="button"
               onClick={() => void pick(hunt.id)}
               className={`block w-full truncate rounded-lg px-2 py-1.5 text-left text-[13px] ${
-                hunt.id === activeHuntId ? "text-white" : "text-muted hover:text-white"
+                hunt.id === activeHuntId ? "bg-fill-strong text-ink" : "text-muted hover:bg-fill hover:text-ink"
               }`}
             >
               {hunt.name}
               {hunt.inbox_count > 0 ? ` · ${hunt.inbox_count}` : ""}
             </button>
           ))}
-          <div className="border-t border-white/[0.06] pt-1">
+          <div className="border-t border-line pt-1">
             {creating ? (
               <form
                 onSubmit={(e) => {
@@ -84,7 +89,7 @@ export function HuntSwitcher() {
                   autoFocus
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="имя охоты"
+                  placeholder="имя направления"
                   className="w-full bg-transparent px-2 py-1.5 text-[13px] outline-none"
                 />
               </form>
@@ -94,9 +99,16 @@ export function HuntSwitcher() {
                 onClick={() => setCreating(true)}
                 className="block w-full px-2 py-1.5 text-left text-[13px] text-accent"
               >
-                новая охота
+                новое направление
               </button>
             )}
+            <Link
+              href="/thesis"
+              onClick={() => setOpen(false)}
+              className="block w-full px-2 py-1.5 text-left text-[13px] text-muted hover:text-ink"
+            >
+              все направления
+            </Link>
           </div>
         </div>
       )}
